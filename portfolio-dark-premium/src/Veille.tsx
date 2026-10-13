@@ -1,6 +1,7 @@
 import { ArrowLeft, ArrowUpRight, Check, Cloud, Gauge, Puzzle, Sparkles, Workflow, X } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { veille } from './data'
+import { scrollToId } from './scroll'
 
 const evolutionIcons: Record<string, ReactNode> = {
   ia: <Sparkles size={18} />,
@@ -25,7 +26,7 @@ const toc = [
 
 // Le routage utilise le hash (#veille) : on défile sans modifier l'adresse.
 function goTo(id: string) {
-  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  scrollToId(id)
 }
 
 function Source({ label, href }: { label: string; href: string }) {
