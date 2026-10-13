@@ -97,7 +97,7 @@ function App() {
           <div className="visual-grid" />
           <div className="profile-frame"><img src="/img/photo_profil.webp" alt="Portrait d’Ethane Zimmermann" /></div>
           <div className="floating-card code-card"><div className="card-dots"><i /><i /><i /></div><code><span className="code-purple">const</span> developer = {'{'}<br />&nbsp; passion: <span className="code-green">'création'</span>,<br />&nbsp; mindset: <span className="code-green">'progression'</span><br />{'}'}</code></div>
-          <div className="floating-card availability"><span className="availability-icon"><Code2 size={16} /></span><div><strong>En recherche</strong><small>Emploi · Alternance</small></div></div>
+          <div className="floating-card availability"><span className="availability-icon"><Code2 size={16} /></span><div><strong>En recherche</strong><small>Alternance ou poste</small></div></div>
           <div className="orbit orbit-a" /><div className="orbit orbit-b" />
         </div>
         <a href="#apropos" className="scroll-cue"><span /> DÉFILER POUR EXPLORER</a>

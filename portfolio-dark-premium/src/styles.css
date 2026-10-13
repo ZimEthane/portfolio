@@ -136,3 +136,11 @@ h1,h2,h3,h4,strong,.brand{color:#f2f5fa}
 
 /* Les halos décoratifs dépassent du cadre : "clip" empêche tout décalage latéral de la page, même par script. */
 .site-shell{overflow:hidden;overflow:clip}
+
+/* Mobile : la photo reste entièrement visible (carte code masquée, carte « En recherche » placée sous la photo) */
+@media(max-width:600px){
+  .code-card{display:none}
+  .hero-visual{height:310px;place-items:start center}
+  .profile-frame{margin-top:6px}
+  .availability{left:50%;right:auto;bottom:4px;transform:translateX(-50%);white-space:nowrap}
+}
