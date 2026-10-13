@@ -1,0 +1,277 @@
+/* Reset CSS */
+body,
+h1,
+h2,
+h3,
+p,
+ul,
+li,
+video,
+audio,
+table,
+th,
+td {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Body Styles */
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    background-color: #3a3a3a;
+    color: #fff;
+    padding: 20px;
+}
+
+/* Header and Footer Styles */
+iframe {
+    display: block;
+    margin: 0 auto;
+}
+
+/* Main Title Style */
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* Subtitle Styles */
+h2 {
+    margin-top: 20px;
+}
+
+/* Paragraph Styles */
+p {
+    margin-bottom: 15px;
+}
+
+/* List Styles */
+ul,
+ol {
+    margin-bottom: 15px;
+}
+
+/* Image Styles */
+img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 0 auto;
+    margin-bottom: 15px;
+}
+
+/* Video Styles */
+video {
+    display: block;
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+/* Audio Styles */
+audio {
+    display: block;
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+/* Table Styles */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 15px;
+}
+
+th,
+td {
+    padding: 8px;
+    border: 1px solid #ddd;
+    background-color: #474747;
+    color: white;
+}
+
+
+/* Figure Styles */
+figure {
+    margin-bottom: 15px;
+}
+
+figcaption {
+    margin-top: 10px;
+    text-align: center;
+}
+
+/* Link Styles */
+a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+
+
+
+/*fleche pour remonter*/
+.scroll-to-top {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 50px;
+    /* Largeur de l'image */
+    height: 50px;
+    /* Hauteur de l'image */
+    border: 1px solid #e6e6e6
+        /*  bordure */
+}
+
+
+
+
+
+header {
+    background-color: #f2f2f2;
+    padding: 20px;
+    text-align: center;
+}
+
+header nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+header nav ul li {
+    display: inline-block;
+    margin-right: 10px;
+}
+
+header nav ul li:last-child {
+    margin-right: 0;
+}
+
+header nav ul li a {
+    color: #555;
+    text-decoration: none;
+    padding: 10px;
+}
+
+header nav ul li a:hover {
+    color: #000;
+    background-color: #e6e6e6;
+    border-radius: 3px;
+}
+
+.menue {
+    background-color: #f2f2f2;
+    padding: 20px;
+    text-align: center;
+}
+
+.menue h1 {
+    color: #333;
+    margin-top: 0;
+}
+
+.menue nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    text-align: center;
+}
+
+.menue nav ul li {
+    display: inline-block;
+    margin-right: 10px;
+}
+
+.menue nav ul li:last-child {
+    margin-right: 0;
+}
+
+.menue nav ul li a {
+    color: #555;
+    text-decoration: none;
+    padding: 10px;
+}
+
+.menue nav ul li a:hover {
+    color: #000;
+    background-color: #e6e6e6;
+    border-radius: 3px;
+}
+
+.cadre {
+    border: 1px solid #ccc;
+    padding: 20px;
+}
+
+
+
+.cadre_fond_droite {
+    border: 1px solid #ccc;
+    background-color: #808080;
+    padding: 20px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.cadre_fond>div {
+    flex: 1;
+    margin: 0 10px;
+}
+
+.cadre_fond h2 {
+    margin-top: 0;
+}
+
+.cadre_fond img {
+    max-width: 100%;
+    height: auto;
+}
+
+
+
+.cadre_image3 {
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.cadre_image3 p {
+    margin-bottom: 20px;
+}
+
+.cadre_image3 img {
+    display: inline-block;
+    width: 30%;
+    margin: 10px;
+}
+
+
+.liste ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.liste li {
+    margin-bottom: 10px;
+}
+
+.liste li:before {
+    content: "\2022";
+    color: #ff0000;
+    /* Couleur du marqueur */
+    font-weight: bold;
+    display: inline-block;
+    width: 1em;
+    margin-left: -1em;
+}
