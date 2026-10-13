@@ -20,6 +20,39 @@ function useHash() {
   return hash
 }
 
+// Remontée douce : durée proportionnelle à la distance (0,6 s à 1,1 s) avec une courbe qui démarre et finit en douceur.
+// L'animation est gérée ici plutôt que par le navigateur, pour qu'elle soit identique partout.
+// Elle s'arrête dès que le visiteur reprend la main (molette, doigt, clavier).
+function scrollToTop() {
+  const start = window.scrollY
+  if (start <= 0) return
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    window.scrollTo(0, 0)
+    return
+  }
+  const duration = Math.min(1100, Math.max(600, 350 + start * 0.15))
+  const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
+  const root = document.documentElement
+  const previous = root.style.scrollBehavior
+  root.style.scrollBehavior = 'auto' // évite que le défilement doux du CSS se superpose à l'animation
+  const interrupts = ['wheel', 'touchstart', 'keydown'] as const
+  let frame = 0
+  const finish = () => {
+    cancelAnimationFrame(frame)
+    root.style.scrollBehavior = previous
+    interrupts.forEach(name => window.removeEventListener(name, finish))
+  }
+  interrupts.forEach(name => window.addEventListener(name, finish, { passive: true }))
+  const t0 = performance.now()
+  const step = (now: number) => {
+    const progress = Math.min(1, (now - t0) / duration)
+    window.scrollTo(0, Math.round(start * (1 - ease(progress))))
+    if (progress < 1) frame = requestAnimationFrame(step)
+    else finish()
+  }
+  frame = requestAnimationFrame(step)
+}
+
 // Bouton flottant en bas à droite : apparaît après un peu de défilement et ramène tout en haut.
 function ScrollTopButton() {
   const [visible, setVisible] = useState(false)
@@ -35,7 +68,7 @@ function ScrollTopButton() {
     aria-label="Remonter en haut de la page"
     title="Remonter en haut"
     tabIndex={visible ? 0 : -1}
-    onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+    onClick={scrollToTop}
   ><ArrowUp size={20} /></button>
 }
 
