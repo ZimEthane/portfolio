@@ -115,3 +115,9 @@
 
 @media(max-width:800px){.evo-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.accounts-layout{grid-template-columns:1fr}.contact-layout{grid-template-columns:1fr;gap:36px}.bts-grid{grid-template-columns:1fr}}
 @media(max-width:600px){.tools-grid,.evo-grid,.proscons,.account-list,.form-row{grid-template-columns:1fr}.tool-group{padding:16px}.bts{margin-top:56px}.bts-card{padding:20px}.veille{padding-top:28px}.veille-block{padding-top:44px}.compare-table th,.compare-table td{padding:11px 12px}.v-timeline li{flex-direction:column;gap:2px}}
+
+
+/* ===== Lisibilité : textes secondaires et seconde ligne des titres plus clairs ===== */
+.muted{color:#aebbd2}
+.hero-meta,.scroll-cue,.skills-note,.footer,.contact-foot{color:#9ca8bd}
+.skill-card small,.availability small,.timeline-place,.mini-label{color:#a0abc0}
