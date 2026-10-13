@@ -10,7 +10,9 @@ export type Project = {
   tags: string[]
   image: string
   pdf: string
+  pdfLabel?: string
   demo?: string
+  demoLabel?: string
   extraPdf?: { label: string; href: string }[]
 }
 
@@ -25,9 +27,12 @@ export const projects: Project[] = [
     description: 'Maintenance informatique en première année, puis création du site internet de Microsphères Informatique en seconde année.',
     tags: ['Stage', 'Maintenance', 'Site web'], image: '/img/projets/logo-microspheres-informatique-caussade.webp',
     pdf: '/pdf/projet-6/Rapport_de_Stage_BTS_S.I.O_Microspheres_1_annee.pdf',
+    pdfLabel: 'Stage année 1',
+    demo: 'https://microspheres-informatique.fr/',
+    demoLabel: 'Visiter le site Microsphères',
     extraPdf: [
       { label: 'Stage année 2', href: '/pdf/projet-7/Rapport_de_Stage_BTS_S.I.O_Microsphéres_2_annee.pdf' },
-      { label: 'Back-office', href: '/pdf/projet-7/documentation_back-office_Microspheres.pdf' },
+      { label: 'Back-office du site (stage année 2)', href: '/pdf/projet-7/documentation_back-office_Microspheres.pdf' },
     ],
   },
   { n: '07', title: 'Infrastructure Azure', type: 'Cloud · Base de données', description: 'Travail de documentation autour de la réplication MariaDB sur Azure.', tags: ['Azure', 'MariaDB', 'Cloud'], image: '/img/projets/Azure.webp', pdf: '/pdf/projet-8/Replication_MariaDB_sur_AZURE_-_Zimmermann_Ethane.pdf' },
