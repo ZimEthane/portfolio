@@ -121,3 +121,18 @@
 .muted{color:#aebbd2}
 .hero-meta,.scroll-cue,.skills-note,.footer,.contact-foot{color:#9ca8bd}
 .skill-card small,.availability small,.timeline-place,.mini-label{color:#a0abc0}
+
+
+/* ===== Couleurs explicites : le site ne dépend plus de la couleur imposée par la page qui l'héberge ===== */
+html:root{color-scheme:dark}
+html body{font-family:'Manrope',sans-serif;font-size:16px;font-weight:400;color:#f2f5fa;background:var(--bg)}
+h1,h2,h3,h4,strong,.brand{color:#f2f5fa}
+
+/* ===== Bouton « remonter en haut » ===== */
+.to-top{position:fixed;right:max(18px,env(safe-area-inset-right,0px));bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:50;display:grid;place-items:center;width:48px;height:48px;padding:0;border-radius:50%;border:1px solid #bcd7ff66;background:#8bb9fa;color:#0b1220;cursor:pointer;box-shadow:0 10px 30px #0009,0 0 0 4px #8bb9fa24;opacity:0;transform:translateY(12px);pointer-events:none;transition:opacity .25s,transform .25s,background .2s}
+.to-top.is-visible{opacity:1;transform:none;pointer-events:auto}
+.to-top:hover{background:#b4d4ff}
+.to-top:focus-visible{outline:2px solid #fff;outline-offset:3px}
+
+/* Les halos décoratifs dépassent du cadre : "clip" empêche tout décalage latéral de la page, même par script. */
+.site-shell{overflow:hidden;overflow:clip}

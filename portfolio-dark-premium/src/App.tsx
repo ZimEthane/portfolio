@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ArrowDownRight, ArrowRight, ArrowUpRight, Code2, ExternalLink, Github, Linkedin, Mail, Menu, X } from 'lucide-react'
+import { ArrowDownRight, ArrowRight, ArrowUp, ArrowUpRight, Code2, ExternalLink, Github, Linkedin, Mail, Menu, X } from 'lucide-react'
 import ContactForm from './ContactForm'
 import Veille from './Veille'
 import { btsOptions, CONTACT_EMAIL, GITHUB_URL, LINKEDIN_URL, projects, skills, timeline, toolGroups } from './data'
@@ -20,6 +20,25 @@ function useHash() {
   return hash
 }
 
+// Bouton flottant en bas à droite : apparaît après un peu de défilement et ramène tout en haut.
+function ScrollTopButton() {
+  const [visible, setVisible] = useState(false)
+  useEffect(() => {
+    const onScroll = () => setVisible(window.scrollY > 500)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+  return <button
+    type="button"
+    className={visible ? 'to-top is-visible' : 'to-top'}
+    aria-label="Remonter en haut de la page"
+    title="Remonter en haut"
+    tabIndex={visible ? 0 : -1}
+    onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+  ><ArrowUp size={20} /></button>
+}
+
 function App() {
   const [menuOpen, setMenuOpen] = useState(false)
   const hash = useHash()
@@ -36,6 +55,7 @@ function App() {
   }, [hash, page])
 
   return <div className="site-shell">
+    <ScrollTopButton />
     <div className="ambient ambient-one" /><div className="ambient ambient-two" />
     <header className="topbar">
       <a href="#accueil" className="brand" onClick={closeMenu}><span className="brand-mark">EZ</span><span>ETHANE<span className="brand-dot">.</span></span></a>
