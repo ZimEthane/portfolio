@@ -5,7 +5,7 @@ import Veille from './Veille'
 import { scrollToId, scrollToTop } from './scroll'
 import { btsOptions, CONTACT_EMAIL, GITHUB_URL, LINKEDIN_URL, projects, skills, timeline, toolGroups } from './data'
 
-const CV_URL = '/pdf/CVZimmermann_Ethane_2025.pdf.pdf'
+const CV_URL = '/pdf/CV_Zimmermann_Ethane_2026.pdf'
 const GRID_URL = '/pdf/BTS_SIO_-_Annexe_8-1_-_Tableau_de_synthe_se_-_Epreuve_E4-_BTS_SIO_2024_-_Zimmermann_Ethane.pdf'
 
 const navItems = [['À propos', '#apropos'], ['Projets', '#projets'], ['Compétences', '#competences'], ['Parcours', '#parcours'], ['Veille', '#veille']]
