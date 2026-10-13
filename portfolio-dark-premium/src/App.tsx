@@ -26,10 +26,6 @@ function useHash() {
 function scrollToTop() {
   const start = window.scrollY
   if (start <= 0) return
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    window.scrollTo(0, 0)
-    return
-  }
   const duration = Math.min(1100, Math.max(600, 350 + start * 0.15))
   const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
   const root = document.documentElement
