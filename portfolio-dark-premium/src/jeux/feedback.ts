@@ -1,4 +1,4 @@
-// Sons et vibrations du démineur.
+// Sons et vibrations des jeux.
 // Sons : synthétisés avec la Web Audio API, aucun fichier audio à charger.
 // Vibrations : navigator.vibrate sur Android. Sur iPhone, Safari ne le gère pas et, depuis
 // iOS 26.5, refuse toute vibration lancée par le code : seul un vrai toucher sur un
@@ -60,9 +60,13 @@ function boom(a: AudioContext) {
   tone(a, 120, 0, 0.55, 'sine', 0.55, 38)
 }
 
-export type Sound = 'reveal' | 'cascade' | 'flag' | 'unflag' | 'boom' | 'win' | 'toggle'
+export type Sound =
+  | 'reveal' | 'cascade' | 'flag' | 'unflag' | 'boom' | 'win' | 'toggle'
+  | 'flip' | 'match' | 'nomatch' | 'slide' | 'merge' | 'drop' | 'eat'
+  | 'rotate' | 'lock' | 'line' | 'gameover' | 'select' | 'error'
 
-export function playSound(kind: Sound) {
+// level : pour « merge » (valeur de la tuile) et « line » (nombre de lignes), le son monte avec.
+export function playSound(kind: Sound, level = 1) {
   const a = audio()
   if (!a) return
   switch (kind) {
@@ -77,6 +81,32 @@ export function playSound(kind: Sound) {
       ;[523.25, 659.25, 783.99].forEach((f, k) => tone(a, f, k * 0.09, 0.16, 'triangle', 0.15))
       return tone(a, 1046.5, 0.27, 0.4, 'triangle', 0.15)
     case 'toggle': return tone(a, 660, 0, 0.06, 'sine', 0.1)
+    case 'flip': return tone(a, 720, 0, 0.05, 'triangle', 0.1, 960)
+    case 'match':
+      tone(a, 660, 0, 0.09, 'sine', 0.13)
+      return tone(a, 990, 0.08, 0.16, 'sine', 0.12)
+    case 'nomatch': return tone(a, 300, 0, 0.14, 'triangle', 0.12, 210)
+    case 'slide': return tone(a, 220, 0, 0.05, 'sine', 0.07, 170)
+    case 'merge': {
+      const f = 240 * Math.pow(1.12, Math.log2(Math.max(2, level)))
+      return tone(a, f, 0, 0.09, 'triangle', 0.13, f * 1.25)
+    }
+    case 'drop':
+      tone(a, 190, 0, 0.12, 'sine', 0.22, 85)
+      return tone(a, 900, 0, 0.025, 'triangle', 0.05)
+    case 'eat': return tone(a, 560, 0, 0.07, 'triangle', 0.13, 900)
+    case 'rotate': return tone(a, 520, 0, 0.04, 'triangle', 0.07, 640)
+    case 'lock': return tone(a, 150, 0, 0.07, 'sine', 0.18, 100)
+    case 'line': {
+      const notes = [523.25, 659.25, 783.99, 1046.5].slice(0, Math.min(4, Math.max(1, level)) + 1)
+      notes.forEach((f, k) => tone(a, f, k * 0.06, 0.14, 'triangle', 0.13))
+      return
+    }
+    case 'gameover':
+      ;[440, 349.23, 261.63].forEach((f, k) => tone(a, f, k * 0.14, 0.22, 'triangle', 0.14))
+      return tone(a, 196, 0.42, 0.45, 'triangle', 0.13)
+    case 'select': return tone(a, 880, 0, 0.035, 'sine', 0.07)
+    case 'error': return tone(a, 230, 0, 0.16, 'triangle', 0.14, 180)
   }
 }
 
@@ -86,6 +116,9 @@ const patterns = {
   flag: 25,
   boom: [120, 60, 220],
   win: [40, 70, 40, 70, 120],
+  tap: 10,
+  error: [40, 50, 40],
+  success: [20, 50, 60],
 } as const
 export type Buzz = keyof typeof patterns
 

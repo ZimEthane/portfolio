@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { ArrowLeft, Blocks, Bomb, Brain, Disc3, Grid2x2, Grid3x3, Worm } from 'lucide-react'
 import Chantier from './Chantier'
 import Demineur from './jeux/Demineur'
+import Memory from './jeux/Memory'
 import './jeux/jeux.css'
 
 interface GameInfo {
@@ -45,6 +46,7 @@ const games: GameInfo[] = [
     name: 'Memory',
     description: 'Retourne les cartes deux par deux et retrouve les paires : les logos des langages et logiciels que j’utilise.',
     icon: <Brain size={16} />,
+    component: () => <Memory />,
   },
   {
     id: 'snake',
