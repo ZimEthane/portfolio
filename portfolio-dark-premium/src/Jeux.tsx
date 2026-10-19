@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
-import { ArrowLeft, Blocks, Bomb, Brain, Disc3, Grid2x2, Grid3x3, Worm } from 'lucide-react'
+import { ArrowLeft, Blocks, Bomb, Brain, Disc3, Footprints, Grid2x2, Grid3x3, Worm } from 'lucide-react'
 import Chantier from './Chantier'
 import Demineur from './jeux/Demineur'
 import Memory from './jeux/Memory'
@@ -9,6 +9,7 @@ import Puissance4 from './jeux/Puissance4'
 import Snake from './jeux/Snake'
 import Sudoku from './jeux/Sudoku'
 import Blocs from './jeux/Blocs'
+import Dino from './jeux/Dino'
 import './jeux/jeux.css'
 
 interface GameInfo {
@@ -69,6 +70,13 @@ const games: GameInfo[] = [
     description: 'Empile les pièces qui tombent pour compléter des lignes : chaque ligne pleine disparaît. Inspiré du célèbre jeu de briques.',
     icon: <Blocks size={16} />,
     component: () => <Blocs />,
+  },
+  {
+    id: 'dino',
+    name: 'Dino',
+    description: 'Le dinosaure court tout seul : saute par-dessus les cactus, baisse-toi sous les oiseaux, et va le plus loin possible pendant qu’il accélère.',
+    icon: <Footprints size={16} />,
+    component: () => <Dino />,
   },
 ]
 
