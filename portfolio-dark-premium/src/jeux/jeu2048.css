@@ -83,6 +83,15 @@
   .t48-board { --g: 8px; --p: 8px; }
   .t48-score { min-width: 0; flex: 1; padding: 7px 10px; }
   .t48-btn { padding: 9px 12px; }
+  /* Tailles : « 4×4 » puis la description en dessous, au lieu d'une coupure au milieu */
+  .t48-tailles small { display: grid; }
+  .t48-sep { display: none; }
+}
+/* Écran étroit : boutons à côté des scores en icônes seules (2048, Snake), pour laisser la place aux scores */
+@media (max-width: 440px) {
+  .t48-btn-texte { display: none; }
+  .t48-btn { justify-content: center; min-width: 46px; padding: 9px 12px; }
+  .t48-score span { letter-spacing: .1em; }
 }
 @media (hover: none), (pointer: coarse) {
   .t48-fleches { display: none; }

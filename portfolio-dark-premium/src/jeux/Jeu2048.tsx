@@ -11,9 +11,9 @@ import type { Dir, Tile } from './jeu2048-logic'
 import './jeu2048.css'
 
 const TAILLES = [
-  { n: 3, label: 'Mini', info: '3×3 · rapide' },
-  { n: 4, label: 'Classique', info: '4×4 · l’original' },
-  { n: 5, label: 'Géant', info: '5×5 · plus long' },
+  { n: 3, label: 'Mini', info: 'rapide' },
+  { n: 4, label: 'Classique', info: 'l’original' },
+  { n: 5, label: 'Géant', info: 'plus long' },
 ]
 const BUT = 2048
 const KEYS: Record<string, Dir> = {
@@ -160,7 +160,7 @@ export default function Jeu2048() {
         {TAILLES.map(t => (
           <button key={t.n} type="button" role="radio" aria-checked={n === t.n} className={n === t.n ? 'is-active' : ''} onClick={() => nouvellePartie(t.n)}>
             <strong>{t.label}</strong>
-            <small>{t.info}</small>
+            <small>{t.n}×{t.n}<span className="t48-sep"> · </span><span>{t.info}</span></small>
           </button>
         ))}
       </div>
@@ -169,8 +169,8 @@ export default function Jeu2048() {
         <div className="t48-bar">
           <div className="t48-score"><span>Score</span><strong>{score}</strong>{plus && <em key={plus.key} className="t48-plus">+{plus.v}</em>}</div>
           <div className="t48-score"><span>Meilleur</span><strong>{meilleur}</strong></div>
-          <button type="button" className="t48-btn" onClick={annuler} disabled={!prev} title="Annuler le dernier coup"><Undo2 size={16} /> Annuler</button>
-          <button type="button" className="t48-btn" onClick={() => nouvellePartie()} title="Nouvelle partie"><RotateCcw size={16} /> Nouvelle</button>
+          <button type="button" className="t48-btn" onClick={annuler} disabled={!prev} title="Annuler le dernier coup" aria-label="Annuler"><Undo2 size={16} /> <span className="t48-btn-texte">Annuler</span></button>
+          <button type="button" className="t48-btn" onClick={() => nouvellePartie()} title="Nouvelle partie" aria-label="Nouvelle partie"><RotateCcw size={16} /> <span className="t48-btn-texte">Nouvelle</span></button>
         </div>
 
         <Outils sound={sound} vibe={vibe} onSound={toggleSound} onVibe={toggleVibe} full={plein.full} onFull={plein.toggle} />
