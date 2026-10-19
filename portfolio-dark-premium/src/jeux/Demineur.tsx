@@ -147,8 +147,8 @@ export default function Demineur() {
   const [selected, setSelected] = useState<number | null>(null) // chiffre cliqué ou touché
   const [hovered, setHovered] = useState<number | null>(null) // chiffre survolé à la souris
   const [full, setFull] = useState(false)
-  // Anneau visuel au moment où l'appui long pose (ou retire) un drapeau : sur iPhone, la vibration
-  // ne peut venir qu'au relâchement du doigt, l'anneau signale donc le bon moment.
+  // Anneau visuel quand un drapeau est posé ou retiré. Sur iPhone, il compense aussi la vibration,
+  // qui ne peut venir qu’au relâchement du doigt lors d’un appui long.
   const [pulse, setPulse] = useState<{ i: number; on: boolean; key: number } | null>(null)
 
   const gameRef = useRef(game)
@@ -263,11 +263,20 @@ export default function Demineur() {
     }
   }
 
+  // Pose ou retire un drapeau, avec l'anneau visuel (clic droit, appui long, touche F, mode Drapeau).
+  const flagAt = (i: number) => {
+    const before = gameRef.current.state[i]
+    if (before === 'open') return
+    apply(x => toggleFlag(x, i))
+    const after = gameRef.current.state[i]
+    if (after !== before) setPulse({ i, on: after === 'flag', key: Date.now() })
+  }
+
   const primary = (i: number) => {
     const g = gameRef.current
     if (g.state[i] === 'open') setSelected(isNumber(g, i) ? i : null)
     if (g.state[i] === 'open') apply(x => chord(x, i))
-    else if (mode === 'flag') apply(x => toggleFlag(x, i))
+    else if (mode === 'flag') flagAt(i)
     else apply(x => reveal(x, i))
   }
 
@@ -285,11 +294,7 @@ export default function Demineur() {
     press.current.timer = window.setTimeout(() => {
       press.current.timer = null
       press.current.fired = true
-      const before = gameRef.current.state[i]
-      if (before === 'open') return
-      apply(x => toggleFlag(x, i))
-      const after = gameRef.current.state[i]
-      if (after !== before) setPulse({ i, on: after === 'flag', key: Date.now() })
+      flagAt(i)
     }, LONG_PRESS_MS)
   }
   const onClick = (i: number) => {
@@ -302,7 +307,7 @@ export default function Demineur() {
   const onContextMenu = (e: MouseEvent, i: number) => {
     e.preventDefault()
     if (press.current.touch) return // déjà géré par l'appui long
-    apply(x => toggleFlag(x, i))
+    flagAt(i)
   }
 
   // Clavier : flèches pour se déplacer, Entrée/Espace pour révéler, F pour le drapeau.
@@ -321,7 +326,7 @@ export default function Demineur() {
       boardRef.current?.querySelector<HTMLElement>(`[data-i="${n}"]`)?.focus()
     } else if (e.key === 'f' || e.key === 'F') {
       e.preventDefault()
-      apply(x => toggleFlag(x, i))
+      flagAt(i)
     } else if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault()
       primary(i)
