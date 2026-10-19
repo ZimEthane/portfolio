@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
-import { ArrowLeft, Blocks, Bomb, Brain, Disc3, Grid2x2, Grid3x3, Worm } from 'lucide-react'
+import { ArrowLeft, Blocks, Bomb, Brain, Disc3, Grid2x2, Grid3x3, Swords, Worm } from 'lucide-react'
 import Chantier from './Chantier'
 import Demineur from './jeux/Demineur'
 import Memory from './jeux/Memory'
@@ -9,6 +9,7 @@ import Puissance4 from './jeux/Puissance4'
 import Snake from './jeux/Snake'
 import Sudoku from './jeux/Sudoku'
 import Blocs from './jeux/Blocs'
+import Ninja from './jeux/Ninja'
 import './jeux/jeux.css'
 
 interface GameInfo {
@@ -69,6 +70,13 @@ const games: GameInfo[] = [
     description: 'Empile les pièces qui tombent pour compléter des lignes : chaque ligne pleine disparaît. Inspiré du célèbre jeu de briques.',
     icon: <Blocks size={16} />,
     component: () => <Blocs />,
+  },
+  {
+    id: 'ninja',
+    name: 'Ninja',
+    description: 'Le petit ninja court tout seul : saute, baisse-toi, traverse huit mondes (désert, Japon, monde de lave, monde du vide…) et gagne des médailles du cuivre jusqu’à Légende.',
+    icon: <Swords size={16} />,
+    component: () => <Ninja />,
   },
 ]
 

@@ -1,0 +1,45 @@
+/* ===== Ninja ===== */
+.nj-zone { position: relative; width: 100%; max-width: 760px; border-radius: 14px; border: 1px solid #ffffff14; background: linear-gradient(180deg, #0f141b, #0b0e12); overflow: hidden; touch-action: manipulation; user-select: none; -webkit-user-select: none; outline: none; cursor: pointer; }
+.nj-zone:focus-visible { box-shadow: 0 0 0 3px #a0c8ff; }
+.nj-zone canvas { display: block; }
+.nj-overlay { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 8px; padding: 10px; background: #090b0daa; text-align: center; }
+.nj-overlay strong { display: inline-flex; align-items: center; gap: 8px; font-size: 20px; letter-spacing: -.03em; }
+.nj-overlay span { font-size: 12.5px; color: #b3bccc; }
+.nj-overlay .button { border: 0; cursor: pointer; padding: 10px 14px; }
+
+.nj-boutons { display: none; grid-template-columns: 1fr 1.4fr; gap: 10px; width: 100%; max-width: 420px; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
+.nj-btn { display: flex; align-items: center; justify-content: center; gap: 8px; height: 62px; border-radius: 16px; border: 1px solid #ffffff18; background: #07080a; color: #dce9ff; font: 700 14px Manrope, sans-serif; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.nj-btn:active { background: #8bb9fa26; border-color: #8bb9fa80; }
+.nj-btn.is-saut { background: #8bb9fa1c; border-color: #8bb9fa70; }
+
+@media (hover: none), (pointer: coarse) {
+  .nj-boutons { display: grid; }
+}
+
+/* Annonce d'un nouveau monde ou d'une médaille */
+.nj-annonce { position: absolute; top: 10px; left: 50%; display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; border: 1px solid #ffffff26; background: #090b0dcc; color: #f1f5fb; font: 700 13px Manrope, sans-serif; white-space: nowrap; pointer-events: none; animation: nj-annonce 2.2s ease forwards; }
+.nj-annonce .mini-label { font-size: 10px; color: #8d95a6; }
+.nj-annonce.is-medaille { border-color: #ffd36b80; color: #ffe9a8; }
+@keyframes nj-annonce {
+  0% { opacity: 0; transform: translate(-50%, -8px) scale(.9); }
+  12%, 80% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -4px); }
+}
+.nj-fin { display: inline-flex; align-items: center; gap: 6px; }
+.nj-coin { position: absolute; top: 7px; left: 9px; padding: 2px 8px; border-radius: 999px; background: #090b0d8c; color: #dce6f7; font: 600 11px Manrope, sans-serif; pointer-events: none; }
+
+/* Collection de médailles (3 × 3 sur téléphone, une ligne sur grand écran) */
+.nj-medaille.is-locked { filter: grayscale(1) brightness(.55); opacity: .55; }
+.ms-records .nj-medailles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 10px 0 0; padding: 0; list-style: none; }
+.ms-records .nj-medailles li { display: grid; justify-items: center; align-content: start; gap: 2px; min-width: 0; padding: 9px 4px; border-radius: 12px; border: 1px solid #ffffff10; background: #ffffff04; text-align: center; }
+.ms-records .nj-medailles li span { font-size: 11.5px; font-weight: 700; color: #8d95a6; line-height: 1.15; }
+.ms-records .nj-medailles li small { font-size: 10.5px; color: #6b7384; }
+.ms-records .nj-medailles li.is-won { border-color: #ffffff22; background: #ffffff0a; }
+.ms-records .nj-medailles li.is-won span { color: #f1f5fb; }
+@media (min-width: 760px) {
+  .ms-records .nj-medailles { grid-template-columns: repeat(9, 1fr); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nj-annonce { animation-duration: 2.2s; animation-timing-function: steps(1, end); }
+}
