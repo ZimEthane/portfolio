@@ -1,0 +1,64 @@
+/* ===== Sudoku ===== */
+.ms-levels.sd-niveaux { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.sd-bar { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.sd-fautes svg { color: #ff9a9a; }
+
+.sd-wrap { width: 100%; max-width: 460px; container-type: inline-size; }
+.is-fullscreen .sd-wrap, .is-fullscreen .sd-pave { max-width: min(560px, calc(100dvh - 330px)); }
+.sd-grille { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); border: 2px solid #8bb9fa80; border-radius: 12px; overflow: hidden; background: #0b0e12; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
+.sd-cell {
+  position: relative; display: grid; place-items: center; aspect-ratio: 1;
+  border-right: 1px solid #ffffff14; border-bottom: 1px solid #ffffff14;
+  font: 600 clamp(16px, 5.6cqi, 26px) / 1 Manrope, sans-serif; color: #dce6f7;
+  cursor: pointer; outline: none; transition: background .12s; -webkit-tap-highlight-color: transparent;
+}
+/* Traits épais entre les carrés de 3×3. */
+.sd-cell:nth-child(9n) { border-right: 0; }
+.sd-cell:nth-child(9n + 3), .sd-cell:nth-child(9n + 6) { border-right: 2px solid #8bb9fa80; }
+.sd-cell:nth-child(n + 19):nth-child(-n + 27), .sd-cell:nth-child(n + 46):nth-child(-n + 54) { border-bottom: 2px solid #8bb9fa80; }
+.sd-cell:nth-child(n + 73) { border-bottom: 0; }
+
+.sd-cell.is-given { color: #f2f6fc; font-weight: 800; }
+.sd-cell.is-user { color: #8bb9fa; }
+.sd-cell.is-peer { background: #8bb9fa17; }
+.sd-cell.is-same { background: #8bb9fa2e; }
+.sd-cell.is-sel { background: #8bb9fa45; box-shadow: inset 0 0 0 2px #a0c8ff; }
+.sd-cell.is-error { color: #ff7b7b; }
+.sd-cell.is-error:not(.is-sel) { background: #ff7b7b17; }
+.sd-cell:hover:not(.is-sel) { background: #8bb9fa1c; }
+
+.sd-notes { display: grid; grid-template-columns: repeat(3, 1fr); width: 100%; height: 100%; padding: 6%; }
+.sd-notes i { display: grid; place-items: center; font: 600 clamp(7px, 2.1cqi, 11px) / 1 'DM Mono', monospace; font-style: normal; color: #9aa3b5; }
+
+.sd-grille.is-done { border-color: #6fd59a; box-shadow: 0 0 24px #6fd59a40; }
+.sd-grille.is-done .sd-cell { cursor: default; }
+.sd-grille.is-done .sd-cell.is-user { color: #8de0a8; }
+
+/* Pavé de chiffres. */
+.sd-pave { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 6px; width: 100%; max-width: 460px; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
+.sd-chiffre { display: grid; place-items: center; gap: 1px; padding: 8px 0 6px; border-radius: 10px; border: 1px solid #ffffff16; background: #07080a; font: 700 20px / 1 Manrope, sans-serif; color: #dce9ff; cursor: pointer; transition: background .12s, border-color .12s, opacity .2s; -webkit-tap-highlight-color: transparent; }
+.sd-chiffre small { font: 9px 'DM Mono', monospace; color: #7d8594; }
+.sd-chiffre:hover { border-color: #8bb9fa80; }
+.sd-chiffre:active { background: #8bb9fa30; }
+.sd-chiffre:focus-visible { outline: 2px solid #a0c8ff; outline-offset: 1px; }
+.sd-chiffre.is-full { opacity: .32; }
+.sd-chiffre.is-notes { color: #9aa3b5; font-size: 15px; border-style: dashed; }
+
+.sd-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.sd-action { display: inline-flex; align-items: center; gap: 7px; padding: 9px 14px; border-radius: 999px; border: 1px solid #ffffff14; background: #07080a; color: #cfd8ea; font: 700 12px Manrope, sans-serif; cursor: pointer; transition: border-color .2s, opacity .2s, background .2s; }
+.sd-action:hover:not(:disabled) { border-color: #8bb9fa70; }
+.sd-action:disabled { opacity: .4; cursor: default; }
+.sd-action.is-on { background: #a0c8ff; border-color: #a0c8ff; color: #101620; }
+
+/* Illustrations du guide. */
+.sd-mini { display: grid; grid-template-columns: repeat(3, 28px); border: 2px solid #8bb9fa80; border-radius: 8px; overflow: hidden; }
+.sd-mini span { display: grid; place-items: center; height: 28px; border-right: 1px solid #ffffff14; border-bottom: 1px solid #ffffff14; font: 700 13px Manrope, sans-serif; color: #dce6f7; }
+.sd-mini span:nth-child(3n) { border-right: 0; }
+.sd-mini span:nth-child(n + 7) { border-bottom: 0; }
+.sd-mini span.is-on { background: #8bb9fa33; color: #fff; }
+
+@media (max-width: 600px) {
+  .sd-pave { gap: 4px; }
+  .sd-chiffre { font-size: 17px; padding: 7px 0 5px; border-radius: 8px; }
+  .sd-action { padding: 8px 11px; }
+}

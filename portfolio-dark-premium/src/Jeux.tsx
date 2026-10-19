@@ -7,6 +7,7 @@ import Memory from './jeux/Memory'
 import Jeu2048 from './jeux/Jeu2048'
 import Puissance4 from './jeux/Puissance4'
 import Snake from './jeux/Snake'
+import Sudoku from './jeux/Sudoku'
 import './jeux/jeux.css'
 
 interface GameInfo {
@@ -38,6 +39,7 @@ const games: GameInfo[] = [
     name: 'Sudoku',
     description: 'Remplis la grille pour que chaque ligne, chaque colonne et chaque carré contienne une seule fois les chiffres de 1 à 9.',
     icon: <Grid3x3 size={16} />,
+    component: () => <Sudoku />,
   },
   {
     id: 'puissance-4',
