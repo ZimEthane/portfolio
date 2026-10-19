@@ -5,6 +5,7 @@ import Chantier from './Chantier'
 import Demineur from './jeux/Demineur'
 import Memory from './jeux/Memory'
 import Jeu2048 from './jeux/Jeu2048'
+import Puissance4 from './jeux/Puissance4'
 import './jeux/jeux.css'
 
 interface GameInfo {
@@ -42,6 +43,7 @@ const games: GameInfo[] = [
     name: 'Puissance 4',
     description: 'Aligne 4 jetons de ta couleur, à l’horizontale, à la verticale ou en diagonale, avant l’ordinateur (ou un ami).',
     icon: <Disc3 size={16} />,
+    component: () => <Puissance4 />,
   },
   {
     id: 'memory',
