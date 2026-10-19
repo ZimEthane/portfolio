@@ -1,0 +1,259 @@
+/* ===== Page Jeux ===== */
+.jeux { position: relative; z-index: 1; padding-top: 42px; padding-bottom: 80px; }
+.jeux-head { padding: 36px 0 36px; border-bottom: 1px solid #ffffff10; }
+.jeux-head h1 { max-width: 20ch; font-size: clamp(34px, 5vw, 56px); line-height: 1.12; letter-spacing: -.06em; margin: 0 0 20px; font-weight: 700; text-wrap: balance; }
+.jeux-head p { max-width: 560px; margin: 0 0 28px; font-size: 14px; line-height: 1.9; color: #9aa3b5; }
+.jeux-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.jeux-tabs button { display: inline-flex; align-items: center; gap: 8px; font: 600 12px Manrope, sans-serif; color: #cfd8ea; background: #ffffff08; border: 1px solid #ffffff14; border-radius: 999px; padding: 9px 16px; cursor: pointer; transition: border-color .2s, color .2s, background .2s; }
+.jeux-tabs button:hover { border-color: #8bb9fa80; color: #fff; }
+.jeux-tabs button.is-active { border-color: #8bb9fa90; background: #8bb9fa16; color: #fff; }
+.jeux-game { padding-top: 48px; }
+.jeux-game-head h2 { margin: 0 0 10px; font-size: clamp(22px, 2.6vw, 30px); letter-spacing: -.045em; font-weight: 650; }
+.jeux-game-head p { max-width: 640px; margin: 0 0 24px; font-size: 13px; line-height: 1.85; color: #9aa3b5; }
+
+/* ===== Démineur ===== */
+.ms { display: grid; gap: 16px; }
+
+.ms-levels { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.ms-levels button { display: grid; gap: 4px; text-align: left; padding: 13px 15px; border-radius: 11px; border: 1px solid #ffffff12; background: #ffffff05; color: #cfd8ea; cursor: pointer; transition: border-color .2s, background .2s; }
+.ms-levels button:hover { border-color: #8bb9fa60; }
+.ms-levels button.is-active { border-color: #8bb9fa90; background: #8bb9fa14; color: #fff; }
+.ms-levels strong { font-size: 13px; font-weight: 700; }
+.ms-levels small { font: 10px 'DM Mono', monospace; letter-spacing: .04em; color: #8d95a6; }
+.ms-levels .is-active small { color: #aacdff; }
+
+.ms-custom { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; padding: 16px; border: 1px solid #ffffff10; border-radius: 12px; background: #ffffff04; }
+.ms-custom label { display: grid; gap: 6px; font-size: 11px; color: #9aa3b5; }
+.ms-custom input { width: 96px; padding: 10px 12px; border-radius: 8px; border: 1px solid #ffffff18; background: #0d1013; color: #f2f5fa; font: 14px 'DM Mono', monospace; }
+.ms-custom input:focus { outline: none; border-color: #8bb9fa; }
+.ms-custom .button { border: 0; cursor: pointer; }
+.ms-custom-hint { flex-basis: 100%; margin: 0; font-size: 11px; color: #7d8594; }
+
+.ms-panel { position: relative; display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 20px; border: 1px solid #ffffff12; border-radius: 16px; background: linear-gradient(145deg, #14161a, #0e1013); }
+
+.ms-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; max-width: 520px; }
+.ms-counter { display: inline-flex; align-items: center; gap: 8px; min-width: 96px; justify-content: center; padding: 9px 12px; border-radius: 9px; border: 1px solid #ffffff10; background: #07080a; color: #aacdff; font: 500 18px 'DM Mono', monospace; letter-spacing: .08em; }
+.ms-counter svg { color: #6f7887; }
+.ms-face { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 12px; border: 1px solid #ffffff18; background: #ffffff08; color: #ffd36b; cursor: pointer; transition: transform .15s, border-color .2s; }
+.ms-face:hover { border-color: #8bb9fa80; transform: translateY(-1px); }
+.ms-face:active { transform: scale(.94); }
+.ms-face.is-lost { color: #ff8f8f; }
+.ms-face.is-won { color: #8de0a8; }
+
+.ms-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; }
+
+/* Interrupteur de l'aide débutant. */
+.ms-switch { display: inline-flex; align-items: center; gap: 9px; padding: 6px 7px 6px 14px; border-radius: 999px; border: 1px solid #ffffff14; background: #07080a; color: #9aa3b5; font-size: 12px; font-weight: 700; cursor: pointer; transition: color .2s, border-color .2s; }
+.ms-switch:hover { border-color: #8bb9fa60; }
+.ms-switch.is-on { color: #dce9ff; border-color: #8bb9fa70; }
+.ms-switch-track { position: relative; width: 34px; height: 20px; border-radius: 999px; background: #262b33; transition: background .2s; }
+.ms-switch-track::after { content: ''; position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%; background: #8d95a6; transition: transform .2s, background .2s; }
+.ms-switch.is-on .ms-switch-track { background: #4b7cc2; }
+.ms-switch.is-on .ms-switch-track::after { transform: translateX(14px); background: #fff; }
+
+/* Son et vibrations (le bouton vibrations n'apparaît que sur écran tactile). */
+.ms-toggles { display: inline-flex; gap: 6px; }
+.ms-icon-toggle { position: relative; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; border: 1px solid #ffffff14; background: #07080a; color: #6f7887; cursor: pointer; transition: color .2s, border-color .2s, background .2s; }
+.ms-icon-toggle:hover { border-color: #8bb9fa60; }
+.ms-icon-toggle.is-on { color: #dce9ff; border-color: #8bb9fa70; background: #8bb9fa14; }
+.ms-vibe { display: none; }
+/* Vrai interrupteur natif posé, invisible, sur le bouton vibrations : sur iPhone, c'est lui qui vibre. */
+.ms-native-switch { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; clip-path: circle(50%); }
+.ms-icon-toggle:has(.ms-native-switch:focus-visible) { outline: 2px solid #a0c8ff; outline-offset: 2px; }
+/* Interrupteur caché relié à la grille (voir feedback.ts). */
+.ms-haptic { position: absolute; top: 0; left: 0; width: 1px; height: 1px; margin: 0; opacity: 0; visibility: hidden; pointer-events: none; }
+
+/* Bouton plein écran : seulement sur écran tactile (voir plus bas). */
+.ms-full { display: none; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; border: 1px solid #ffffff14; background: #07080a; color: #cfd8ea; font-size: 12px; font-weight: 700; cursor: pointer; transition: border-color .2s; }
+.ms-full:hover, .ms-full[aria-pressed='true'] { border-color: #8bb9fa70; }
+
+/* Plein écran : le panneau du jeu couvre tout l'écran. */
+.ms-panel.is-fullscreen {
+  position: fixed; inset: 0; z-index: 1000;
+  height: 100%; overflow-y: auto; overscroll-behavior: contain;
+  border: 0; border-radius: 0;
+  padding: max(16px, env(safe-area-inset-top)) 12px max(16px, env(safe-area-inset-bottom));
+  background: radial-gradient(circle at 50% 0%, #8bb9fa14, transparent 60%), #090b0d;
+  justify-content: flex-start; justify-content: safe center;
+}
+.ms-panel::backdrop { background: #090b0d; }
+html.ms-lock, html.ms-lock body { overflow: hidden; }
+html.ms-lock .jeux { z-index: auto; } /* sinon le bouton « remonter » et le menu passeraient devant */
+html.ms-lock .to-top { display: none; }
+
+/* Choix Creuser / Drapeau : seulement sur écran tactile. */
+.ms-mode { display: none; padding: 3px; border-radius: 999px; border: 1px solid #ffffff14; background: #07080a; }
+.ms-mode button { display: inline-flex; align-items: center; gap: 7px; padding: 8px 16px; border-radius: 999px; border: 0; background: none; color: #9aa3b5; font-size: 12px; font-weight: 700; cursor: pointer; }
+.ms-mode button.is-active { background: #a0c8ff; color: #101620; }
+
+/* La grille s'adapte à la largeur disponible ; si elle ne tient pas, on peut la faire défiler. */
+.ms-scroll { width: 100%; overflow-x: auto; padding: 9px; container-type: inline-size; }
+.ms-board {
+  --gap: 3px;
+  --cell: clamp(16px, calc((100vw - 140px - (var(--cols) - 1) * var(--gap)) / var(--cols)), 38px);
+  position: relative;
+  width: max-content;
+  margin-inline: auto;
+  display: grid;
+  grid-template-columns: repeat(var(--cols), var(--cell));
+  grid-auto-rows: var(--cell);
+  gap: var(--gap);
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
+}
+.ms-cell {
+  display: grid; place-items: center; padding: 0; margin: 0;
+  border: 1px solid #ffffff14; border-radius: calc(var(--cell) * .2);
+  background: linear-gradient(160deg, #262d37, #1a1f26);
+  box-shadow: inset 0 1px 0 #ffffff12;
+  color: #fff; font: 700 calc(var(--cell) * .5) / 1 'DM Mono', monospace;
+  cursor: pointer; transition: background .12s, border-color .12s;
+  -webkit-tap-highlight-color: transparent;
+}
+.ms-cell svg { width: 58%; height: 58%; }
+.ms-cell:hover { border-color: #8bb9fa70; background: linear-gradient(160deg, #2d3643, #1f252e); }
+.ms-cell:focus-visible { outline: 2px solid #a0c8ff; outline-offset: 1px; position: relative; z-index: 1; }
+.ms-cell.is-open { background: #0d1013; border-color: #ffffff09; box-shadow: none; cursor: default; }
+.ms-cell.is-open[class*=' n'] { cursor: pointer; }
+.ms-cell.n1 { color: #7fb2ff; } .ms-cell.n2 { color: #6fd59a; } .ms-cell.n3 { color: #ff7b7b; } .ms-cell.n4 { color: #b79bff; }
+.ms-cell.n5 { color: #ffb36b; } .ms-cell.n6 { color: #5fd6d6; } .ms-cell.n7 { color: #e7e7e7; } .ms-cell.n8 { color: #9aa3b5; }
+.ms-cell.is-flag { color: #ff8585; }
+.ms-cell.is-flag svg { fill: #ff858533; }
+.ms-cell.is-mine { background: #15181d; color: #dfe5ef; box-shadow: none; }
+.ms-cell.is-exploded { background: #7a1f2a; border-color: #ff7b7b90; color: #fff; }
+.ms-cell.is-wrong { background: #15181d; color: #ff7b7b; box-shadow: none; }
+/* Aide débutant : cadre autour du chiffre et de ses voisines, cases cachées teintées. */
+.ms-zone {
+  --off: 3px;
+  position: absolute; z-index: 2; pointer-events: none;
+  left: calc(var(--c0) * (var(--cell) + var(--gap)) - var(--off));
+  top: calc(var(--r0) * (var(--cell) + var(--gap)) - var(--off));
+  width: calc(var(--w) * var(--cell) + (var(--w) - 1) * var(--gap) + 2 * var(--off));
+  height: calc(var(--h) * var(--cell) + (var(--h) - 1) * var(--gap) + 2 * var(--off));
+  border: 2px solid #8bb9fa; border-radius: calc(var(--cell) * .28 + 3px);
+  box-shadow: 0 0 0 3px #8bb9fa1f, 0 0 9px #8bb9fa50;
+  transition: left .12s ease, top .12s ease, width .12s ease, height .12s ease;
+}
+.ms-cell.is-zone { background: linear-gradient(160deg, #2c4061, #1f2d44); border-color: #8bb9fa66; }
+.ms-cell.is-zone:hover { background: linear-gradient(160deg, #34496d, #24344e); border-color: #a0c8ff; }
+.ms-cell.is-center { background: #142236; border-color: #8bb9fa40; }
+.ms-cell.is-safe { background: #11261b; border-color: #6fd59a90; color: #8de0a8; box-shadow: none; }
+.ms-cell.is-deduced { background: #2b1418; border-color: #ff858599; }
+.ms-zone-hint { display: inline-flex; align-items: center; gap: 8px; max-width: 560px; font-size: 12.5px; font-weight: 600; line-height: 1.6; color: #bcd6ff; text-align: left; }
+.ms-zone-hint svg { flex-shrink: 0; color: #8bb9fa; }
+
+.ms-board.is-won .ms-cell, .ms-board.is-lost .ms-cell { cursor: default; }
+
+/* Anneau de l'appui long : part du centre de la case et s'élargit bien au-delà du doigt. */
+.ms-pulse {
+  position: absolute; z-index: 3; pointer-events: none;
+  left: calc(var(--pc) * (var(--cell) + var(--gap)) + var(--cell) / 2);
+  top: calc(var(--pr) * (var(--cell) + var(--gap)) + var(--cell) / 2);
+  width: calc(var(--cell) * 1.2); height: calc(var(--cell) * 1.2);
+  margin: calc(var(--cell) * -.6) 0 0 calc(var(--cell) * -.6);
+  border-radius: 50%; border: 3px solid #ff8585;
+  box-shadow: 0 0 18px #ff858599, inset 0 0 12px #ff858555;
+  animation: ms-pulse .55s cubic-bezier(.2, .7, .3, 1) forwards;
+}
+.ms-pulse.is-off { border-color: #8bb9fa; box-shadow: 0 0 18px #8bb9fa99, inset 0 0 12px #8bb9fa55; }
+@keyframes ms-pulse { from { transform: scale(.5); opacity: 1; } 60% { opacity: .9; } to { transform: scale(3.6); opacity: 0; } }
+@keyframes ms-pulse-fade { from { opacity: 1; } to { opacity: 0; } }
+.ms-board.is-won .ms-cell:not(.is-open):hover, .ms-board.is-lost .ms-cell:not(.is-open):hover { border-color: #ffffff14; }
+.ms-board.is-won { filter: drop-shadow(0 0 22px #6fd59a2a); }
+.ms-board.is-lost { animation: ms-shake .4s ease-out; }
+@keyframes ms-shake { 20% { transform: translateX(-5px); } 45% { transform: translateX(4px); } 70% { transform: translateX(-2px); } 100% { transform: none; } }
+
+.ms-message { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 14px; min-height: 46px; text-align: center; font-size: 13px; color: #a3acbd; }
+.ms-message .button { border: 0; cursor: pointer; padding: 11px 16px; }
+.ms-message .button-ghost { border: 1px solid #363c44; background: none; }
+.ms-win, .ms-lose { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; }
+.ms-win { color: #8de0a8; }
+.ms-lose { color: #ff9a9a; }
+.ms-hint { font-size: 12px; color: #7d8594; }
+.ms-hint-touch { display: none; }
+
+/* ===== Guide « Comment jouer ? » (dépliant) ===== */
+.ms-guide { border: 1px solid #ffffff12; border-radius: 14px; background: #ffffff04; transition: background .2s; }
+.ms-guide[open] { background: linear-gradient(145deg, #14161a, #0e1013); }
+.ms-guide summary { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-radius: 14px; cursor: pointer; list-style: none; }
+.ms-guide summary::-webkit-details-marker { display: none; }
+.ms-guide summary:focus-visible { outline: 2px solid #a0c8ff; outline-offset: 2px; }
+.ms-guide summary:hover .ms-guide-chevron { color: #fff; }
+.ms-guide-icon { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; border: 1px solid #8bb9fa30; background: #8bb9fa14; color: #aacdff; }
+.ms-guide-title { display: grid; gap: 3px; flex: 1; }
+.ms-guide-title strong { font-size: 14px; }
+.ms-guide-title small { font: 10px 'DM Mono', monospace; letter-spacing: .04em; color: #8d95a6; }
+.ms-guide-chevron { color: #8d95a6; transition: transform .25s, color .2s; }
+.ms-guide[open] .ms-guide-chevron { transform: rotate(180deg); }
+.ms-guide-body { display: grid; gap: 16px; padding: 4px 18px 20px; }
+.ms-steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 0; padding: 0; list-style: none; }
+.ms-step { display: flex; flex-direction: column; gap: 8px; padding: 14px; border: 1px solid #ffffff10; border-radius: 12px; background: #0b0d10; }
+.ms-step-visual { display: grid; place-items: center; min-height: 168px; margin-bottom: 6px; padding: 14px; border-radius: 10px; border: 1px solid #ffffff08; background: radial-gradient(circle at 50% 45%, #8bb9fa12, transparent 70%), #07080a; }
+.ms-step-num { font: 10px 'DM Mono', monospace; letter-spacing: .14em; color: #aacdff; }
+.ms-step h3 { margin: 0; font-size: 14px; letter-spacing: -.02em; }
+.ms-step p { margin: 0; font-size: 12px; line-height: 1.75; color: #a3acbd; }
+.ms-tips { padding: 14px 16px; border-radius: 12px; border: 1px dashed #ffffff1c; }
+.ms-tips h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 6px; font-size: 13px; color: #ffd36b; }
+.ms-tips ul { margin: 0; padding-left: 18px; font-size: 12px; line-height: 1.9; color: #a3acbd; }
+
+/* Mini-grilles du guide : même style que le jeu, en plus petit et non cliquables. */
+.ms-board.ms-mini { --cell: 24px; --gap: 3px; pointer-events: none; }
+
+/* Ouverture animée du guide sur les navigateurs qui le permettent. */
+@supports (interpolate-size: allow-keywords) {
+  .ms-guide { interpolate-size: allow-keywords; }
+  .ms-guide::details-content { height: 0; overflow: clip; transition: height .3s ease, content-visibility .3s allow-discrete; }
+  .ms-guide[open]::details-content { height: auto; }
+}
+
+.ms-records ul { display: flex; flex-wrap: wrap; gap: 10px; margin: 10px 0 0; padding: 0; list-style: none; }
+.ms-records li { display: grid; gap: 4px; min-width: 130px; padding: 11px 14px; border-radius: 10px; border: 1px solid #ffffff10; background: #ffffff04; }
+.ms-records li span { font-size: 11px; color: #8d95a6; }
+.ms-records li strong { font: 500 14px 'DM Mono', monospace; color: #dce6f7; }
+
+@media (hover: none), (pointer: coarse) {
+  .ms-mode, .ms-full { display: inline-flex; }
+  .ms-vibe { display: grid; }
+  .ms-hint-mouse { display: none; }
+  .ms-hint-touch { display: inline; }
+}
+
+@media (max-width: 1000px) {
+  .ms-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 800px) {
+  .ms-levels { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 600px) {
+  .jeux { padding-top: 28px; }
+  .jeux-game { padding-top: 36px; }
+  .ms-panel { padding: 14px 12px 16px; border-radius: 14px; gap: 14px; }
+  .ms-board { --gap: 2px; }
+  .ms-counter { min-width: 0; font-size: 16px; padding: 8px 10px; }
+  .ms-records li { min-width: 0; flex: 1; }
+  .ms-steps { grid-template-columns: 1fr; }
+  .ms-guide summary { padding: 12px 14px; }
+  .ms-guide-body { padding: 2px 12px 14px; }
+  .ms-step-visual { min-height: 0; }
+}
+
+@supports (container-type: inline-size) {
+  .ms-board { --cell: clamp(16px, calc((100cqi - (var(--cols) - 1) * var(--gap)) / var(--cols)), 38px); }
+  /* En plein écran, les cases grandissent autant que la largeur le permet,
+     en essayant de faire tenir toute la grille en hauteur (sans descendre sous 19 px). */
+  .is-fullscreen .ms-board {
+    --by-width: calc((100cqi - (var(--cols) - 1) * var(--gap)) / var(--cols));
+    --by-height: calc((100dvh - 290px - (var(--rows) - 1) * var(--gap)) / var(--rows));
+    --cell: clamp(16px, min(var(--by-width), max(var(--by-height), 19px)), 48px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ms-board.is-lost { animation: none; }
+  .ms-zone, .ms-guide::details-content { transition: none !important; }
+  .ms-pulse { animation: ms-pulse-fade .45s ease-out forwards; transform: scale(1.8); }
+}
