@@ -8,6 +8,7 @@ import Jeu2048 from './jeux/Jeu2048'
 import Puissance4 from './jeux/Puissance4'
 import Snake from './jeux/Snake'
 import Sudoku from './jeux/Sudoku'
+import Blocs from './jeux/Blocs'
 import './jeux/jeux.css'
 
 interface GameInfo {
@@ -67,6 +68,7 @@ const games: GameInfo[] = [
     name: 'Blocs',
     description: 'Empile les pièces qui tombent pour compléter des lignes : chaque ligne pleine disparaît. Inspiré du célèbre jeu de briques.',
     icon: <Blocks size={16} />,
+    component: () => <Blocs />,
   },
 ]
 
