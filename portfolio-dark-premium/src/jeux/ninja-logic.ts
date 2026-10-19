@@ -1,8 +1,9 @@
-// Logique pure du jeu du dinosaure : un monde de 600 × 150 unités, y vers le bas, sol à y = SOL.
+// Logique pure du jeu du ninja : un monde de 600 × 150 unités, y vers le bas, sol à y = SOL.
+// Le décor change tous les MONDE_PAS points (voir Ninja.tsx pour les mondes).
 
 export const MONDE_L = 600
 export const SOL = 135
-export const DINO_X = 40
+export const NINJA_X = 40
 export const DEBOUT = { w: 40, h: 44 }
 export const BAISSE = { w: 56, h: 26 }
 const GRAVITE = 2600
@@ -10,13 +11,18 @@ const SAUT = 690 // vitesse de départ du saut (unités/s)
 const VITESSE_MIN = 360
 const VITESSE_MAX = 820
 
-export type Sorte = 'cactus' | 'grand-cactus' | 'oiseau'
-export interface Obstacle { sorte: Sorte; x: number; y: number; w: number; h: number; n: number }
+export const MONDE_PAS = 350
+export const NB_MONDES = 8
+export const mondeDe = (points: number) => Math.floor(points / MONDE_PAS) % NB_MONDES
+
+export type Sorte = 'petit' | 'grand' | 'vol'
+// m : monde dans lequel l'obstacle est apparu (il garde son apparence en cas de changement de monde).
+export interface Obstacle { sorte: Sorte; x: number; y: number; w: number; h: number; n: number; m: number }
 export interface Etat {
   t: number
   vitesse: number
   distance: number
-  y: number // haut du dino
+  y: number // haut du ninja
   vy: number
   baisse: boolean
   auSol: boolean
@@ -32,26 +38,26 @@ export function nouvelEtat(): Etat {
 }
 
 function obstacle(e: Etat, random: () => number): Obstacle {
-  // Les oiseaux arrivent après 250 points : bas (sauter), milieu (se baisser ou sauter), haut (passer dessous).
+  // Les obstacles volants arrivent après 250 points : bas (sauter), milieu (se baisser ou sauter), haut (passer dessous).
   if (score(e) > 250 && random() < 0.25) {
     const hauteur = [SOL - 32, SOL - 62, SOL - 92][Math.floor(random() * 3)]
-    return { sorte: 'oiseau', x: MONDE_L + 20, y: hauteur, w: 46, h: 30, n: 1 }
+    return { sorte: 'vol', x: MONDE_L + 20, y: hauteur, w: 46, h: 30, n: 1, m: mondeDe(score(e)) }
   }
   if (random() < 0.35) {
     const n = e.vitesse > 450 && random() < 0.4 ? 2 : 1
-    return { sorte: 'grand-cactus', x: MONDE_L + 20, y: SOL - 50, w: 25 * n + 3 * (n - 1), h: 50, n }
+    return { sorte: 'grand', x: MONDE_L + 20, y: SOL - 50, w: 25 * n + 3 * (n - 1), h: 50, n, m: mondeDe(score(e)) }
   }
   const n = 1 + Math.floor(random() * (e.vitesse > 420 ? 3 : 2))
-  return { sorte: 'cactus', x: MONDE_L + 20, y: SOL - 35, w: 17 * n + 3 * (n - 1), h: 35, n }
+  return { sorte: 'petit', x: MONDE_L + 20, y: SOL - 35, w: 17 * n + 3 * (n - 1), h: 35, n, m: mondeDe(score(e)) }
 }
 
 const touche = (a: { x: number; y: number; w: number; h: number }, b: { x: number; y: number; w: number; h: number }) =>
   a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y
 
-export function boiteDino(e: Etat) {
+export function boiteNinja(e: Etat) {
   const taille = e.baisse && e.auSol ? BAISSE : DEBOUT
   const y = e.baisse && e.auSol ? SOL - BAISSE.h : e.y
-  return { x: DINO_X + 5, y: y + 4, w: taille.w - 10, h: taille.h - 8 }
+  return { x: NINJA_X + 5, y: y + 4, w: taille.w - 10, h: taille.h - 8 }
 }
 
 // Avance de dt secondes. saut : touche de saut appuyée à l'instant ; bas : touche « se baisser » maintenue.
@@ -90,7 +96,21 @@ export function avancer(e: Etat, dt: number, saut: boolean, bas: boolean, random
     s.prochain = o.w + s.vitesse * (0.78 + random() * 0.6)
   }
 
-  const dino = boiteDino(s)
-  if (s.obstacles.some(o => touche(dino, { x: o.x + 3, y: o.y + 3, w: o.w - 6, h: o.h - 6 }))) s.mort = true
+  const ninja = boiteNinja(s)
+  if (s.obstacles.some(o => touche(ninja, { x: o.x + 3, y: o.y + 3, w: o.w - 6, h: o.h - 6 }))) s.mort = true
   return { e: s, sauté, palier: Math.floor(score(s) / 100) > Math.floor(avant / 100) }
 }
+
+// Médailles, de la plus facile à la plus dure (score à atteindre).
+export const MEDAILLES = [
+  { nom: 'Cuivre', seuil: 100, c: '#c86f3e' },
+  { nom: 'Bronze', seuil: 250, c: '#b48a52' },
+  { nom: 'Argent', seuil: 500, c: '#cdd5e0' },
+  { nom: 'Or', seuil: 800, c: '#ffd36b' },
+  { nom: 'Platine', seuil: 1200, c: '#9fe3dc' },
+  { nom: 'Diamant', seuil: 1700, c: '#7ec8ff' },
+  { nom: 'Maître', seuil: 2300, c: '#b79bff' },
+  { nom: 'Grand maître', seuil: 3000, c: '#ff7b7b' },
+  { nom: 'Légende', seuil: 4000, c: '#ffe9a8' },
+]
+export const medailleDe = (points: number) => MEDAILLES.reduce((m, x, k) => (points >= x.seuil ? k : m), -1)

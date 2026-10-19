@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
-import { ArrowLeft, Blocks, Bomb, Brain, Disc3, Footprints, Grid2x2, Grid3x3, Worm } from 'lucide-react'
+import { ArrowLeft, Blocks, Bomb, Brain, Disc3, Grid2x2, Grid3x3, Swords, Worm } from 'lucide-react'
 import Chantier from './Chantier'
 import Demineur from './jeux/Demineur'
 import Memory from './jeux/Memory'
@@ -9,7 +9,7 @@ import Puissance4 from './jeux/Puissance4'
 import Snake from './jeux/Snake'
 import Sudoku from './jeux/Sudoku'
 import Blocs from './jeux/Blocs'
-import Dino from './jeux/Dino'
+import Ninja from './jeux/Ninja'
 import './jeux/jeux.css'
 
 interface GameInfo {
@@ -72,11 +72,11 @@ const games: GameInfo[] = [
     component: () => <Blocs />,
   },
   {
-    id: 'dino',
-    name: 'Dino',
-    description: 'Le dinosaure court tout seul : saute par-dessus les cactus, baisse-toi sous les oiseaux, et va le plus loin possible pendant qu’il accélère.',
-    icon: <Footprints size={16} />,
-    component: () => <Dino />,
+    id: 'ninja',
+    name: 'Ninja',
+    description: 'Le petit ninja court tout seul : saute, baisse-toi, traverse huit mondes (désert, Japon, monde de lave, monde du vide…) et gagne des médailles du cuivre jusqu’à Légende.',
+    icon: <Swords size={16} />,
+    component: () => <Ninja />,
   },
 ]
 

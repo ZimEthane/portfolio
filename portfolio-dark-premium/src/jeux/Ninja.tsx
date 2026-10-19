@@ -7,87 +7,54 @@ import Outils from './commun/Outils'
 import { useRecords, useSonVibrations } from './commun/reglages'
 import { useFullscreen } from './commun/useFullscreen'
 import { useHaptique } from './commun/useHaptique'
-import { avancer, BAISSE, DINO_X, MONDE_L, nouvelEtat, score, SOL } from './dino-logic'
-import type { Etat, Obstacle } from './dino-logic'
-import './dino.css'
+import { avancer, MEDAILLES, medailleDe, MONDE_L, MONDE_PAS, mondeDe, nouvelEtat, score } from './ninja-logic'
+import type { Etat } from './ninja-logic'
+import { dessinerMonde, dessinerNinja, dessinerObstacle, MONDES } from './ninja-mondes'
+import './ninja.css'
 
 const MONDE_H = 150
+const FONDU = 1.2 // durée du fondu entre deux mondes (s)
 type Statut = 'pret' | 'joue' | 'pause' | 'perdu'
 
-// Dino original (dessiné ici, pas une copie) : vu de profil, tourné vers la droite.
-function dessinerDino(ctx: CanvasRenderingContext2D, e: Etat, mort: boolean) {
-  const baisse = e.baisse && e.auSol && !mort
-  const x = DINO_X
-  const course = Math.floor(e.t * 10) % 2 // jambes qui alternent
-  ctx.fillStyle = mort ? '#ff8585' : '#8bb9fa'
-  if (baisse) {
-    const y = SOL - BAISSE.h
-    ctx.beginPath(); ctx.roundRect(x, y + 4, 42, 16, 8); ctx.fill() // corps allongé
-    ctx.beginPath(); ctx.roundRect(x + 34, y, 22, 14, 6); ctx.fill() // tête en avant
-    ctx.beginPath(); ctx.moveTo(x + 2, y + 8); ctx.lineTo(x - 10, y + 4); ctx.lineTo(x + 2, y + 16); ctx.fill() // queue
-    ctx.fillRect(x + (course ? 8 : 14), y + 18, 6, 8); ctx.fillRect(x + (course ? 26 : 20), y + 18, 6, 8)
-    ctx.fillStyle = '#07111d'; ctx.beginPath(); ctx.arc(x + 48, y + 5, 2.2, 0, Math.PI * 2); ctx.fill()
-    return
-  }
-  const y = e.y
-  ctx.beginPath(); ctx.roundRect(x + 4, y + 14, 26, 22, 9); ctx.fill() // corps
-  ctx.beginPath(); ctx.roundRect(x + 18, y, 22, 17, 7); ctx.fill() // tête
-  ctx.beginPath(); ctx.moveTo(x + 6, y + 18); ctx.lineTo(x - 8, y + 26); ctx.lineTo(x + 6, y + 30); ctx.fill() // queue
-  ctx.fillRect(x + 28, y + 22, 7, 4) // petit bras
-  const enLair = !e.auSol
-  ctx.fillRect(x + 9, y + 34, 6, enLair || course ? 10 : 6)
-  ctx.fillRect(x + 20, y + 34, 6, enLair || !course ? 10 : 6)
-  ctx.fillStyle = '#07111d'
-  if (mort) {
-    ctx.strokeStyle = '#07111d'; ctx.lineWidth = 1.8
-    ctx.beginPath(); ctx.moveTo(x + 29, y + 4); ctx.lineTo(x + 34, y + 9); ctx.moveTo(x + 34, y + 4); ctx.lineTo(x + 29, y + 9); ctx.stroke()
-  } else {
-    ctx.beginPath(); ctx.arc(x + 32, y + 6, 2.4, 0, Math.PI * 2); ctx.fill()
-  }
-  ctx.fillRect(x + 30, y + 12, 9, 1.6) // sourire
+function Medaille({ niveau, taille = 34, verrou = false }: { niveau: number; taille?: number; verrou?: boolean }) {
+  const m = MEDAILLES[niveau]
+  const id = `med-${niveau}-${verrou ? 'v' : 'o'}`
+  return (
+    <svg width={taille} height={taille} viewBox="0 0 40 40" aria-hidden="true" className={verrou ? 'nj-medaille is-locked' : 'nj-medaille'}>
+      <defs>
+        <radialGradient id={id} cx="35%" cy="30%" r="75%">
+          <stop offset="0" stopColor="#fff" stopOpacity=".9" />
+          <stop offset=".35" stopColor={m.c} />
+          <stop offset="1" stopColor={m.c} stopOpacity=".75" />
+        </radialGradient>
+      </defs>
+      <path d="M12 2 L18 14 L13 16 Z" fill="#4d8cff" /><path d="M28 2 L22 14 L27 16 Z" fill="#ff5a5a" />
+      <circle cx="20" cy="25" r="12.5" fill={`url(#${id})`} stroke="#00000040" strokeWidth="1.5" />
+      <path d="M20 17.5 l2.2 4.6 5 .6 -3.7 3.4 1 4.9 -4.5 -2.5 -4.5 2.5 1 -4.9 -3.7 -3.4 5 -.6 z" fill="#00000035" />
+    </svg>
+  )
 }
 
-function dessinerObstacle(ctx: CanvasRenderingContext2D, o: Obstacle, t: number) {
-  if (o.sorte === 'oiseau') {
-    const aile = Math.floor(t * 6) % 2
-    ctx.fillStyle = '#ffb36b'
-    ctx.beginPath(); ctx.roundRect(o.x + 8, o.y + 12, 30, 10, 5); ctx.fill() // corps
-    ctx.beginPath(); ctx.moveTo(o.x + 8, o.y + 14); ctx.lineTo(o.x - 2, o.y + 18); ctx.lineTo(o.x + 8, o.y + 20); ctx.fill() // bec
-    ctx.beginPath() // ailes vers le haut ou vers le bas
-    if (aile) { ctx.moveTo(o.x + 16, o.y + 13); ctx.lineTo(o.x + 30, o.y); ctx.lineTo(o.x + 34, o.y + 13) } else { ctx.moveTo(o.x + 16, o.y + 21); ctx.lineTo(o.x + 30, o.y + 30); ctx.lineTo(o.x + 34, o.y + 21) }
-    ctx.fill()
-    ctx.fillStyle = '#2a1a0a'; ctx.beginPath(); ctx.arc(o.x + 12, o.y + 15, 1.6, 0, Math.PI * 2); ctx.fill()
-    return
-  }
-  const grand = o.sorte === 'grand-cactus'
-  const w = grand ? 25 : 17
-  ctx.fillStyle = '#6fd59a'
-  for (let k = 0; k < o.n; k++) {
-    const x = o.x + k * (w + 3)
-    const tronc = w * 0.42
-    ctx.beginPath(); ctx.roundRect(x + (w - tronc) / 2, o.y, tronc, o.h, tronc / 2); ctx.fill()
-    ctx.beginPath(); ctx.roundRect(x, o.y + o.h * 0.3, tronc * 0.8, o.h * 0.32, 3); ctx.fill() // bras gauche
-    ctx.beginPath(); ctx.roundRect(x + w - tronc * 0.8, o.y + o.h * 0.18, tronc * 0.8, o.h * 0.3, 3); ctx.fill() // bras droit
-  }
-}
-
-export default function Dino() {
+export default function Ninja() {
   const [statut, setStatut] = useState<Statut>('pret')
   const [points, setPoints] = useState(0)
   const [record, setRecord] = useState(false)
+  const [annonces, setAnnonces] = useState<{ texte: string; medaille?: number; key: number }[]>([])
+  const annonce = annonces[0]
   const { sound, vibe, toggleSound, toggleVibe } = useSonVibrations()
   const haptique = useHaptique(vibe)
   const panelRef = useRef<HTMLDivElement>(null)
   const zoneRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const plein = useFullscreen(panelRef)
-  const records = useRecords('ez-dino', 'higher')
+  const records = useRecords('ez-ninja', 'higher')
 
   const e = useRef<Etat>(nouvelEtat())
   const statutRef = useRef<Statut>('pret')
   statutRef.current = statut
   const entree = useRef({ saut: false, bas: false })
   const echelle = useRef(1)
+  const fondu = useRef<{ de: number; vers: number; t0: number } | null>(null)
   const opts = useRef({ sound, vibe, records })
   opts.current = { sound, vibe, records }
 
@@ -98,26 +65,18 @@ export default function Dino() {
     const k = echelle.current
     const dpr = window.devicePixelRatio || 1
     ctx.setTransform(k * dpr, 0, 0, k * dpr, 0, 0)
-    ctx.clearRect(0, 0, MONDE_L, MONDE_H)
     const s = e.current
-    // Nuages et sol qui défilent (décalage selon la distance parcourue).
-    ctx.fillStyle = '#ffffff10'
-    for (const [x0, y, w] of [[80, 30, 46], [330, 18, 60], [520, 44, 38]]) {
-      const x = (((x0 - s.distance * 0.15) % (MONDE_L + 80)) + MONDE_L + 80) % (MONDE_L + 80) - 40
-      ctx.beginPath(); ctx.roundRect(x, y, w, 12, 6); ctx.fill()
-    }
-    ctx.fillStyle = '#3a4452'
-    ctx.fillRect(0, SOL, MONDE_L, 1.5)
-    ctx.fillStyle = '#ffffff1c'
-    for (let i = 0; i < 24; i++) {
-      const x = ((i * 53 - s.distance) % MONDE_L + MONDE_L) % MONDE_L
-      ctx.fillRect(x, SOL + 5 + (i % 3) * 3, 3 + (i % 4), 1.5)
-    }
+    const f = fondu.current
+    if (f) {
+      const p = Math.min(1, (s.t - f.t0) / FONDU)
+      dessinerMonde(ctx, MONDES[f.de], s.distance, s.t)
+      dessinerMonde(ctx, MONDES[f.vers], s.distance, s.t, p)
+      if (p >= 1) fondu.current = null
+    } else dessinerMonde(ctx, MONDES[mondeDe(score(s))], s.distance, s.t)
     for (const o of s.obstacles) dessinerObstacle(ctx, o, s.t)
-    dessinerDino(ctx, s, s.mort)
+    dessinerNinja(ctx, s, s.mort)
   }, [])
 
-  // Le canvas prend toute la largeur ; la hauteur suit les proportions du monde.
   useEffect(() => {
     const zone = zoneRef.current
     const cv = canvasRef.current
@@ -144,21 +103,34 @@ export default function Dino() {
       const dt = Math.min(0.05, (now - last) / 1000)
       last = now
       if (statutRef.current === 'joue') {
+        const avant = score(e.current)
         const res = avancer(e.current, dt, entree.current.saut, entree.current.bas)
         entree.current.saut = false
         e.current = res.e
+        const apres = score(res.e)
         const { sound: son, vibe: vib } = opts.current
         if (res.sauté && son) playSound('select')
-        if (res.palier && son) playSound('eat')
+        // Changement de monde.
+        if (mondeDe(apres) !== mondeDe(avant)) {
+          fondu.current = { de: mondeDe(avant), vers: mondeDe(apres), t0: res.e.t }
+          setAnnonces(a => [...a, { texte: MONDES[mondeDe(apres)].nom, key: performance.now() }])
+          if (son) playSound('match')
+        }
+        // Nouvelle médaille.
+        const med = medailleDe(apres)
+        if (med > medailleDe(avant)) {
+          setAnnonces(a => [...a, { texte: `Médaille ${MEDAILLES[med].nom} !`, medaille: med, key: performance.now() + 1 }])
+          if (son) playSound('win')
+          if (vib && canVibrate()) vibrate('success')
+        } else if (res.palier && son && mondeDe(apres) === mondeDe(avant)) playSound('eat')
         if (res.e.mort) {
           setStatut('perdu')
           statutRef.current = 'perdu'
-          const sc = score(res.e)
-          setRecord(opts.current.records.submit('score', sc) && sc > 0)
+          setRecord(opts.current.records.submit('score', apres) && apres > 0)
           if (son) playSound('gameover')
           if (vib && canVibrate()) vibrate('boom')
         }
-        setPoints(score(res.e))
+        setPoints(apres)
       }
       dessiner()
       raf = requestAnimationFrame(frame)
@@ -177,9 +149,11 @@ export default function Dino() {
 
   const demarrer = () => {
     e.current = nouvelEtat()
+    fondu.current = null
     entree.current = { saut: false, bas: false }
     setRecord(false)
     setPoints(0)
+    setAnnonces([])
     setStatut('joue')
     statutRef.current = 'joue'
     zoneRef.current?.focus({ preventScroll: true })
@@ -210,8 +184,7 @@ export default function Dino() {
   const onKeyUp = (ev: KeyboardEvent) => {
     if (ev.key === 'ArrowDown' || ev.key === 's' || ev.key === 'S') baisser(false)
   }
-  // Toucher la zone de jeu = sauter.
-  // (preventDefault : sinon le navigateur, en retirant l'écran « Prêt ? », renverrait le focus à la page)
+  // Toucher la zone de jeu = sauter (preventDefault : le focus reste sur la zone de jeu).
   const onPointerDown = (ev: PointerEvent) => {
     ev.preventDefault()
     if (ev.pointerType !== 'mouse' || ev.button === 0) sauter()
@@ -219,18 +192,22 @@ export default function Dino() {
   }
 
   const meilleur = Math.max(records.records.score ?? 0, points)
+  const medPartie = medailleDe(points)
+  const medRecord = medailleDe(records.records.score ?? 0)
+  const prochaine = MEDAILLES[medPartie + 1]
 
   return (
-    <section className="ms dino" aria-label="Dino">
+    <section className="ms ninja" aria-label="Ninja">
       <Guide
         etapes={[
-          { title: 'Saute', text: 'Espace ou flèche du haut sur ordinateur, toucher l’écran ou le bouton « Sauter » sur téléphone. Saute par-dessus les cactus et les oiseaux qui volent bas.' },
-          { title: 'Baisse-toi', text: 'Flèche du bas (ou bouton « Se baisser », à maintenir) pour passer sous les oiseaux qui volent à mi-hauteur. En l’air, ça te fait redescendre plus vite.' },
-          { title: 'Va le plus loin possible', text: 'Le dino accélère petit à petit : chaque obstacle touché met fin à la course. Ton score, c’est la distance parcourue.' },
+          { title: 'Saute', text: 'Espace ou flèche du haut sur ordinateur, toucher l’écran ou le bouton « Sauter » sur téléphone. Saute par-dessus les obstacles au sol et ceux qui volent bas.' },
+          { title: 'Baisse-toi', text: 'Flèche du bas (ou bouton « Se baisser », à maintenir) pour glisser sous ce qui vole à mi-hauteur. En l’air, ça fait redescendre plus vite.' },
+          { title: 'Traverse les mondes', text: `Tous les ${MONDE_PAS} points, tu changes de monde : plaine, forêt, désert, banquise, jungle, Japon, monde de lave et monde du vide. Le ninja accélère petit à petit.` },
+          { title: 'Gagne des médailles', text: 'Du cuivre (100 points) à la médaille Légende (4000 points) : neuf médailles à collectionner, gardées sur ton appareil.' },
         ]}
         astuces={[
           'Ne saute pas trop tôt : attends que l’obstacle soit proche, surtout quand tout va vite.',
-          'Les oiseaux tout en haut passent au-dessus de ta tête : reste au sol.',
+          'Ce qui vole tout en haut passe au-dessus de ta tête : reste au sol.',
           'P ou Échap pour faire une pause.',
         ]}
       />
@@ -248,24 +225,35 @@ export default function Dino() {
 
         <div
           ref={zoneRef}
-          className="dino-zone"
+          className="nj-zone"
           tabIndex={0}
           role="application"
-          aria-label={`Dino : score ${points}. Espace pour sauter, flèche du bas pour se baisser.`}
+          aria-label={`Ninja : score ${points}, monde ${MONDES[mondeDe(points)].nom}. Espace pour sauter, flèche du bas pour se baisser.`}
           onKeyDown={onKeyDown}
           onKeyUp={onKeyUp}
           onBlur={() => baisser(false)}
           onPointerDown={onPointerDown}
         >
           <canvas ref={canvasRef} aria-hidden="true" />
+          {!(annonce && statut === 'joue') && <span className="nj-coin" aria-hidden="true">{MONDES[mondeDe(points)].nom}</span>}
+          {annonce && statut === 'joue' && (
+            <div key={annonce.key} className={annonce.medaille !== undefined ? 'nj-annonce is-medaille' : 'nj-annonce'} onAnimationEnd={() => setAnnonces(a => a.slice(1))}>
+              {annonce.medaille !== undefined ? <Medaille niveau={annonce.medaille} taille={22} /> : <span className="mini-label">Monde</span>}
+              {annonce.texte}
+            </div>
+          )}
           {statut !== 'joue' && (
-            <div className="dino-overlay">
+            <div className="nj-overlay">
               {statut === 'pret' && <><strong>Prêt ?</strong><span>Espace, flèche du haut ou touche l’écran pour partir</span></>}
               {statut === 'pause' && <><strong>Pause</strong><span>Saute pour reprendre</span></>}
               {statut === 'perdu' && (
                 <>
                   <strong>{record ? <><Trophy size={18} /> Nouveau record !</> : 'Aïe !'}</strong>
-                  <span>Score : {points}</span>
+                  <span className="nj-fin">
+                    {medPartie >= 0 && <Medaille niveau={medPartie} taille={22} />}
+                    Score : {points}{medPartie >= 0 ? ` · médaille ${MEDAILLES[medPartie].nom}` : ''}
+                  </span>
+                  {prochaine && <span>Prochaine médaille ({prochaine.nom}) à {prochaine.seuil} points</span>}
                   <button type="button" className="button button-primary" onPointerDown={ev => ev.stopPropagation()} onClick={demarrer}><RotateCcw size={15} /> Rejouer</button>
                 </>
               )}
@@ -274,9 +262,9 @@ export default function Dino() {
         </div>
 
         {haptique.input}
-        <label {...haptique.labelProps} className="dino-boutons" aria-label="Commandes">
-          <div role="button" className="dino-btn" onPointerDown={ev => { ev.preventDefault(); baisser(true) }} onPointerUp={() => baisser(false)} onPointerCancel={() => baisser(false)} onPointerLeave={() => baisser(false)} onClick={() => haptique.request('tap')}><ArrowDown size={22} /> Se baisser</div>
-          <div role="button" className="dino-btn is-saut" onPointerDown={ev => { ev.preventDefault(); sauter() }} onClick={() => haptique.request('tap')}><ArrowUp size={22} /> Sauter</div>
+        <label {...haptique.labelProps} className="nj-boutons" aria-label="Commandes">
+          <div role="button" className="nj-btn" onPointerDown={ev => { ev.preventDefault(); baisser(true) }} onPointerUp={() => baisser(false)} onPointerCancel={() => baisser(false)} onPointerLeave={() => baisser(false)} onClick={() => haptique.request('tap')}><ArrowDown size={22} /> Se baisser</div>
+          <div role="button" className="nj-btn is-saut" onPointerDown={ev => { ev.preventDefault(); sauter() }} onClick={() => haptique.request('tap')}><ArrowUp size={22} /> Sauter</div>
         </label>
 
         <div className="ms-message">
@@ -288,10 +276,17 @@ export default function Dino() {
       </div>
 
       <div className="ms-records">
-        <span className="mini-label">Record sur cet appareil</span>
-        <ul><li><span>Meilleur score</span><strong>{records.records.score ?? '—'}</strong></li></ul>
+        <span className="mini-label">Tes médailles (meilleur score : {records.records.score ?? 0})</span>
+        <ul className="nj-medailles">
+          {MEDAILLES.map((m, k) => (
+            <li key={m.nom} className={k <= medRecord ? 'is-won' : ''} title={`${m.nom} : ${m.seuil} points`}>
+              <Medaille niveau={k} taille={30} verrou={k > medRecord} />
+              <span>{m.nom}</span>
+              <small>{m.seuil}</small>
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   )
 }
-
