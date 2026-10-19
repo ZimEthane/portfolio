@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { KeyboardEvent, PointerEvent } from 'react'
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, BrickWall, Move, Pause, Play, RotateCcw, Trophy } from 'lucide-react'
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, BrickWall, Grid3x3, Move, Pause, Play, RotateCcw, Trophy } from 'lucide-react'
 import { canVibrate, playSound, vibrate } from './feedback'
 import Guide from './commun/Guide'
 import Outils from './commun/Outils'
@@ -10,7 +10,16 @@ import { newSnake, OPPOSE, step } from './snake-logic'
 import type { Dir, Pt, Snake as SnakeState } from './snake-logic'
 import './snake.css'
 
-const N = 17
+// Tailles de l'arène (nombre de cases par côté). « Moyenne » est la taille d'origine.
+const ARENES = [
+  { id: 'petite', label: 'Petite', n: 11 },
+  { id: 'moyenne', label: 'Moyenne', n: 17 },
+  { id: 'grande', label: 'Grande', n: 23 },
+]
+const ARENE_KEY = 'ez-snake-arene'
+const tailleArene = (id: string) => ARENES.find(a => a.id === id)?.n ?? 17
+// Clé des records : vitesse, murs, et taille de l'arène (rien pour « Moyenne », comme avant).
+const cleRecord = (vitesse: string, murs: boolean, arene: string) => `${vitesse}-${murs ? 'murs' : 'libre'}${arene === 'moyenne' ? '' : `-${arene}`}`
 const CROIX_KEY = 'ez-snake-croix' // flèches à l'écran : cachées par défaut
 const VITESSES = [
   { id: 'lent', label: 'Lent', ms: 170, info: 'pour s’entraîner' },
@@ -164,6 +173,11 @@ export default function Snake() {
   const [vitesse, setVitesse] = useState('normal')
   const [murs, setMurs] = useState(true)
   const [croix, setCroix] = useState(() => loadJSON<boolean>(CROIX_KEY, false))
+  const [arene, setArene] = useState(() => {
+    const a = loadJSON<string>(ARENE_KEY, 'moyenne')
+    return ARENES.some(x => x.id === a) ? a : 'moyenne'
+  })
+  const n = tailleArene(arene)
   const [statut, setStatut] = useState<Statut>('pret')
   const [score, setScore] = useState(0)
   const [record, setRecord] = useState(false)
@@ -174,9 +188,9 @@ export default function Snake() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const plein = useFullscreen(panelRef)
   const records = useRecords('ez-snake', 'higher')
-  const cle = `${vitesse}-${murs ? 'murs' : 'libre'}`
+  const cle = cleRecord(vitesse, murs, arene)
 
-  const jeu = useRef<SnakeState>(newSnake(N, true))
+  const jeu = useRef<SnakeState>(newSnake(n, true))
   const file = useRef<Dir[]>([]) // virages demandés, appliqués un par pas
   const taille = useRef(0)
   const fond = useRef<HTMLCanvasElement | null>(null)
@@ -212,15 +226,17 @@ export default function Snake() {
       cv.width = s * dpr
       cv.height = s * dpr
       // Taille d'affichage gérée en CSS (100 %) : le canvas ne force jamais la zone à rester grande.
-      fond.current = s ? preparerFond(s, N, dpr) : null
+      fond.current = s ? preparerFond(s, jeu.current.n, dpr) : null
       sale.current = true
     })
     ro.observe(zone)
     return () => ro.disconnect()
   }, [])
 
-  const reset = (m = murs) => {
-    jeu.current = newSnake(N, m)
+  const reset = (m = murs, taille2 = n) => {
+    jeu.current = newSnake(taille2, m)
+    // Nouvelle taille d'arène : le fond (points de la grille) change aussi.
+    if (taille.current && (!fond.current || taille2 !== n)) fond.current = preparerFond(taille.current, taille2, window.devicePixelRatio || 1)
     file.current = []
     mortRef.current = false
     anim.current = { acc: 0, avant: jeu.current.body, mange: null }
@@ -356,6 +372,12 @@ export default function Snake() {
     setMurs(!murs)
     reset(!murs)
   }
+  const changerArene = (id: string) => {
+    if (id === arene) return
+    setArene(id)
+    saveJSON(ARENE_KEY, id)
+    reset(murs, tailleArene(id))
+  }
 
   return (
     <section className={`ms snake${croix ? ' avec-croix' : ''}`} aria-label="Snake">
@@ -369,6 +391,7 @@ export default function Snake() {
           'Longe les bords et fais de grandes boucles : tu garderas de la place au centre.',
           'Barre d’espace (ou P) pour faire une pause, et le jeu se met aussi en pause si tu changes d’onglet.',
           'Commence en vitesse « Lent » pour prendre le coup de main.',
+          'L’option « Arène » change la taille de la grille : petite (11 × 11), moyenne (17 × 17) ou grande (23 × 23). Chaque taille a ses propres records.',
         ]}
       />
 
@@ -398,6 +421,14 @@ export default function Snake() {
           <button type="button" role="switch" aria-checked={croix} className={`ms-switch snake-opt-croix${croix ? ' is-on' : ''}`} onClick={() => { setCroix(!croix); saveJSON(CROIX_KEY, !croix) }} title="Afficher des flèches sous la grille">
             <Move size={15} /> Flèches <span className="ms-switch-track" aria-hidden="true" />
           </button>
+          <div className="snake-arene" role="radiogroup" aria-label="Taille de l’arène">
+            <span><Grid3x3 size={15} /> Arène</span>
+            {ARENES.map(a => (
+              <button key={a.id} type="button" role="radio" aria-checked={arene === a.id} className={arene === a.id ? 'is-active' : ''} title={`${a.n} × ${a.n} cases`} onClick={() => changerArene(a.id)}>
+                {a.label}
+              </button>
+            ))}
+          </div>
         </Outils>
 
         <div
@@ -445,13 +476,13 @@ export default function Snake() {
       </div>
 
       <div className="ms-records">
-        <span className="mini-label">Records sur cet appareil</span>
+        <span className="mini-label">Records sur cet appareil · arène {ARENES.find(a => a.id === arene)!.label.toLowerCase()}</span>
         <ul>
           {VITESSES.map(v => (
             <li key={v.id}>
               <span>{v.label}</span>
-              <strong>{records.records[`${v.id}-murs`] ?? '—'}</strong>
-              <small>{records.records[`${v.id}-libre`] !== undefined ? `sans murs : ${records.records[`${v.id}-libre`]}` : 'avec murs'}</small>
+              <strong>{records.records[cleRecord(v.id, true, arene)] ?? '—'}</strong>
+              <small>{records.records[cleRecord(v.id, false, arene)] !== undefined ? `sans murs : ${records.records[cleRecord(v.id, false, arene)]}` : 'avec murs'}</small>
             </li>
           ))}
         </ul>

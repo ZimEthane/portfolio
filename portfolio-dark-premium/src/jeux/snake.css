@@ -29,6 +29,14 @@
 .snake-mini .mur { background: repeating-linear-gradient(45deg, #ff6b6b 0 4px, #5a1d22 4px 8px); }
 .snake-mini.is-dead .h { background: #ff6b6b; }
 
+/* Choix de la taille de l'arène */
+.snake-arene { display: inline-flex; align-items: center; gap: 2px; padding: 3px; border-radius: 999px; border: 1px solid #ffffff14; background: #07080a; }
+.snake-arene > span { display: inline-flex; align-items: center; gap: 7px; padding: 0 8px 0 10px; color: #9aa3b5; font-size: 12px; font-weight: 700; }
+.snake-arene button { padding: 6px 11px; border-radius: 999px; border: 0; background: none; color: #9aa3b5; font: 700 12px Manrope, sans-serif; cursor: pointer; transition: color .2s, background .2s; }
+.snake-arene button:hover { color: #dce6f7; }
+.snake-arene button.is-active { background: #a0c8ff; color: #101620; }
+.snake-arene button:focus-visible { outline: 2px solid #a0c8ff; outline-offset: 1px; }
+
 /* Option « Flèches » : seulement sur écran tactile. */
 .ms-switch.snake-opt-croix { display: none; }
 
