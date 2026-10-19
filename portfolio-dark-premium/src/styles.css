@@ -150,3 +150,6 @@ h1,h2,h3,h4,strong,.brand{color:#f2f5fa}
 
 /* Avec 7 onglets, on resserre le menu sur les écrans moyens pour qu'il tienne sur une ligne. */
 @media (min-width:761px) and (max-width:960px){.nav{gap:16px}}
+
+/* Page en cours de chargement (Jeux, Tutos). */
+.page-chargement{min-height:80vh}

@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { ArrowDownRight, ArrowRight, ArrowUp, ArrowUpRight, Code2, ExternalLink, Github, Linkedin, Mail, Menu, X } from 'lucide-react'
 import ContactForm from './ContactForm'
 import Veille from './Veille'
-import Jeux from './Jeux'
-import Tutos from './Tutos'
+// Jeux et Tutos sont chargés seulement quand on les ouvre : l'accueil reste léger.
+const Jeux = lazy(() => import('./Jeux'))
+const Tutos = lazy(() => import('./Tutos'))
 import { scrollToId, scrollToTop } from './scroll'
 import { btsOptions, CONTACT_EMAIL, GITHUB_URL, LINKEDIN_URL, projects, skills, timeline, toolGroups } from './data'
 
@@ -28,6 +29,9 @@ function useHash() {
   }, [])
   return hash
 }
+
+// Pendant le chargement d'une page (Jeux, Tutos) : une page vide de la même hauteur.
+const Chargement = () => <main className="section-wrap page-chargement" aria-busy="true" />
 
 // Bouton flottant en bas à droite : apparaît après un peu de défilement et ramène tout en haut.
 function ScrollTopButton() {
@@ -92,7 +96,7 @@ function App() {
       </nav>
     </header>
 
-    {page === 'veille' ? <Veille /> : page === 'jeux' ? <Jeux hash={hash} /> : page === 'tutos' ? <Tutos hash={hash} /> : <main>
+    {page === 'veille' ? <Veille /> : page === 'jeux' ? <Suspense fallback={<Chargement />}><Jeux hash={hash} /></Suspense> : page === 'tutos' ? <Suspense fallback={<Chargement />}><Tutos hash={hash} /></Suspense> : <main>
       <section className="hero section-wrap" id="accueil">
         <div className="hero-copy">
           <div className="eyebrow"><span className="status-dot" /> PORTFOLIO · 2026</div>
