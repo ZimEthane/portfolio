@@ -1,0 +1,30 @@
+/* ===== Écran « en chantier » ===== */
+.chantier { display: grid; justify-items: center; gap: 10px; padding: 28px 20px 34px; border: 1px dashed #ffcc4d40; border-radius: 16px; background: radial-gradient(circle at 50% 30%, #ffcc4d0d, transparent 65%), linear-gradient(145deg, #14161a, #0e1013); text-align: center; }
+.chantier-scene { width: min(100%, 480px); height: auto; overflow: visible; }
+.chantier h3 { margin: 6px 0 0; font-size: 20px; letter-spacing: -.03em; }
+.chantier p { max-width: 460px; margin: 0; font-size: 13px; line-height: 1.8; color: #a3acbd; }
+.chantier-bandeau { width: min(100%, 360px); padding: 5px 0; border-radius: 4px; background: repeating-linear-gradient(-45deg, #ffcc4d 0 14px, #1a1d22 14px 28px); }
+.chantier-bandeau span { display: inline-block; padding: 2px 12px; border-radius: 3px; background: #1a1d22; color: #ffcc4d; font: 600 11px 'DM Mono', monospace; letter-spacing: .24em; }
+
+/* Le bras de la pelleteuse : chaque partie pivote autour de son articulation. */
+.chantier-fleche, .chantier-balancier, .chantier-godet, .chantier-engin { transform-box: view-box; }
+.chantier-fleche { transform-origin: 190px 160px; animation: chantier-fleche 3.6s ease-in-out infinite; }
+.chantier-balancier { transform-origin: 300px 92px; animation: chantier-balancier 3.6s ease-in-out infinite; }
+.chantier-godet { transform-origin: 338px 186px; animation: chantier-godet 3.6s ease-in-out infinite; }
+.chantier-engin { transform-origin: 136px 222px; animation: chantier-engin 3.6s ease-in-out infinite; }
+.chantier-charge { animation: chantier-charge 3.6s linear infinite; }
+.chantier-chute text { opacity: 0; animation: chantier-chute 3.6s ease-in infinite; }
+.chantier-chute .c2 { animation-delay: .08s; }
+.chantier-chute .c3 { animation-delay: .16s; }
+
+@keyframes chantier-fleche { 0% { transform: rotate(-6deg); } 30%, 48% { transform: rotate(13deg); } 74% { transform: rotate(-14deg); } 100% { transform: rotate(-6deg); } }
+@keyframes chantier-balancier { 0% { transform: rotate(-12deg); } 30% { transform: rotate(-4deg); } 48% { transform: rotate(14deg); } 74% { transform: rotate(-16deg); } 100% { transform: rotate(-12deg); } }
+@keyframes chantier-godet { 0% { transform: rotate(0deg); } 30% { transform: rotate(14deg); } 48%, 76% { transform: rotate(-42deg); } 88% { transform: rotate(36deg); } 100% { transform: rotate(0deg); } }
+@keyframes chantier-engin { 0%, 100% { transform: translateY(0); } 34% { transform: translateY(1.5px); } 50% { transform: translateY(-1px); } }
+@keyframes chantier-charge { 0%, 44% { opacity: 0; } 50%, 82% { opacity: 1; } 88%, 100% { opacity: 0; } }
+@keyframes chantier-chute { 0%, 82% { opacity: 0; transform: translateY(-6px); } 88% { opacity: 1; } 100% { opacity: 0; transform: translateY(44px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .chantier-fleche, .chantier-balancier, .chantier-godet, .chantier-engin, .chantier-charge, .chantier-chute text { animation: none; }
+  .chantier-charge { opacity: 1; }
+}
