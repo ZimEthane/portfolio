@@ -10,7 +10,7 @@
   user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; touch-action: manipulation;
 }
 /* En plein écran, la grille entière tient dans la hauteur de l'écran. */
-.is-fullscreen .mem-grille { max-width: min(calc(var(--c) * 150px + (var(--c) - 1) * var(--g)), calc(var(--c) * ((100dvh - 250px - (var(--r) - 1) * var(--g)) * .75 / var(--r)) + (var(--c) - 1) * var(--g))); }
+.is-fullscreen .mem-grille { max-width: min(calc(var(--c) * 150px + (var(--c) - 1) * var(--g)), calc(var(--c) * ((100svh - 250px - (var(--r) - 1) * var(--g)) * .75 / var(--r)) + (var(--c) - 1) * var(--g))); }
 
 .mem-carte { position: relative; aspect-ratio: 3 / 4; perspective: 700px; cursor: pointer; border-radius: 12px; -webkit-tap-highlight-color: transparent; }
 .mem-carte:focus-visible { outline: 2px solid #a0c8ff; outline-offset: 3px; }

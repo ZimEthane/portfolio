@@ -4,7 +4,7 @@
 .sd-fautes svg { color: #ff9a9a; }
 
 .sd-wrap { width: 100%; max-width: 460px; container-type: inline-size; }
-.is-fullscreen .sd-wrap, .is-fullscreen .sd-pave { max-width: min(560px, calc(100dvh - 330px)); }
+.is-fullscreen .sd-wrap, .is-fullscreen .sd-pave { max-width: min(560px, calc(100svh - 330px)); }
 .sd-grille { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); border: 2px solid #8bb9fa80; border-radius: 12px; overflow: hidden; background: #0b0e12; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
 .sd-cell {
   position: relative; display: grid; place-items: center; aspect-ratio: 1;

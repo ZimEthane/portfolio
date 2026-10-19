@@ -7,7 +7,7 @@
 .snake-zone canvas { display: block; width: 100%; height: 100%; }
 .snake-zone.is-dead { animation: snake-choc .35s ease; }
 @keyframes snake-choc { 20% { transform: translateX(-6px); } 45% { transform: translateX(5px); } 70% { transform: translateX(-2px); } }
-.is-fullscreen .snake-zone { max-width: min(560px, calc(100dvh - 260px)); }
+.is-fullscreen .snake-zone { max-width: min(560px, calc(100svh - 260px)); }
 
 .snake-overlay { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 10px; padding: 16px; background: #090b0dc4; backdrop-filter: blur(2px); text-align: center; }
 .snake-overlay strong { display: inline-flex; align-items: center; gap: 8px; font-size: 22px; letter-spacing: -.03em; }
@@ -31,7 +31,7 @@
 
 @media (hover: none), (pointer: coarse) {
   .snake-croix { display: grid; }
-  .is-fullscreen .snake-zone { max-width: min(560px, calc(100dvh - 440px)); }
+  .is-fullscreen .snake-zone { max-width: min(560px, calc(100svh - 440px)); }
 }
 @media (prefers-reduced-motion: reduce) {
   .snake-zone.is-dead { animation: none; }

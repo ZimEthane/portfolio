@@ -13,7 +13,7 @@
 
 /* Grille : la taille des cases suit la largeur disponible. */
 .t48-wrap { width: 100%; max-width: 440px; container-type: inline-size; }
-.is-fullscreen .t48-wrap { max-width: min(560px, calc(100dvh - 280px)); }
+.is-fullscreen .t48-wrap { max-width: min(560px, calc(100svh - 280px)); }
 .t48-board {
   --g: 10px; --p: 10px;
   --cell: calc((100cqi - 2 * var(--p) - (var(--n) - 1) * var(--g)) / var(--n));

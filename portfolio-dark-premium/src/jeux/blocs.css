@@ -5,7 +5,7 @@
 .bl-zone { display: grid; place-items: center; width: 300px; aspect-ratio: 1 / 2; border: 2px solid #8bb9fa45; border-radius: 10px; background: #0b0e12; overflow: hidden; position: relative; touch-action: none; user-select: none; -webkit-user-select: none; outline: none; }
 .bl-zone:focus-visible { box-shadow: 0 0 0 3px #a0c8ff; }
 .bl-zone canvas { display: block; }
-.is-fullscreen .bl-zone { width: min(340px, calc((100dvh - 250px) / 2)); }
+.is-fullscreen .bl-zone { width: min(340px, calc((100svh - 250px) / 2)); }
 .bl-overlay { border-radius: 0; }
 
 .bl-cote { display: grid; gap: 12px; align-content: start; }
@@ -48,5 +48,5 @@ button.bl-boite:hover { border-color: #8bb9fa70; }
 @media (hover: none), (pointer: coarse) {
   .bl-boutons { display: grid; }
   .bl-touches { display: none; }
-  .is-fullscreen .bl-zone { width: min(100%, calc((100dvh - 400px) / 2)); }
+  .is-fullscreen .bl-zone { width: min(100%, calc((100svh - 400px) / 2)); }
 }

@@ -53,7 +53,7 @@
 }
 
 /* Plein écran : la zone grandit sans dépasser la hauteur de l'écran */
-.is-fullscreen .nj-zone { max-width: min(760px, calc((100dvh - 320px) * 4)); }
+.is-fullscreen .nj-zone { max-width: min(760px, calc((100svh - 320px) * 4)); }
 
 /* Plein écran, téléphone à l'horizontale : scores et réglages sur une ligne,
    grande zone de jeu, boutons en dessous */
@@ -66,7 +66,7 @@
   .ninja .is-fullscreen .t48-score { min-width: 84px; padding: 4px 10px; }
   .ninja .is-fullscreen .t48-score strong { font-size: 16px; }
   .ninja .is-fullscreen .t48-btn { padding-top: 6px; padding-bottom: 6px; }
-  .ninja .is-fullscreen .nj-zone { flex: 0 0 100%; max-width: min(100%, calc((100dvh - 140px) * 4)); }
+  .ninja .is-fullscreen .nj-zone { flex: 0 0 100%; max-width: min(100%, calc((100svh - 140px) * 4)); }
   .ninja .is-fullscreen .nj-boutons { flex: 0 0 100%; max-width: 560px; }
   .ninja .is-fullscreen .nj-btn { height: 50px; }
   .ninja .is-fullscreen .ms-message { display: none; }
