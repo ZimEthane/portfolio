@@ -60,7 +60,7 @@ Il rassemble mes projets de formation, mes compétences, mon parcours, ma veille
 | 🧰 **Compétences et outils** | Langages, systèmes, logiciels et outils que j'utilise, regroupés par catégorie |
 | 🎓 **Parcours** | Frise des stages, de la formation, des certifications, et présentation du BTS SIO (SLAM et SISR) |
 | 📰 **Page de veille** | Veille technologique sur Visual Studio Code : nouveautés, sources, avantages et limites, comparaison avec NetBeans |
-| 🎮 **Page Jeux** | Démineur jouable : 3 niveaux + mode personnalisé, premier clic sans danger, drapeaux (clic droit ou appui long), chrono et meilleurs temps, guide « Comment jouer ? » dépliant aide débutant qui encadre les 9 cases autour d'un chiffre, et bouton plein écran sur téléphone |
+| 🎮 **Page Jeux** | Démineur jouable : 3 niveaux + mode personnalisé, premier clic sans danger, drapeaux (clic droit ou appui long), chrono et meilleurs temps, guide « Comment jouer ? » dépliant aide débutant qui encadre les 9 cases autour d'un chiffre, bouton plein écran, sons et vibrations (désactivables) sur téléphone |
 | ✉️ **Formulaire de contact** | Envoi par e-mail depuis le site, avec protection anti-robots et solution de secours |
 | ♿ **Accessibilité** | Libellés pour les lecteurs d'écran, navigation au clavier, contrastes vérifiés |
 

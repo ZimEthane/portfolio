@@ -51,6 +51,13 @@
 .ms-switch.is-on .ms-switch-track { background: #4b7cc2; }
 .ms-switch.is-on .ms-switch-track::after { transform: translateX(14px); background: #fff; }
 
+/* Son et vibrations (le bouton vibrations n'apparaît que sur écran tactile). */
+.ms-toggles { display: inline-flex; gap: 6px; }
+.ms-icon-toggle { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; border: 1px solid #ffffff14; background: #07080a; color: #6f7887; cursor: pointer; transition: color .2s, border-color .2s, background .2s; }
+.ms-icon-toggle:hover { border-color: #8bb9fa60; }
+.ms-icon-toggle.is-on { color: #dce9ff; border-color: #8bb9fa70; background: #8bb9fa14; }
+.ms-vibe { display: none; }
+
 /* Bouton plein écran : seulement sur écran tactile (voir plus bas). */
 .ms-full { display: none; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; border: 1px solid #ffffff14; background: #07080a; color: #cfd8ea; font-size: 12px; font-weight: 700; cursor: pointer; transition: border-color .2s; }
 .ms-full:hover, .ms-full[aria-pressed='true'] { border-color: #8bb9fa70; }
@@ -188,6 +195,7 @@ html.ms-lock .to-top { display: none; }
 
 @media (hover: none), (pointer: coarse) {
   .ms-mode, .ms-full { display: inline-flex; }
+  .ms-vibe { display: grid; }
   .ms-hint-mouse { display: none; }
   .ms-hint-touch { display: inline; }
 }

@@ -1,13 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties, FormEvent, KeyboardEvent, MouseEvent, PointerEvent, ReactNode } from 'react'
-import { Bomb, Flag, Frame, Frown, Laugh, Maximize2, Minimize2, Pickaxe, ScanSearch, Smile, Timer, Trophy, X } from 'lucide-react'
+import { Bomb, Flag, Frame, Frown, Laugh, Maximize2, Minimize2, Pickaxe, ScanSearch, Smile, Timer, Trophy, Vibrate, VibrateOff, Volume2, VolumeX, X } from 'lucide-react'
 import { chord, createGame, CUSTOM_LIMITS, elapsedSeconds, LEVELS, neighbors, reveal, toggleFlag } from './demineur-logic'
 import type { Game } from './demineur-logic'
 import DemineurGuide from './DemineurGuide'
+import { gameFeedback, playSound, vibrate } from './feedback'
 import { Zone, zoneAround } from './zone'
 
 const RECORDS_KEY = 'ez-demineur-records'
 const AIDE_KEY = 'ez-demineur-aide'
+const SOUND_KEY = 'ez-demineur-son'
+const VIBE_KEY = 'ez-demineur-vibrations'
 const LONG_PRESS_MS = 380
 
 type Records = Record<string, number>
@@ -29,17 +32,17 @@ function saveRecords(records: Records) {
   }
 }
 
-// Aide débutant activée par défaut ; le choix du visiteur est retenu.
-function loadAide(): boolean {
+// Réglages (aide, son, vibrations) : activés par défaut, le choix du visiteur est retenu.
+function loadSetting(key: string): boolean {
   try {
-    return localStorage.getItem(AIDE_KEY) !== 'off'
+    return localStorage.getItem(key) !== 'off'
   } catch {
     return true
   }
 }
-function saveAide(on: boolean) {
+function saveSetting(key: string, on: boolean) {
   try {
-    localStorage.setItem(AIDE_KEY, on ? 'on' : 'off')
+    localStorage.setItem(key, on ? 'on' : 'off')
   } catch {
     /* rien à faire */
   }
@@ -136,7 +139,9 @@ export default function Demineur() {
   const [focus, setFocus] = useState(0)
   const [records, setRecords] = useState<Records>(loadRecords)
   const [newRecord, setNewRecord] = useState(false)
-  const [aide, setAide] = useState(loadAide)
+  const [aide, setAide] = useState(() => loadSetting(AIDE_KEY))
+  const [sound, setSound] = useState(() => loadSetting(SOUND_KEY))
+  const [vibe, setVibe] = useState(() => loadSetting(VIBE_KEY))
   const [selected, setSelected] = useState<number | null>(null) // chiffre cliqué ou touché
   const [hovered, setHovered] = useState<number | null>(null) // chiffre survolé à la souris
   const [full, setFull] = useState(false)
@@ -236,6 +241,7 @@ export default function Demineur() {
     if (next === prev) return
     gameRef.current = next
     setGame(next)
+    gameFeedback(prev, next, { sound, vibe })
     if (next.status === 'won' && prev.status !== 'won' && levelId !== 'perso') {
       const time = Math.round(elapsedSeconds(next) * 10) / 10
       const best = records[levelId]
@@ -269,10 +275,7 @@ export default function Demineur() {
     press.current.timer = window.setTimeout(() => {
       press.current.timer = null
       press.current.fired = true
-      if (gameRef.current.state[i] !== 'open') {
-        navigator.vibrate?.(15)
-        apply(x => toggleFlag(x, i))
-      }
+      if (gameRef.current.state[i] !== 'open') apply(x => toggleFlag(x, i))
     }, LONG_PRESS_MS)
   }
   const onClick = (i: number) => {
@@ -319,7 +322,18 @@ export default function Demineur() {
   const inZone = new Set(active === null ? [] : neighbors(active, game.rows, game.cols))
   const toggleAide = () => {
     setAide(!aide)
-    saveAide(!aide)
+    saveSetting(AIDE_KEY, !aide)
+  }
+  // En réactivant le son ou les vibrations, on joue un petit retour pour vérifier que ça marche.
+  const toggleSound = () => {
+    setSound(!sound)
+    saveSetting(SOUND_KEY, !sound)
+    if (!sound) playSound('toggle')
+  }
+  const toggleVibe = () => {
+    setVibe(!vibe)
+    saveSetting(VIBE_KEY, !vibe)
+    if (!vibe) vibrate('flag')
   }
   const onPointerEnter = (e: PointerEvent, i: number) => {
     if (e.pointerType !== 'mouse') return
@@ -361,6 +375,14 @@ export default function Demineur() {
           <div className="ms-mode" role="radiogroup" aria-label="Action au toucher">
             <button type="button" role="radio" aria-checked={mode === 'dig'} className={mode === 'dig' ? 'is-active' : ''} onClick={() => setMode('dig')}><Pickaxe size={15} /> Creuser</button>
             <button type="button" role="radio" aria-checked={mode === 'flag'} className={mode === 'flag' ? 'is-active' : ''} onClick={() => setMode('flag')}><Flag size={15} /> Drapeau</button>
+          </div>
+          <div className="ms-toggles">
+            <button type="button" className={sound ? 'ms-icon-toggle is-on' : 'ms-icon-toggle'} aria-pressed={sound} aria-label="Son" title={sound ? 'Couper le son' : 'Activer le son'} onClick={toggleSound}>
+              {sound ? <Volume2 size={17} /> : <VolumeX size={17} />}
+            </button>
+            <button type="button" className={vibe ? 'ms-icon-toggle ms-vibe is-on' : 'ms-icon-toggle ms-vibe'} aria-pressed={vibe} aria-label="Vibrations" title={vibe ? 'Couper les vibrations' : 'Activer les vibrations'} onClick={toggleVibe}>
+              {vibe ? <Vibrate size={17} /> : <VibrateOff size={17} />}
+            </button>
           </div>
           <button type="button" role="switch" aria-checked={aide} className={aide ? 'ms-switch is-on' : 'ms-switch'} onClick={toggleAide} title="Encadre les 9 cases autour d’un chiffre">
             <ScanSearch size={15} /> Aide débutant <span className="ms-switch-track" aria-hidden="true" />
