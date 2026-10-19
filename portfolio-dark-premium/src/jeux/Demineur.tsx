@@ -1,13 +1,15 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import type { CSSProperties, FormEvent, KeyboardEvent, MouseEvent, PointerEvent, ReactNode } from 'react'
 import { Bomb, Flag, Frame, Frown, Laugh, Maximize2, Minimize2, Pickaxe, ScanSearch, Smile, Timer, Trophy, Vibrate, VibrateOff, Volume2, VolumeX, X } from 'lucide-react'
 import { chord, createGame, CUSTOM_LIMITS, elapsedSeconds, LEVELS, neighbors, reveal, toggleFlag } from './demineur-logic'
 import type { Game } from './demineur-logic'
 import DemineurGuide from './DemineurGuide'
-import { gameFeedback, playSound, vibrate } from './feedback'
+import { canVibrate, gameFeedback, playSound, vibrate } from './feedback'
 import { Zone, zoneAround } from './zone'
 
 const RECORDS_KEY = 'ez-demineur-records'
+// Attribut « switch » (interrupteur natif de Safari, qui porte le retour haptique sur iPhone).
+const SWITCH_ATTR = { switch: '' } as Record<string, string>
 const AIDE_KEY = 'ez-demineur-aide'
 const SOUND_KEY = 'ez-demineur-son'
 const VIBE_KEY = 'ez-demineur-vibrations'
@@ -148,7 +150,9 @@ export default function Demineur() {
 
   const gameRef = useRef(game)
   gameRef.current = game
-  const boardRef = useRef<HTMLDivElement>(null)
+  const boardRef = useRef<HTMLLabelElement>(null)
+  const hapticId = useId()
+  const haptic = useRef(false) // le toucher en cours doit-il faire vibrer l'iPhone ?
   const panelRef = useRef<HTMLDivElement>(null)
   const nativeFull = useRef(false)
   const press = useRef<{ timer: number | null; fired: boolean; touch: boolean }>({ timer: null, fired: false, touch: false })
@@ -241,7 +245,8 @@ export default function Demineur() {
     if (next === prev) return
     gameRef.current = next
     setGame(next)
-    gameFeedback(prev, next, { sound, vibe })
+    const buzz = gameFeedback(prev, next, { sound, vibe })
+    if (buzz && vibe && !canVibrate()) haptic.current = true
     if (next.status === 'won' && prev.status !== 'won' && levelId !== 'perso') {
       const time = Math.round(elapsedSeconds(next) * 10) / 10
       const best = records[levelId]
@@ -269,6 +274,7 @@ export default function Demineur() {
   }
   const onPointerDown = (e: PointerEvent, i: number) => {
     cancelPress()
+    haptic.current = false
     press.current.fired = false
     press.current.touch = e.pointerType !== 'mouse'
     if (!press.current.touch) return
@@ -304,10 +310,13 @@ export default function Demineur() {
       const n = nr * cols + nc
       setFocus(n)
       if (isNumber(gameRef.current, n)) setSelected(n)
-      boardRef.current?.querySelector<HTMLButtonElement>(`[data-i="${n}"]`)?.focus()
+      boardRef.current?.querySelector<HTMLElement>(`[data-i="${n}"]`)?.focus()
     } else if (e.key === 'f' || e.key === 'F') {
       e.preventDefault()
       apply(x => toggleFlag(x, i))
+    } else if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      primary(i)
     }
   }
 
@@ -330,10 +339,16 @@ export default function Demineur() {
     saveSetting(SOUND_KEY, !sound)
     if (!sound) playSound('toggle')
   }
+  // Sur iPhone, c'est l'interrupteur natif touché qui vibre ; sur Android, on vibre nous-mêmes.
   const toggleVibe = () => {
     setVibe(!vibe)
     saveSetting(VIBE_KEY, !vibe)
     if (!vibe) vibrate('flag')
+  }
+  // Clic sur la grille : sans vibration voulue, on empêche le label de basculer l'interrupteur caché.
+  const onBoardClick = (e: MouseEvent) => {
+    if (!haptic.current) e.preventDefault()
+    haptic.current = false
   }
   const onPointerEnter = (e: PointerEvent, i: number) => {
     if (e.pointerType !== 'mouse') return
@@ -380,9 +395,10 @@ export default function Demineur() {
             <button type="button" className={sound ? 'ms-icon-toggle is-on' : 'ms-icon-toggle'} aria-pressed={sound} aria-label="Son" title={sound ? 'Couper le son' : 'Activer le son'} onClick={toggleSound}>
               {sound ? <Volume2 size={17} /> : <VolumeX size={17} />}
             </button>
-            <button type="button" className={vibe ? 'ms-icon-toggle ms-vibe is-on' : 'ms-icon-toggle ms-vibe'} aria-pressed={vibe} aria-label="Vibrations" title={vibe ? 'Couper les vibrations' : 'Activer les vibrations'} onClick={toggleVibe}>
+            <span className={vibe ? 'ms-icon-toggle ms-vibe is-on' : 'ms-icon-toggle ms-vibe'} title={vibe ? 'Couper les vibrations' : 'Activer les vibrations'}>
               {vibe ? <Vibrate size={17} /> : <VibrateOff size={17} />}
-            </button>
+              <input type="checkbox" {...SWITCH_ATTR} className="ms-native-switch" checked={vibe} onChange={toggleVibe} aria-label="Vibrations" />
+            </span>
           </div>
           <button type="button" role="switch" aria-checked={aide} className={aide ? 'ms-switch is-on' : 'ms-switch'} onClick={toggleAide} title="Encadre les 9 cases autour d’un chiffre">
             <ScanSearch size={15} /> Aide débutant <span className="ms-switch-track" aria-hidden="true" />
@@ -392,13 +408,16 @@ export default function Demineur() {
           </button>
         </div>
 
-        <div className="ms-scroll">
-          <div
+        {/* Interrupteur invisible : la grille est son label, un vrai toucher le fait basculer (et vibrer sur iPhone). */}
+        <input type="checkbox" {...SWITCH_ATTR} id={hapticId} className="ms-haptic" tabIndex={-1} aria-hidden="true" defaultChecked={false} />
+
+        <div className="ms-scroll" role="group" aria-label={`Grille de ${game.rows} lignes sur ${game.cols} colonnes`}>
+          <label
             ref={boardRef}
+            htmlFor={hapticId}
             className={`ms-board is-${game.status}`}
             style={boardStyle}
-            role="group"
-            aria-label={`Grille de ${game.rows} lignes sur ${game.cols} colonnes`}
+            onClick={onBoardClick}
             onContextMenu={e => e.preventDefault()}
             onPointerLeave={() => setHovered(null)}
           >
@@ -407,9 +426,9 @@ export default function Demineur() {
               const { content, label } = view
               const className = view.className + (inZone.has(i) && game.state[i] === 'hidden' ? ' is-zone' : '') + (i === active ? ' is-center' : '')
               return (
-                <button
+                <div
                   key={i}
-                  type="button"
+                  role="button"
                   data-i={i}
                   className={className}
                   tabIndex={i === focus ? 0 : -1}
@@ -425,11 +444,11 @@ export default function Demineur() {
                   onFocus={() => setFocus(i)}
                 >
                   {content}
-                </button>
+                </div>
               )
             })}
             {active !== null && <Zone box={zoneAround(active, game.rows, game.cols)} />}
-          </div>
+          </label>
         </div>
 
         <div className="ms-message" aria-live="polite">

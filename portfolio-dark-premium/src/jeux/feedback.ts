@@ -1,7 +1,9 @@
 // Sons et vibrations du démineur.
 // Sons : synthétisés avec la Web Audio API, aucun fichier audio à charger.
-// Vibrations : navigator.vibrate sur Android ; sur iPhone (Safari ne le gère pas),
-// on déclenche le petit retour haptique natif d'un interrupteur caché (Safari 17.4+).
+// Vibrations : navigator.vibrate sur Android. Sur iPhone, Safari ne le gère pas et, depuis
+// iOS 26.5, refuse toute vibration lancée par le code : seul un vrai toucher sur un
+// interrupteur natif (<input type="checkbox" switch>) fait vibrer. La grille est donc un
+// <label> relié à un interrupteur caché (voir Demineur.tsx) : un « tic » par toucher.
 import type { Game } from './demineur-logic'
 
 let ctx: AudioContext | null = null
@@ -78,46 +80,26 @@ export function playSound(kind: Sound) {
   }
 }
 
-// Un « tic » haptique sur iPhone : on fait basculer un interrupteur invisible.
-function iosTick() {
-  try {
-    const label = document.createElement('label')
-    label.setAttribute('aria-hidden', 'true')
-    label.style.display = 'none'
-    const input = document.createElement('input')
-    input.type = 'checkbox'
-    input.setAttribute('switch', '')
-    label.appendChild(input)
-    document.body.appendChild(label)
-    label.click()
-    label.remove()
-  } catch {
-    /* pas de retour haptique disponible */
-  }
-}
-
-// pattern : durées pour Android ; ticks : nombre de tics sur iPhone.
+// Durées de vibration (ms) pour Android.
 const patterns = {
-  reveal: { pattern: 8, ticks: 1 },
-  flag: { pattern: 18, ticks: 1 },
-  boom: { pattern: [90, 50, 160], ticks: 3 },
-  win: { pattern: [30, 60, 30, 60, 80], ticks: 2 },
+  reveal: 12,
+  flag: 25,
+  boom: [120, 60, 220],
+  win: [40, 70, 40, 70, 120],
 } as const
+export type Buzz = keyof typeof patterns
 
-export function vibrate(kind: keyof typeof patterns) {
-  const { pattern, ticks } = patterns[kind]
-  if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
-    navigator.vibrate(pattern as number | number[])
-    return
-  }
-  iosTick()
-  for (let k = 1; k < ticks; k++) window.setTimeout(iosTick, k * 120)
+export const canVibrate = () => typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function'
+
+export function vibrate(kind: Buzz) {
+  if (canVibrate()) navigator.vibrate(patterns[kind] as number | number[])
 }
 
 // Choisit le son et la vibration selon ce qui vient de changer dans la partie.
-export function gameFeedback(prev: Game, next: Game, opts: { sound: boolean; vibe: boolean }) {
+// Renvoie la vibration voulue : sur iPhone, c'est le toucher en cours qui la produira.
+export function gameFeedback(prev: Game, next: Game, opts: { sound: boolean; vibe: boolean }): Buzz | null {
   let sound: Sound | null = null
-  let buzz: keyof typeof patterns | null = null
+  let buzz: Buzz | null = null
   if (next.status === 'lost' && prev.status !== 'lost') {
     sound = 'boom'
     buzz = 'boom'
@@ -133,4 +115,5 @@ export function gameFeedback(prev: Game, next: Game, opts: { sound: boolean; vib
   }
   if (opts.sound && sound) playSound(sound)
   if (opts.vibe && buzz) vibrate(buzz)
+  return buzz
 }
