@@ -1,0 +1,130 @@
+/* ===== Page Jeux ===== */
+.jeux { position: relative; z-index: 1; padding-top: 42px; padding-bottom: 80px; }
+.jeux-head { padding: 36px 0 36px; border-bottom: 1px solid #ffffff10; }
+.jeux-head h1 { max-width: 20ch; font-size: clamp(34px, 5vw, 56px); line-height: 1.12; letter-spacing: -.06em; margin: 0 0 20px; font-weight: 700; text-wrap: balance; }
+.jeux-head p { max-width: 560px; margin: 0 0 28px; font-size: 14px; line-height: 1.9; color: #9aa3b5; }
+.jeux-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.jeux-tabs button { display: inline-flex; align-items: center; gap: 8px; font: 600 12px Manrope, sans-serif; color: #cfd8ea; background: #ffffff08; border: 1px solid #ffffff14; border-radius: 999px; padding: 9px 16px; cursor: pointer; transition: border-color .2s, color .2s, background .2s; }
+.jeux-tabs button:hover { border-color: #8bb9fa80; color: #fff; }
+.jeux-tabs button.is-active { border-color: #8bb9fa90; background: #8bb9fa16; color: #fff; }
+.jeux-game { padding-top: 48px; }
+.jeux-game-head h2 { margin: 0 0 10px; font-size: clamp(22px, 2.6vw, 30px); letter-spacing: -.045em; font-weight: 650; }
+.jeux-game-head p { max-width: 640px; margin: 0 0 24px; font-size: 13px; line-height: 1.85; color: #9aa3b5; }
+
+/* ===== Démineur ===== */
+.ms { display: grid; gap: 16px; }
+
+.ms-levels { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.ms-levels button { display: grid; gap: 4px; text-align: left; padding: 13px 15px; border-radius: 11px; border: 1px solid #ffffff12; background: #ffffff05; color: #cfd8ea; cursor: pointer; transition: border-color .2s, background .2s; }
+.ms-levels button:hover { border-color: #8bb9fa60; }
+.ms-levels button.is-active { border-color: #8bb9fa90; background: #8bb9fa14; color: #fff; }
+.ms-levels strong { font-size: 13px; font-weight: 700; }
+.ms-levels small { font: 10px 'DM Mono', monospace; letter-spacing: .04em; color: #8d95a6; }
+.ms-levels .is-active small { color: #aacdff; }
+
+.ms-custom { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; padding: 16px; border: 1px solid #ffffff10; border-radius: 12px; background: #ffffff04; }
+.ms-custom label { display: grid; gap: 6px; font-size: 11px; color: #9aa3b5; }
+.ms-custom input { width: 96px; padding: 10px 12px; border-radius: 8px; border: 1px solid #ffffff18; background: #0d1013; color: #f2f5fa; font: 14px 'DM Mono', monospace; }
+.ms-custom input:focus { outline: none; border-color: #8bb9fa; }
+.ms-custom .button { border: 0; cursor: pointer; }
+.ms-custom-hint { flex-basis: 100%; margin: 0; font-size: 11px; color: #7d8594; }
+
+.ms-panel { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 20px; border: 1px solid #ffffff12; border-radius: 16px; background: linear-gradient(145deg, #14161a, #0e1013); }
+
+.ms-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; max-width: 520px; }
+.ms-counter { display: inline-flex; align-items: center; gap: 8px; min-width: 96px; justify-content: center; padding: 9px 12px; border-radius: 9px; border: 1px solid #ffffff10; background: #07080a; color: #aacdff; font: 500 18px 'DM Mono', monospace; letter-spacing: .08em; }
+.ms-counter svg { color: #6f7887; }
+.ms-face { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 12px; border: 1px solid #ffffff18; background: #ffffff08; color: #ffd36b; cursor: pointer; transition: transform .15s, border-color .2s; }
+.ms-face:hover { border-color: #8bb9fa80; transform: translateY(-1px); }
+.ms-face:active { transform: scale(.94); }
+.ms-face.is-lost { color: #ff8f8f; }
+.ms-face.is-won { color: #8de0a8; }
+
+/* Choix Creuser / Drapeau : seulement sur écran tactile. */
+.ms-mode { display: none; padding: 3px; border-radius: 999px; border: 1px solid #ffffff14; background: #07080a; }
+.ms-mode button { display: inline-flex; align-items: center; gap: 7px; padding: 8px 16px; border-radius: 999px; border: 0; background: none; color: #9aa3b5; font-size: 12px; font-weight: 700; cursor: pointer; }
+.ms-mode button.is-active { background: #a0c8ff; color: #101620; }
+
+/* La grille s'adapte à la largeur disponible ; si elle ne tient pas, on peut la faire défiler. */
+.ms-scroll { width: 100%; overflow-x: auto; padding: 3px; container-type: inline-size; }
+.ms-board {
+  --gap: 3px;
+  --cell: clamp(16px, calc((100vw - 140px - (var(--cols) - 1) * var(--gap)) / var(--cols)), 38px);
+  width: max-content;
+  margin-inline: auto;
+  display: grid;
+  grid-template-columns: repeat(var(--cols), var(--cell));
+  grid-auto-rows: var(--cell);
+  gap: var(--gap);
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
+}
+.ms-cell {
+  display: grid; place-items: center; padding: 0; margin: 0;
+  border: 1px solid #ffffff14; border-radius: calc(var(--cell) * .2);
+  background: linear-gradient(160deg, #262d37, #1a1f26);
+  box-shadow: inset 0 1px 0 #ffffff12;
+  color: #fff; font: 700 calc(var(--cell) * .5) / 1 'DM Mono', monospace;
+  cursor: pointer; transition: background .12s, border-color .12s;
+  -webkit-tap-highlight-color: transparent;
+}
+.ms-cell svg { width: 58%; height: 58%; }
+.ms-cell:hover { border-color: #8bb9fa70; background: linear-gradient(160deg, #2d3643, #1f252e); }
+.ms-cell:focus-visible { outline: 2px solid #a0c8ff; outline-offset: 1px; position: relative; z-index: 1; }
+.ms-cell.is-open { background: #0d1013; border-color: #ffffff09; box-shadow: none; cursor: default; }
+.ms-cell.is-open[class*=' n'] { cursor: pointer; }
+.ms-cell.n1 { color: #7fb2ff; } .ms-cell.n2 { color: #6fd59a; } .ms-cell.n3 { color: #ff7b7b; } .ms-cell.n4 { color: #b79bff; }
+.ms-cell.n5 { color: #ffb36b; } .ms-cell.n6 { color: #5fd6d6; } .ms-cell.n7 { color: #e7e7e7; } .ms-cell.n8 { color: #9aa3b5; }
+.ms-cell.is-flag { color: #ff8585; }
+.ms-cell.is-flag svg { fill: #ff858533; }
+.ms-cell.is-mine { background: #15181d; color: #dfe5ef; box-shadow: none; }
+.ms-cell.is-exploded { background: #7a1f2a; border-color: #ff7b7b90; color: #fff; }
+.ms-cell.is-wrong { background: #15181d; color: #ff7b7b; box-shadow: none; }
+.ms-board.is-won .ms-cell, .ms-board.is-lost .ms-cell { cursor: default; }
+.ms-board.is-won .ms-cell:not(.is-open):hover, .ms-board.is-lost .ms-cell:not(.is-open):hover { border-color: #ffffff14; }
+.ms-board.is-won { filter: drop-shadow(0 0 22px #6fd59a2a); }
+.ms-board.is-lost { animation: ms-shake .4s ease-out; }
+@keyframes ms-shake { 20% { transform: translateX(-5px); } 45% { transform: translateX(4px); } 70% { transform: translateX(-2px); } 100% { transform: none; } }
+
+.ms-message { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 14px; min-height: 46px; text-align: center; font-size: 13px; color: #a3acbd; }
+.ms-message .button { border: 0; cursor: pointer; padding: 11px 16px; }
+.ms-message .button-ghost { border: 1px solid #363c44; background: none; }
+.ms-win, .ms-lose { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; }
+.ms-win { color: #8de0a8; }
+.ms-lose { color: #ff9a9a; }
+.ms-hint { font-size: 12px; color: #7d8594; }
+.ms-hint-touch { display: none; }
+
+.ms-records ul { display: flex; flex-wrap: wrap; gap: 10px; margin: 10px 0 0; padding: 0; list-style: none; }
+.ms-records li { display: grid; gap: 4px; min-width: 130px; padding: 11px 14px; border-radius: 10px; border: 1px solid #ffffff10; background: #ffffff04; }
+.ms-records li span { font-size: 11px; color: #8d95a6; }
+.ms-records li strong { font: 500 14px 'DM Mono', monospace; color: #dce6f7; }
+
+@media (hover: none), (pointer: coarse) {
+  .ms-mode { display: inline-flex; }
+  .ms-hint-mouse { display: none; }
+  .ms-hint-touch { display: inline; }
+}
+
+@media (max-width: 800px) {
+  .ms-levels { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 600px) {
+  .jeux { padding-top: 28px; }
+  .jeux-game { padding-top: 36px; }
+  .ms-panel { padding: 14px 12px 16px; border-radius: 14px; gap: 14px; }
+  .ms-board { --gap: 2px; }
+  .ms-counter { min-width: 0; font-size: 16px; padding: 8px 10px; }
+  .ms-records li { min-width: 0; flex: 1; }
+}
+
+@supports (container-type: inline-size) {
+  .ms-board { --cell: clamp(16px, calc((100cqi - (var(--cols) - 1) * var(--gap)) / var(--cols)), 38px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ms-board.is-lost { animation: none; }
+}

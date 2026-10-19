@@ -2,15 +2,19 @@ import { useEffect, useState } from 'react'
 import { ArrowDownRight, ArrowRight, ArrowUp, ArrowUpRight, Code2, ExternalLink, Github, Linkedin, Mail, Menu, X } from 'lucide-react'
 import ContactForm from './ContactForm'
 import Veille from './Veille'
+import Jeux from './Jeux'
 import { scrollToId, scrollToTop } from './scroll'
 import { btsOptions, CONTACT_EMAIL, GITHUB_URL, LINKEDIN_URL, projects, skills, timeline, toolGroups } from './data'
 
 const CV_URL = '/pdf/CV_Zimmermann_Ethane_2026.pdf'
 const GRID_URL = '/pdf/BTS_SIO_-_Annexe_8-1_-_Tableau_de_synthe_se_-_Epreuve_E4-_BTS_SIO_2024_-_Zimmermann_Ethane.pdf'
 
-const navItems = [['À propos', '#apropos'], ['Projets', '#projets'], ['Compétences', '#competences'], ['Parcours', '#parcours'], ['Veille', '#veille']]
+const navItems = [['À propos', '#apropos'], ['Projets', '#projets'], ['Compétences', '#competences'], ['Parcours', '#parcours'], ['Veille', '#veille'], ['Jeux', '#jeux']]
 
-// Routage minimal par hash : "#veille" affiche la page de veille, tout le reste affiche l'accueil.
+// Pages à part entière (le reste du hash sert à défiler dans l'accueil).
+const SUBPAGES = ['#veille', '#jeux']
+
+// Routage minimal par hash : "#veille" et "#jeux" affichent leur page, tout le reste affiche l'accueil.
 function useHash() {
   const [hash, setHash] = useState(() => window.location.hash)
   useEffect(() => {
@@ -43,7 +47,7 @@ function ScrollTopButton() {
 function App() {
   const [menuOpen, setMenuOpen] = useState(false)
   const hash = useHash()
-  const page = hash === '#veille' ? 'veille' : 'home'
+  const page = hash === '#veille' ? 'veille' : hash === '#jeux' ? 'jeux' : 'home'
   const closeMenu = () => setMenuOpen(false)
 
   // Clic sur un lien d'ancre de l'accueil (menu, boutons) : défilement doux au lieu du saut brusque.
@@ -51,9 +55,9 @@ function App() {
     const onClick = (event: MouseEvent) => {
       if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
       const link = (event.target as Element | null)?.closest?.('a[href^="#"]')
-      if (!link || window.location.hash === '#veille') return
+      if (!link || SUBPAGES.includes(window.location.hash)) return
       const href = link.getAttribute('href') || ''
-      if (href === '#veille' || href.length < 2) return
+      if (SUBPAGES.includes(href) || href.length < 2) return
       if (scrollToId(href.slice(1))) {
         event.preventDefault()
         history.pushState(null, '', href)
@@ -64,7 +68,7 @@ function App() {
   }, [])
 
   useEffect(() => {
-    if (page === 'veille') {
+    if (page !== 'home') {
       window.scrollTo({ top: 0 })
       return
     }
@@ -79,12 +83,12 @@ function App() {
       <a href="#accueil" className="brand" onClick={closeMenu}><span className="brand-mark">EZ</span><span>ETHANE<span className="brand-dot">.</span></span></a>
       <button className="menu-toggle" aria-label="Ouvrir le menu" onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X /> : <Menu />}</button>
       <nav className={menuOpen ? 'nav nav-open' : 'nav'}>
-        {navItems.map(([label, href]) => <a key={href} href={href} onClick={closeMenu} aria-current={href === '#veille' && page === 'veille' ? 'page' : undefined}>{label}</a>)}
+        {navItems.map(([label, href]) => <a key={href} href={href} onClick={closeMenu} aria-current={href === `#${page}` ? 'page' : undefined}>{label}</a>)}
         <a className="nav-contact" href="#contact" onClick={closeMenu}>Me contacter <ArrowUpRight size={15} /></a>
       </nav>
     </header>
 
-    {page === 'veille' ? <Veille /> : <main>
+    {page === 'veille' ? <Veille /> : page === 'jeux' ? <Jeux /> : <main>
       <section className="hero section-wrap" id="accueil">
         <div className="hero-copy">
           <div className="eyebrow"><span className="status-dot" /> PORTFOLIO · 2026</div>
