@@ -426,14 +426,22 @@ export default function Glissieres() {
         </div>
       </div>
 
-      <div className="ms-records">
+      <div className="ms-records gl-progression">
         <span className="mini-label">Ta progression sur cet appareil</span>
-        <ul>
+        <ul className="gl-totaux">
           <li><span>Niveaux réussis</span><strong>{total.r} / {NB}</strong></li>
           <li><span>Niveaux parfaits</span><strong>{total.parfaits} / {NB}</strong></li>
+        </ul>
+        <ul className="gl-paliers-prog">
           {PALIERS.map(x => {
             const f = faits(x.de, x.a)
-            return <li key={x.nom}><span>{x.nom}</span><strong>{f.r}/100</strong></li>
+            return (
+              <li key={x.nom}>
+                <span>{x.nom}</span>
+                <strong>{f.r} / 100</strong>
+                <i className="gl-jauge" aria-hidden="true"><b style={{ width: `${f.r}%` }} /></i>
+              </li>
+            )
           })}
         </ul>
       </div>

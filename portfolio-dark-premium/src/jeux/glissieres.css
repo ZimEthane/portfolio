@@ -80,13 +80,26 @@
 .gl-bravo .button { border: 0; cursor: pointer; padding: 10px 14px; }
 @keyframes gl-apparait { from { opacity: 0; transform: scale(.96); } }
 
+/* Progression : les totaux, puis une case par palier avec une jauge */
+.ms-records ul.gl-totaux { display: grid; grid-template-columns: repeat(2, minmax(0, 220px)); }
+.ms-records ul.gl-paliers-prog { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.gl-progression li { min-width: 0; }
+.gl-progression li strong { white-space: nowrap; }
+.gl-jauge { display: block; height: 4px; margin-top: 4px; border-radius: 2px; background: #ffffff10; overflow: hidden; }
+.gl-jauge b { display: block; height: 100%; border-radius: 2px; background: #8bb9fa; }
+
 /* Plein écran : le plateau grandit en fonction de la hauteur de l'écran */
-.is-fullscreen .gl-console { width: min(100%, clamp(240px, calc((100dvh - 395px) * .8 + 44px), 460px)); }
+.is-fullscreen .gl-console { width: min(100%, clamp(240px, calc((100svh - 395px) * .8 + 44px), 460px)); }
 
 @media (max-width: 800px) {
   .ms-levels.gl-paliers { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 @media (max-width: 600px) {
+  .ms-records ul.gl-totaux { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* 3 paliers sur la première ligne, 2 sur la seconde */
+  .ms-records ul.gl-paliers-prog { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+  .gl-paliers-prog li { grid-column: span 2; padding: 10px 11px; }
+  .gl-paliers-prog li:nth-child(n + 4) { grid-column: span 3; }
   .gl-grille-niveaux { gap: 4px; padding: 8px; }
   .gl-console { padding: 12px 10px 0; border-radius: 28px 28px 22px 22px; }
 }
