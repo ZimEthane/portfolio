@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties, FormEvent, KeyboardEvent, MouseEvent, PointerEvent, ReactNode } from 'react'
-import { Bomb, Flag, Frame, Frown, Laugh, Pickaxe, ScanSearch, Smile, Timer, Trophy, X } from 'lucide-react'
+import { Bomb, Flag, Frame, Frown, Laugh, Maximize2, Minimize2, Pickaxe, ScanSearch, Smile, Timer, Trophy, X } from 'lucide-react'
 import { chord, createGame, CUSTOM_LIMITS, elapsedSeconds, LEVELS, neighbors, reveal, toggleFlag } from './demineur-logic'
 import type { Game } from './demineur-logic'
 import DemineurGuide from './DemineurGuide'
@@ -44,6 +44,13 @@ function saveAide(on: boolean) {
     /* rien à faire */
   }
 }
+
+// Plein écran : vrai plein écran du navigateur quand il est disponible (Android),
+// sinon le jeu occupe tout l'écran visible (iPhone, qui ne l'autorise pas pour une page web).
+type FsElement = HTMLElement & { webkitRequestFullscreen?: () => Promise<void> | void }
+type FsDocument = Document & { webkitFullscreenEnabled?: boolean; webkitFullscreenElement?: Element | null; webkitExitFullscreen?: () => Promise<void> | void }
+const fsDoc = () => document as FsDocument
+const fsElement = () => fsDoc().fullscreenElement ?? fsDoc().webkitFullscreenElement ?? null
 
 const isNumber = (g: Game, i: number) => g.state[i] === 'open' && g.adj[i] > 0
 
@@ -132,11 +139,65 @@ export default function Demineur() {
   const [aide, setAide] = useState(loadAide)
   const [selected, setSelected] = useState<number | null>(null) // chiffre cliqué ou touché
   const [hovered, setHovered] = useState<number | null>(null) // chiffre survolé à la souris
+  const [full, setFull] = useState(false)
 
   const gameRef = useRef(game)
   gameRef.current = game
   const boardRef = useRef<HTMLDivElement>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
+  const nativeFull = useRef(false)
   const press = useRef<{ timer: number | null; fired: boolean; touch: boolean }>({ timer: null, fired: false, touch: false })
+
+  const enterFull = async () => {
+    setFull(true)
+    const el = panelRef.current as FsElement | null
+    const d = fsDoc()
+    if (!el || !(d.fullscreenEnabled || d.webkitFullscreenEnabled)) return
+    try {
+      if (el.requestFullscreen) await el.requestFullscreen({ navigationUI: 'hide' })
+      else await el.webkitRequestFullscreen?.()
+      nativeFull.current = true
+    } catch {
+      /* refusé : le jeu reste en mode écran complet sans le navigateur */
+    }
+  }
+  const exitFull = () => {
+    setFull(false)
+    nativeFull.current = false
+    const d = fsDoc()
+    if (fsElement()) void Promise.resolve(d.exitFullscreen ? d.exitFullscreen() : d.webkitExitFullscreen?.()).catch(() => {})
+  }
+
+  // Sortie par le geste retour ou la touche Échap du navigateur.
+  useEffect(() => {
+    const onChange = () => {
+      if (!fsElement() && nativeFull.current) {
+        nativeFull.current = false
+        setFull(false)
+      }
+    }
+    document.addEventListener('fullscreenchange', onChange)
+    document.addEventListener('webkitfullscreenchange', onChange)
+    return () => {
+      document.removeEventListener('fullscreenchange', onChange)
+      document.removeEventListener('webkitfullscreenchange', onChange)
+    }
+  }, [])
+
+  // Pendant le plein écran : la page derrière ne défile plus, Échap permet de sortir.
+  useEffect(() => {
+    if (!full) return
+    const root = document.documentElement
+    root.classList.add('ms-lock')
+    const onKey = (e: globalThis.KeyboardEvent) => {
+      if (e.key === 'Escape') exitFull()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => {
+      root.classList.remove('ms-lock')
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [full])
 
   const start = (dims: Dims) => {
     const d = fitToScreen(dims)
@@ -289,7 +350,7 @@ export default function Demineur() {
         </form>
       )}
 
-      <div className="ms-panel">
+      <div ref={panelRef} className={full ? 'ms-panel is-fullscreen' : 'ms-panel'}>
         <div className="ms-bar">
           <span className="ms-counter" title="Mines restantes"><Bomb size={15} /> {counter(game.mines - game.flags)}</span>
           <button type="button" className={`ms-face is-${game.status}`} onClick={() => start(currentDims())} aria-label="Nouvelle partie" title="Nouvelle partie"><Face size={22} /></button>
@@ -303,6 +364,9 @@ export default function Demineur() {
           </div>
           <button type="button" role="switch" aria-checked={aide} className={aide ? 'ms-switch is-on' : 'ms-switch'} onClick={toggleAide} title="Encadre les 9 cases autour d’un chiffre">
             <ScanSearch size={15} /> Aide débutant <span className="ms-switch-track" aria-hidden="true" />
+          </button>
+          <button type="button" className="ms-full" aria-pressed={full} onClick={full ? exitFull : enterFull}>
+            {full ? <Minimize2 size={15} /> : <Maximize2 size={15} />} {full ? 'Réduire' : 'Plein écran'}
           </button>
         </div>
 

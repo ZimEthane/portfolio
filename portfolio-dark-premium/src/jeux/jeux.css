@@ -51,6 +51,24 @@
 .ms-switch.is-on .ms-switch-track { background: #4b7cc2; }
 .ms-switch.is-on .ms-switch-track::after { transform: translateX(14px); background: #fff; }
 
+/* Bouton plein écran : seulement sur écran tactile (voir plus bas). */
+.ms-full { display: none; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; border: 1px solid #ffffff14; background: #07080a; color: #cfd8ea; font-size: 12px; font-weight: 700; cursor: pointer; transition: border-color .2s; }
+.ms-full:hover, .ms-full[aria-pressed='true'] { border-color: #8bb9fa70; }
+
+/* Plein écran : le panneau du jeu couvre tout l'écran. */
+.ms-panel.is-fullscreen {
+  position: fixed; inset: 0; z-index: 1000;
+  height: 100%; overflow-y: auto; overscroll-behavior: contain;
+  border: 0; border-radius: 0;
+  padding: max(16px, env(safe-area-inset-top)) 12px max(16px, env(safe-area-inset-bottom));
+  background: radial-gradient(circle at 50% 0%, #8bb9fa14, transparent 60%), #090b0d;
+  justify-content: flex-start; justify-content: safe center;
+}
+.ms-panel::backdrop { background: #090b0d; }
+html.ms-lock, html.ms-lock body { overflow: hidden; }
+html.ms-lock .jeux { z-index: auto; } /* sinon le bouton « remonter » et le menu passeraient devant */
+html.ms-lock .to-top { display: none; }
+
 /* Choix Creuser / Drapeau : seulement sur écran tactile. */
 .ms-mode { display: none; padding: 3px; border-radius: 999px; border: 1px solid #ffffff14; background: #07080a; }
 .ms-mode button { display: inline-flex; align-items: center; gap: 7px; padding: 8px 16px; border-radius: 999px; border: 0; background: none; color: #9aa3b5; font-size: 12px; font-weight: 700; cursor: pointer; }
@@ -169,7 +187,7 @@
 .ms-records li strong { font: 500 14px 'DM Mono', monospace; color: #dce6f7; }
 
 @media (hover: none), (pointer: coarse) {
-  .ms-mode { display: inline-flex; }
+  .ms-mode, .ms-full { display: inline-flex; }
   .ms-hint-mouse { display: none; }
   .ms-hint-touch { display: inline; }
 }
@@ -197,6 +215,13 @@
 
 @supports (container-type: inline-size) {
   .ms-board { --cell: clamp(16px, calc((100cqi - (var(--cols) - 1) * var(--gap)) / var(--cols)), 38px); }
+  /* En plein écran, les cases grandissent autant que la largeur le permet,
+     en essayant de faire tenir toute la grille en hauteur (sans descendre sous 19 px). */
+  .is-fullscreen .ms-board {
+    --by-width: calc((100cqi - (var(--cols) - 1) * var(--gap)) / var(--cols));
+    --by-height: calc((100dvh - 290px - (var(--rows) - 1) * var(--gap)) / var(--rows));
+    --cell: clamp(16px, min(var(--by-width), max(var(--by-height), 19px)), 48px);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
