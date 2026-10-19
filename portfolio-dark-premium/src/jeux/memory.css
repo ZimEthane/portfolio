@@ -1,0 +1,53 @@
+/* ===== Memory ===== */
+.ms-levels.mem-levels { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.ms-records li small { font-size: 10px; color: #7d8594; }
+
+.mem-grille {
+  --c: var(--cols); --r: var(--rows); --g: 10px;
+  display: grid; grid-template-columns: repeat(var(--c), minmax(0, 1fr)); gap: var(--g);
+  width: 100%; max-width: calc(var(--c) * 116px + (var(--c) - 1) * var(--g));
+  margin-inline: auto;
+  user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; touch-action: manipulation;
+}
+/* En plein écran, la grille entière tient dans la hauteur de l'écran. */
+.is-fullscreen .mem-grille { max-width: min(calc(var(--c) * 150px + (var(--c) - 1) * var(--g)), calc(var(--c) * ((100dvh - 250px - (var(--r) - 1) * var(--g)) * .75 / var(--r)) + (var(--c) - 1) * var(--g))); }
+
+.mem-carte { position: relative; aspect-ratio: 3 / 4; perspective: 700px; cursor: pointer; border-radius: 12px; -webkit-tap-highlight-color: transparent; }
+.mem-carte:focus-visible { outline: 2px solid #a0c8ff; outline-offset: 3px; }
+.mem-inner { position: absolute; inset: 0; transform-style: preserve-3d; transition: transform .38s cubic-bezier(.3, .7, .3, 1); }
+.mem-carte.is-visible .mem-inner, .mem-carte.is-trouvee .mem-inner { transform: rotateY(180deg); }
+.mem-face { position: absolute; inset: 0; display: grid; place-items: center; border-radius: 12px; backface-visibility: hidden; -webkit-backface-visibility: hidden; overflow: hidden; }
+
+/* Dos de carte : motif discret et monogramme. */
+.mem-dos { border: 1px solid #8bb9fa33; background: repeating-linear-gradient(45deg, #8bb9fa0a 0 6px, transparent 6px 12px), linear-gradient(150deg, #1c2633, #11161d); box-shadow: inset 0 1px 0 #ffffff12; transition: border-color .2s; }
+.mem-dos span { display: grid; place-items: center; width: 42%; aspect-ratio: 1; border: 1px solid #7badf5; border-radius: 22%; background: #7badf512; color: #adcfff; font: 600 clamp(9px, 2.2vw, 13px) 'DM Mono', monospace; letter-spacing: -.04em; }
+.mem-carte.is-cachee:hover .mem-dos { border-color: #8bb9fa90; }
+
+/* Recto : fond clair pour que tous les logos ressortent. */
+.mem-recto { transform: rotateY(180deg); grid-template-rows: 1fr auto; gap: 4px; padding: 14% 8% 8%; border: 1px solid #ffffff30; background: #fff; container-type: inline-size; }
+.mem-recto img { width: 72%; height: 100%; max-height: 100%; object-fit: contain; align-self: center; justify-self: center; pointer-events: none; }
+.mem-nom { font: 700 clamp(8px, 11cqi, 12px) Manrope, sans-serif; color: #1a2230; text-align: center; line-height: 1.1; }
+@container (max-width: 64px) { .mem-nom { display: none; } }
+
+.mem-carte.is-trouvee .mem-recto { border-color: #6fd59a; box-shadow: 0 0 0 2px #6fd59a55, 0 0 18px #6fd59a40; animation: mem-pop .45s ease; }
+.mem-carte.is-rate .mem-recto { border-color: #ff7b7b; box-shadow: 0 0 0 2px #ff7b7b55; animation: mem-non .4s ease .15s; }
+@keyframes mem-pop { 0% { transform: rotateY(180deg) scale(1); } 45% { transform: rotateY(180deg) scale(1.07); } 100% { transform: rotateY(180deg) scale(1); } }
+@keyframes mem-non { 0%, 100% { transform: rotateY(180deg) translateX(0); } 25% { transform: rotateY(180deg) translateX(-4px); } 60% { transform: rotateY(180deg) translateX(3px); } }
+.mem-grille.is-won .mem-carte { cursor: default; }
+
+/* Illustrations du guide. */
+.mem-mini-rang { display: flex; gap: 8px; }
+.mem-carte.mem-mini { width: 46px; cursor: default; pointer-events: none; }
+.mem-mini .mem-face, .mem-mini .mem-inner { border-radius: 8px; }
+.mem-mini .mem-recto { padding: 12%; }
+.mem-mini .mem-recto img { width: 80%; }
+
+@media (max-width: 600px) {
+  .ms-levels.mem-levels { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .mem-grille { --c: var(--cols-m); --r: var(--rows-m); --g: 7px; }
+  .mem-face, .mem-carte { border-radius: 9px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mem-inner { transition: none; }
+  .mem-carte.is-trouvee .mem-recto, .mem-carte.is-rate .mem-recto { animation: none; }
+}

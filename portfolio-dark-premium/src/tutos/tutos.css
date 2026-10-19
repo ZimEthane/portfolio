@@ -1,0 +1,127 @@
+/* ===== Page Tutos ===== */
+.tutos { --accent: #8bb9fa; position: relative; z-index: 1; padding-top: 42px; padding-bottom: 80px; }
+.tutos-head { padding: 36px 0 36px; border-bottom: 1px solid #ffffff10; }
+.tutos-head h1, .tuto-head h1 { max-width: 22ch; font-size: clamp(32px, 5vw, 54px); line-height: 1.12; letter-spacing: -.06em; margin: 0 0 18px; font-weight: 700; text-wrap: balance; }
+.tutos-head p, .tuto-head p { max-width: 600px; margin: 0 0 24px; font-size: 14px; line-height: 1.9; color: #9aa3b5; }
+
+.tutos-filtres { display: flex; flex-wrap: wrap; gap: 8px; }
+.tutos-filtres button { display: inline-flex; align-items: center; gap: 8px; font: 600 12px Manrope, sans-serif; color: #cfd8ea; background: #ffffff08; border: 1px solid #ffffff14; border-radius: 999px; padding: 8px 14px; cursor: pointer; transition: border-color .2s, background .2s, color .2s; }
+.tutos-filtres button:hover { border-color: #8bb9fa80; color: #fff; }
+.tutos-filtres button.is-active { border-color: #8bb9fa90; background: #8bb9fa16; color: #fff; }
+.tutos-filtres small { font: 10px 'DM Mono', monospace; color: #8d95a6; }
+
+.tutos-grille { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin: 36px 0 0; padding: 0; list-style: none; }
+.tuto-carte { display: flex; flex-direction: column; gap: 10px; height: 100%; padding: 20px; border: 1px solid #ffffff12; border-radius: 14px; background: linear-gradient(145deg, #14161a, #0e1013); transition: transform .2s, border-color .2s; }
+.tuto-carte:hover { transform: translateY(-3px); border-color: color-mix(in srgb, var(--accent) 55%, transparent); }
+.tuto-carte:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.tuto-icone { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 13px; color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent); }
+.tuto-icone-grande { width: 60px; height: 60px; border-radius: 16px; flex-shrink: 0; }
+.tuto-cat { display: flex; align-items: center; gap: 8px; font: 10px 'DM Mono', monospace; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
+.tuto-bientot { font: 9px 'DM Mono', monospace; letter-spacing: .08em; text-transform: uppercase; color: #ffcc4d; background: #ffcc4d14; border: 1px solid #ffcc4d40; border-radius: 999px; padding: 2px 7px; }
+.tuto-carte strong { font-size: 17px; letter-spacing: -.03em; }
+.tuto-resume { flex: 1; font-size: 13px; line-height: 1.7; color: #a3acbd; }
+.tuto-meta { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 0; padding: 0; list-style: none; font-size: 11px; color: #8d95a6; }
+.tuto-meta li { display: inline-flex; align-items: center; gap: 6px; }
+.tuto-meta svg { color: var(--accent); }
+.tuto-go { display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; font-size: 12px; font-weight: 700; color: var(--accent); }
+
+/* ----- Détail d'un tuto ----- */
+.tuto-head { display: flex; align-items: flex-start; gap: 22px; padding: 36px 0 32px; border-bottom: 1px solid #ffffff10; }
+.tuto-head .section-kicker span { color: var(--accent); }
+.tuto-head p { margin-bottom: 16px; }
+.tuto-head .tuto-meta { font-size: 12px; }
+
+.tuto-prepa { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; padding-top: 32px; }
+.tuto-intro { font-size: 14px; line-height: 1.9; color: #b3bccc; }
+.tuto-intro p { margin: 0 0 10px; }
+.tuto-materiel { padding: 16px 18px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent); background: color-mix(in srgb, var(--accent) 6%, transparent); }
+.tuto-materiel ul { margin: 10px 0 0; padding-left: 18px; font-size: 13px; line-height: 1.9; color: #c9d2e2; }
+
+.tuto-vues { display: inline-flex; gap: 4px; margin-top: 30px; padding: 3px; border-radius: 999px; border: 1px solid #ffffff14; background: #07080a; }
+.tuto-vues button { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border: 0; border-radius: 999px; background: none; color: #9aa3b5; font: 700 12px Manrope, sans-serif; cursor: pointer; }
+.tuto-vues button.is-active { background: var(--accent); color: #101620; }
+
+.tuto-lecteur { margin-top: 16px; padding: 22px; border: 1px solid #ffffff12; border-radius: 16px; background: linear-gradient(145deg, #14161a, #0e1013); }
+.tuto-progression { height: 6px; margin-bottom: 22px; border-radius: 999px; background: #ffffff0d; overflow: hidden; }
+.tuto-progression span { display: block; height: 100%; border-radius: inherit; background: var(--accent); transition: width .35s ease; }
+
+.tuto-etape { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; align-items: center; animation: tuto-entree .35s ease; }
+@keyframes tuto-entree { from { opacity: 0; transform: translateX(14px); } to { opacity: 1; transform: none; } }
+.tuto-visuel { display: grid; place-items: center; min-height: 260px; padding: 18px; border-radius: 14px; border: 1px solid #ffffff0c; background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 70%), #07080a; }
+.tuto-visuel svg { width: 100%; max-width: 380px; height: auto; }
+.tuto-num { font: 11px 'DM Mono', monospace; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+.tuto-texte h2 { margin: 8px 0 12px; font-size: clamp(22px, 2.6vw, 28px); letter-spacing: -.04em; }
+.tuto-corps { font-size: 15px; line-height: 1.85; color: #c3cbd9; }
+.tuto-corps p { margin: 0 0 10px; }
+.tuto-corps ul, .tuto-corps ol { margin: 0 0 10px; padding-left: 20px; }
+.tuto-corps kbd, .tuto-corps code { padding: 2px 7px; border-radius: 6px; border: 1px solid #ffffff1c; background: #ffffff0a; font: 500 13px 'DM Mono', monospace; color: #fff; }
+.tuto-astuce { display: flex; gap: 10px; margin-top: 14px; padding: 12px 14px; border-radius: 10px; background: #ffd36b10; border: 1px solid #ffd36b33; font-size: 13px; line-height: 1.7; color: #f1dfb0; }
+.tuto-astuce svg { flex-shrink: 0; margin-top: 4px; color: #ffd36b; }
+
+.tuto-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 24px; padding-top: 18px; border-top: 1px solid #ffffff0d; }
+.tuto-nav .button { border: 0; cursor: pointer; }
+.tuto-nav .button-ghost { border: 1px solid #363c44; background: none; }
+.tuto-nav .button:disabled { opacity: .35; cursor: default; transform: none; }
+.tuto-points { display: flex; flex-wrap: wrap; justify-content: center; gap: 7px; }
+.tuto-points button { width: 10px; height: 10px; padding: 0; border-radius: 50%; border: 0; background: #ffffff1f; cursor: pointer; transition: background .2s, transform .2s; }
+.tuto-points button.is-done { background: color-mix(in srgb, var(--accent) 55%, transparent); }
+.tuto-points button.is-current { background: var(--accent); transform: scale(1.35); }
+
+.tuto-bravo { display: grid; justify-items: center; gap: 12px; padding: 20px 0 6px; text-align: center; animation: tuto-entree .35s ease; }
+.tuto-bravo h2 { margin: 4px 0 0; font-size: 26px; letter-spacing: -.04em; }
+.tuto-bravo .tuto-corps { max-width: 560px; }
+.tuto-bravo-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 6px; }
+.tuto-bravo-actions .button { border: 0; cursor: pointer; }
+.tuto-bravo-actions .button-ghost { border: 1px solid #363c44; background: none; }
+
+.tuto-liste-etapes { display: grid; gap: 14px; margin: 16px 0 0; padding: 0; list-style: none; }
+.tuto-liste-etapes .tuto-etape { padding: 20px; border: 1px solid #ffffff12; border-radius: 16px; background: linear-gradient(145deg, #14161a, #0e1013); animation: none; }
+
+.tutos .chantier { margin-top: 32px; }
+
+@media (max-width: 900px) {
+  .tutos-grille { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tuto-etape { grid-template-columns: 1fr; gap: 18px; }
+  .tuto-visuel { min-height: 0; }
+}
+@media (max-width: 600px) {
+  .tutos { padding-top: 28px; }
+  .tutos-grille { grid-template-columns: 1fr; margin-top: 26px; }
+  .tuto-head { flex-direction: column; gap: 14px; }
+  .tuto-prepa { grid-template-columns: 1fr; }
+  .tuto-lecteur { padding: 16px 14px; }
+  .tuto-nav .button { padding: 12px 13px; }
+  .tuto-nav { flex-wrap: wrap; }
+  .tuto-points { order: -1; width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tuto-etape, .tuto-bravo { animation: none; }
+}
+
+/* ----- Éléments des contenus de tutos ----- */
+.tuto-formule { display: inline-flex; flex-wrap: wrap; gap: 5px; margin: 4px 0 10px; vertical-align: middle; }
+.tuto-formule kbd { min-width: 30px; text-align: center; padding: 4px 8px; font-size: 14px; color: #fff; border-color: color-mix(in srgb, var(--accent) 50%, transparent); background: color-mix(in srgb, var(--accent) 12%, transparent); }
+li .tuto-formule { display: flex; margin-top: 6px; }
+
+/* Fiche d'un composant de PC. */
+.pc-fiche { --c: #8bb9fa; display: grid; justify-items: center; gap: 6px; width: 100%; max-width: 300px; text-align: center; }
+.pc-fiche-icone { display: grid; place-items: center; width: 96px; height: 96px; margin-bottom: 6px; border-radius: 26px; color: var(--c); background: color-mix(in srgb, var(--c) 14%, transparent); border: 1px solid color-mix(in srgb, var(--c) 40%, transparent); box-shadow: 0 0 40px color-mix(in srgb, var(--c) 20%, transparent); }
+.pc-fiche strong { font-size: 20px; letter-spacing: -.03em; }
+.pc-fiche em { font-style: normal; font: 11px 'DM Mono', monospace; letter-spacing: .12em; text-transform: uppercase; color: var(--c); }
+.pc-fiche ul { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin: 10px 0 0; padding: 0; list-style: none; }
+.pc-fiche li { padding: 5px 10px; border-radius: 999px; border: 1px solid #ffffff16; background: #ffffff08; font-size: 11px; color: #c9d2e2; }
+
+/* Répartition du budget. */
+.pc-budget { display: grid; gap: 14px; width: 100%; max-width: 360px; }
+.pc-budget-ligne { display: grid; gap: 6px; }
+.pc-budget-ligne span { font-size: 12px; font-weight: 700; color: #dce6f7; }
+.pc-barre { display: flex; height: 22px; border-radius: 7px; overflow: hidden; background: #ffffff08; }
+.pc-barre i { display: block; height: 100%; border-right: 2px solid #07080a; }
+.pc-legende { display: flex; flex-wrap: wrap; gap: 6px 12px; margin: 4px 0 0; padding: 0; list-style: none; font-size: 10px; color: #a3acbd; }
+.pc-legende li { display: inline-flex; align-items: center; gap: 5px; }
+.pc-legende i { width: 10px; height: 10px; border-radius: 3px; }
+
+/* Liste de vérifications. */
+.pc-check { display: grid; gap: 9px; width: 100%; max-width: 360px; margin: 0; padding: 0; list-style: none; }
+.pc-check li { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 10px; border: 1px solid #ffffff10; background: #ffffff05; font-size: 12.5px; color: #dce6f7; }
+.pc-check span { display: grid; place-items: center; flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; background: #6fd59a; color: #062013; }

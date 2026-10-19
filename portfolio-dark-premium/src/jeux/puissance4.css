@@ -1,0 +1,71 @@
+/* ===== Puissance 4 ===== */
+.p4-modes strong { display: inline-flex; align-items: center; gap: 6px; }
+
+.p4-scores { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.p4-joueur, .p4-nuls { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; border: 1px solid #ffffff12; background: #07080a; font-size: 12px; font-weight: 700; color: #b3bccc; transition: border-color .2s, box-shadow .2s; }
+.p4-joueur strong, .p4-nuls strong { font: 500 15px 'DM Mono', monospace; color: #fff; }
+.p4-joueur i { width: 14px; height: 14px; border-radius: 50%; }
+.p4-joueur.p1 i { background: radial-gradient(circle at 35% 30%, #ffb0b0, #e04848 70%); }
+.p4-joueur.p2 i { background: radial-gradient(circle at 35% 30%, #fff0b8, #e8b23a 70%); }
+.p4-joueur.p1.is-turn { border-color: #ff6b6b99; box-shadow: 0 0 14px #ff6b6b33; }
+.p4-joueur.p2.is-turn { border-color: #ffd36b99; box-shadow: 0 0 14px #ffd36b33; }
+
+/* Le plateau : la taille des cases suit la largeur disponible. */
+.p4-zone { --g: 6px; --p: 10px; width: 100%; max-width: 520px; }
+.is-fullscreen .p4-zone { max-width: min(640px, calc(100dvh - 250px)); }
+.p4-attente { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--g); padding: 0 var(--p) 6px; }
+.p4-attente span { position: relative; aspect-ratio: 1; }
+.p4-board {
+  display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--g); padding: var(--p);
+  border-radius: 18px; background: linear-gradient(170deg, #2457c2, #173a85); border: 1px solid #8bb9fa55;
+  box-shadow: 0 18px 40px #0007, inset 0 1px 0 #ffffff30;
+  user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; touch-action: manipulation;
+}
+.p4-col { display: grid; gap: var(--g); border-radius: 999px; cursor: pointer; outline: none; transition: background .15s; -webkit-tap-highlight-color: transparent; }
+.p4-col:hover, .p4-col:focus-visible { background: #ffffff14; }
+.p4-col:focus-visible { box-shadow: 0 0 0 2px #a0c8ff; }
+.p4-board.is-over .p4-col, .p4-board.is-thinking .p4-col { cursor: default; background: none; }
+.p4-board.is-thinking { cursor: progress; }
+.p4-cell { position: relative; aspect-ratio: 1; border-radius: 50%; background: #0a0d12; box-shadow: inset 0 3px 6px #000a, 0 1px 0 #ffffff22; }
+
+.p4-piece { position: absolute; inset: 0; border-radius: 50%; box-shadow: inset 0 -4px 0 #0003, inset 0 0 0 4px #ffffff22; }
+.p4-piece.p1 { background: radial-gradient(circle at 35% 30%, #ffb0b0, #e04848 65%, #b83434); }
+.p4-piece.p2 { background: radial-gradient(circle at 35% 30%, #fff0b8, #ffcc4d 60%, #d99b26); }
+.p4-attente .p4-piece { opacity: .85; animation: p4-flotte 1s ease-in-out infinite; }
+@keyframes p4-flotte { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+
+/* Chute du dernier jeton, avec un petit rebond. */
+.p4-piece.is-drop { animation: p4-chute .42s cubic-bezier(.45, 0, .8, .5) both; }
+@keyframes p4-chute {
+  0% { transform: translateY(calc(var(--fall) * (-100% - var(--g)) - var(--p) - 6px)); }
+  78% { transform: translateY(0); }
+  88% { transform: translateY(-9%); }
+  100% { transform: translateY(0); }
+}
+.p4-piece.is-win { animation: p4-gagne 1s ease-in-out infinite; z-index: 1; }
+@keyframes p4-gagne { 0%, 100% { box-shadow: inset 0 -4px 0 #0003, 0 0 0 3px #fff, 0 0 18px #fff8; } 50% { box-shadow: inset 0 -4px 0 #0003, 0 0 0 3px #ffffff66, 0 0 6px #fff4; } }
+.p4-piece.is-drop.is-win { animation: p4-chute .42s cubic-bezier(.45, 0, .8, .5) both, p4-gagne 1s ease-in-out .45s infinite; }
+.p4-board.is-over .p4-piece:not(.is-win) { opacity: .45; transition: opacity .4s; }
+
+/* Illustrations du guide. */
+.p4-mini { display: grid; gap: 4px; }
+.p4-mini-fleches { display: grid; grid-template-columns: repeat(4, 26px); gap: 4px; padding: 0 6px; font-size: 10px; color: #8bb9fa; text-align: center; }
+.p4-mini-grille { display: grid; grid-template-columns: repeat(4, 26px); gap: 4px; padding: 6px; border-radius: 10px; background: linear-gradient(170deg, #2457c2, #173a85); }
+.p4-mini-grille span { aspect-ratio: 1; border-radius: 50%; background: #0a0d12; }
+.p4-mini-grille .p1 { background: radial-gradient(circle at 35% 30%, #ffb0b0, #e04848 65%); }
+.p4-mini-grille .p2 { background: radial-gradient(circle at 35% 30%, #fff0b8, #ffcc4d 60%); }
+.p4-mini-grille .is-win { box-shadow: 0 0 0 2px #fff; }
+
+@media (max-width: 600px) {
+  .p4-zone { --g: 4px; --p: 7px; }
+  .p4-board { border-radius: 14px; }
+  .p4-joueur, .p4-nuls { padding: 7px 11px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .p4-piece.is-drop, .p4-piece.is-drop.is-win, .p4-attente .p4-piece { animation: none; }
+  .p4-piece.is-win { animation: none; box-shadow: 0 0 0 3px #fff; }
+}
+/* Sur écran tactile, pas de survol : la rangée d'attente ne sert à rien. */
+@media (hover: none), (pointer: coarse) {
+  .p4-attente { display: none; }
+}

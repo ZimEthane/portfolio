@@ -1,0 +1,38 @@
+/* ===== Snake ===== */
+.ms-levels.snake-vitesses { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+.snake-zone { position: relative; width: 100%; max-width: 460px; aspect-ratio: 1; border-radius: 14px; overflow: hidden; border: 2px dashed #8bb9fa40; background: #0b0e12; touch-action: none; user-select: none; -webkit-user-select: none; outline: none; }
+.snake-zone.has-walls { border: 2px solid #ff6b6b70; box-shadow: 0 0 18px #ff6b6b1a; }
+.snake-zone:focus-visible { box-shadow: 0 0 0 3px #a0c8ff; }
+.snake-zone canvas { display: block; }
+.snake-zone.is-dead { animation: snake-choc .35s ease; }
+@keyframes snake-choc { 20% { transform: translateX(-6px); } 45% { transform: translateX(5px); } 70% { transform: translateX(-2px); } }
+.is-fullscreen .snake-zone { max-width: min(560px, calc(100dvh - 260px)); }
+
+.snake-overlay { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 10px; padding: 16px; background: #090b0dc4; backdrop-filter: blur(2px); text-align: center; }
+.snake-overlay strong { display: inline-flex; align-items: center; gap: 8px; font-size: 22px; letter-spacing: -.03em; }
+.snake-overlay span { max-width: 260px; font-size: 13px; line-height: 1.6; color: #b3bccc; }
+.snake-overlay .button { border: 0; cursor: pointer; margin-top: 4px; }
+
+/* Croix directionnelle (écrans tactiles uniquement). */
+.snake-croix { display: none; grid-template-columns: repeat(3, 60px); grid-template-rows: repeat(3, 52px); gap: 6px; grid-template-areas: '. haut .' 'gauche . droite' '. bas .'; }
+.snake-croix button { display: grid; place-items: center; border-radius: 14px; border: 1px solid #ffffff18; background: #07080a; color: #dce9ff; touch-action: manipulation; -webkit-tap-highlight-color: transparent; cursor: pointer; }
+.snake-croix button:active { background: #8bb9fa22; border-color: #8bb9fa80; }
+.snake-croix .haut { grid-area: haut; } .snake-croix .bas { grid-area: bas; } .snake-croix .gauche { grid-area: gauche; } .snake-croix .droite { grid-area: droite; }
+
+/* Illustrations du guide. */
+.snake-mini { display: grid; grid-template-columns: repeat(6, 22px); gap: 3px; padding: 8px; border-radius: 10px; background: #0b0e12; border: 2px solid #ff6b6b55; }
+.snake-mini span { height: 22px; border-radius: 6px; }
+.snake-mini .t { background: #24569a; } .snake-mini .b { background: #4f86c9; } .snake-mini .h { background: #8bb9fa; }
+.snake-mini .f { background: radial-gradient(circle, #ff6b6b 55%, transparent 58%); }
+.snake-mini .g { background: #ffd36b; clip-path: polygon(50% 5%, 92% 50%, 50% 95%, 8% 50%); }
+.snake-mini .mur { background: repeating-linear-gradient(45deg, #ff6b6b 0 4px, #5a1d22 4px 8px); }
+.snake-mini.is-dead .h { background: #ff6b6b; }
+
+@media (hover: none), (pointer: coarse) {
+  .snake-croix { display: grid; }
+  .is-fullscreen .snake-zone { max-width: min(560px, calc(100dvh - 440px)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .snake-zone.is-dead { animation: none; }
+}

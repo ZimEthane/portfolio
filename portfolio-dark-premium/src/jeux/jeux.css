@@ -257,3 +257,6 @@ html.ms-lock .to-top { display: none; }
   .ms-zone, .ms-guide::details-content { transition: none !important; }
   .ms-pulse { animation: ms-pulse-fade .45s ease-out forwards; transform: scale(1.8); }
 }
+
+/* Badge « bientôt » sur les onglets des jeux encore en chantier. */
+.jeux-soon { font: 9px 'DM Mono', monospace; letter-spacing: .08em; text-transform: uppercase; color: #ffcc4d; background: #ffcc4d14; border: 1px solid #ffcc4d40; border-radius: 999px; padding: 2px 7px; }

@@ -60,7 +60,8 @@ Il rassemble mes projets de formation, mes compétences, mon parcours, ma veille
 | 🧰 **Compétences et outils** | Langages, systèmes, logiciels et outils que j'utilise, regroupés par catégorie |
 | 🎓 **Parcours** | Frise des stages, de la formation, des certifications, et présentation du BTS SIO (SLAM et SISR) |
 | 📰 **Page de veille** | Veille technologique sur Visual Studio Code : nouveautés, sources, avantages et limites, comparaison avec NetBeans |
-| 🎮 **Page Jeux** | Démineur jouable : 3 niveaux + mode personnalisé, premier clic sans danger, drapeaux (clic droit ou appui long), chrono et meilleurs temps, guide « Comment jouer ? » dépliant aide débutant qui encadre les 9 cases autour d'un chiffre, bouton plein écran, sons et vibrations (désactivables) sur téléphone |
+| 🎮 **Page Jeux** | 7 jeux jouables à la souris, au clavier et au doigt : Démineur, 2048, Sudoku, Puissance 4 (contre une IA ou à deux), Memory des technos, Snake et Blocs. Guide « Comment jouer ? », records, sons, vibrations, plein écran sur téléphone, et une adresse par jeu (`#jeux/2048`) |
+| 📚 **Page Tutos** *(en préparation, pas encore en ligne)* | Tutos pas à pas illustrés, pour petits et grands : faire ses lacets, résoudre le cube 3×3, choisir les composants de son PC. S'active avec `TUTOS_EN_LIGNE` dans `App.tsx` |
 | ✉️ **Formulaire de contact** | Envoi par e-mail depuis le site, avec protection anti-robots et solution de secours |
 | ♿ **Accessibilité** | Libellés pour les lecteurs d'écran, navigation au clavier, contrastes vérifiés |
 
@@ -167,8 +168,12 @@ portfolio/
     ├── src/
     │   ├── App.tsx               Page d'accueil, menu, pied de page
     │   ├── Veille.tsx            Page de veille technologique
-    │   ├── Jeux.tsx              Page Jeux (liste des jeux disponibles)
-    │   ├── jeux/                 Démineur : logique, composant et styles
+    │   ├── Jeux.tsx              Page Jeux (onglets des jeux)
+    │   ├── jeux/                 Un fichier de logique et un composant par jeu
+    │   │   └── commun/           Outils partagés : réglages, plein écran, vibrations, guide
+    │   ├── Tutos.tsx             Page Tutos (liste et lecteur pas à pas)
+    │   ├── tutos/                Liste des tutos et contenu de chacun
+    │   ├── Chantier.tsx          Écran « en chantier » (pelleteuse animée)
     │   ├── ContactForm.tsx       Formulaire de contact (EmailJS)
     │   ├── scroll.ts             Défilement animé (menu et retour en haut)
     │   ├── data.ts               Contenu : projets, compétences, parcours, veille

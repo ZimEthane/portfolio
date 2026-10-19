@@ -1,20 +1,28 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { ArrowDownRight, ArrowRight, ArrowUp, ArrowUpRight, Code2, ExternalLink, Github, Linkedin, Mail, Menu, X } from 'lucide-react'
 import ContactForm from './ContactForm'
 import Veille from './Veille'
-import Jeux from './Jeux'
+// Jeux et Tutos sont chargés seulement quand on les ouvre : l'accueil reste léger.
+const Jeux = lazy(() => import('./Jeux'))
+const Tutos = lazy(() => import('./Tutos'))
 import { scrollToId, scrollToTop } from './scroll'
 import { btsOptions, CONTACT_EMAIL, GITHUB_URL, LINKEDIN_URL, projects, skills, timeline, toolGroups } from './data'
 
 const CV_URL = '/pdf/CV_Zimmermann_Ethane_2026.pdf'
 const GRID_URL = '/pdf/BTS_SIO_-_Annexe_8-1_-_Tableau_de_synthe_se_-_Epreuve_E4-_BTS_SIO_2024_-_Zimmermann_Ethane.pdf'
 
-const navItems = [['À propos', '#apropos'], ['Projets', '#projets'], ['Compétences', '#competences'], ['Parcours', '#parcours'], ['Veille', '#veille'], ['Jeux', '#jeux']]
+// Page Tutos : prête mais pas encore publiée. Passer à true pour l'afficher (menu + adresse #tutos).
+const TUTOS_EN_LIGNE = false
+
+const navItems = [['À propos', '#apropos'], ['Projets', '#projets'], ['Compétences', '#competences'], ['Parcours', '#parcours'], ['Veille', '#veille'], ['Jeux', '#jeux'], ...(TUTOS_EN_LIGNE ? [['Tutos', '#tutos']] : [])]
 
 // Pages à part entière (le reste du hash sert à défiler dans l'accueil).
-const SUBPAGES = ['#veille', '#jeux']
+// Elles acceptent une sous-adresse : "#jeux/2048", "#tutos/lacets".
+const SUBPAGES = ['#veille', '#jeux', '#tutos']
+const isUnder = (hash: string, page: string) => hash === page || hash.startsWith(page + '/')
+const isSubpage = (hash: string) => SUBPAGES.some(p => isUnder(hash, p))
 
-// Routage minimal par hash : "#veille" et "#jeux" affichent leur page, tout le reste affiche l'accueil.
+// Routage minimal par hash : "#veille", "#jeux" et "#tutos" affichent leur page, tout le reste affiche l'accueil.
 function useHash() {
   const [hash, setHash] = useState(() => window.location.hash)
   useEffect(() => {
@@ -24,6 +32,9 @@ function useHash() {
   }, [])
   return hash
 }
+
+// Pendant le chargement d'une page (Jeux, Tutos) : une page vide de la même hauteur.
+const Chargement = () => <main className="section-wrap page-chargement" aria-busy="true" />
 
 // Bouton flottant en bas à droite : apparaît après un peu de défilement et ramène tout en haut.
 function ScrollTopButton() {
@@ -47,7 +58,7 @@ function ScrollTopButton() {
 function App() {
   const [menuOpen, setMenuOpen] = useState(false)
   const hash = useHash()
-  const page = hash === '#veille' ? 'veille' : hash === '#jeux' ? 'jeux' : 'home'
+  const page = hash === '#veille' ? 'veille' : isUnder(hash, '#jeux') ? 'jeux' : TUTOS_EN_LIGNE && isUnder(hash, '#tutos') ? 'tutos' : 'home'
   const closeMenu = () => setMenuOpen(false)
 
   // Clic sur un lien d'ancre de l'accueil (menu, boutons) : défilement doux au lieu du saut brusque.
@@ -55,9 +66,9 @@ function App() {
     const onClick = (event: MouseEvent) => {
       if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
       const link = (event.target as Element | null)?.closest?.('a[href^="#"]')
-      if (!link || SUBPAGES.includes(window.location.hash)) return
+      if (!link || isSubpage(window.location.hash)) return
       const href = link.getAttribute('href') || ''
-      if (SUBPAGES.includes(href) || href.length < 2) return
+      if (isSubpage(href) || href.length < 2) return
       if (scrollToId(href.slice(1))) {
         event.preventDefault()
         history.pushState(null, '', href)
@@ -88,7 +99,7 @@ function App() {
       </nav>
     </header>
 
-    {page === 'veille' ? <Veille /> : page === 'jeux' ? <Jeux /> : <main>
+    {page === 'veille' ? <Veille /> : page === 'jeux' ? <Suspense fallback={<Chargement />}><Jeux hash={hash} /></Suspense> : page === 'tutos' ? <Suspense fallback={<Chargement />}><Tutos hash={hash} /></Suspense> : <main>
       <section className="hero section-wrap" id="accueil">
         <div className="hero-copy">
           <div className="eyebrow"><span className="status-dot" /> PORTFOLIO · 2026</div>
