@@ -4,6 +4,7 @@ import { ArrowLeft, Blocks, Bomb, Brain, Disc3, Grid2x2, Grid3x3, Worm } from 'l
 import Chantier from './Chantier'
 import Demineur from './jeux/Demineur'
 import Memory from './jeux/Memory'
+import Jeu2048 from './jeux/Jeu2048'
 import './jeux/jeux.css'
 
 interface GameInfo {
@@ -28,6 +29,7 @@ const games: GameInfo[] = [
     name: '2048',
     description: 'Fais glisser les tuiles : deux tuiles identiques qui se touchent fusionnent. Arriveras-tu jusqu’à la tuile 2048 ?',
     icon: <Grid2x2 size={16} />,
+    component: () => <Jeu2048 />,
   },
   {
     id: 'sudoku',
