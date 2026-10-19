@@ -29,9 +29,13 @@
 .snake-mini .mur { background: repeating-linear-gradient(45deg, #ff6b6b 0 4px, #5a1d22 4px 8px); }
 .snake-mini.is-dead .h { background: #ff6b6b; }
 
+/* Option « Flèches » : seulement sur écran tactile. */
+.ms-switch.snake-opt-croix { display: none; }
+
 @media (hover: none), (pointer: coarse) {
   .snake-croix { display: grid; }
-  .is-fullscreen .snake-zone { max-width: min(560px, calc(100svh - 440px)); }
+  .ms-switch.snake-opt-croix { display: inline-flex; }
+  .snake.avec-croix .is-fullscreen .snake-zone { max-width: min(560px, calc(100svh - 440px)); }
 }
 @media (prefers-reduced-motion: reduce) {
   .snake-zone.is-dead { animation: none; }
