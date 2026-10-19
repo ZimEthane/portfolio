@@ -12,7 +12,7 @@
 
 /* Le plateau : la taille des cases suit la largeur disponible. */
 .p4-zone { --g: 6px; --p: 10px; width: 100%; max-width: 520px; }
-.is-fullscreen .p4-zone { max-width: min(640px, calc(100dvh - 250px)); }
+.is-fullscreen .p4-zone { max-width: min(640px, calc(100svh - 250px)); }
 .p4-attente { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--g); padding: 0 var(--p) 6px; }
 .p4-attente span { position: relative; aspect-ratio: 1; }
 .p4-board {

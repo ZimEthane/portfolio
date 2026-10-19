@@ -247,7 +247,7 @@ html.ms-lock .to-top { display: none; }
      en essayant de faire tenir toute la grille en hauteur (sans descendre sous 19 px). */
   .is-fullscreen .ms-board {
     --by-width: calc((100cqi - (var(--cols) - 1) * var(--gap)) / var(--cols));
-    --by-height: calc((100dvh - 290px - (var(--rows) - 1) * var(--gap)) / var(--rows));
+    --by-height: calc((100svh - 290px - (var(--rows) - 1) * var(--gap)) / var(--rows));
     --cell: clamp(16px, min(var(--by-width), max(var(--by-height), 19px)), 48px);
   }
 }

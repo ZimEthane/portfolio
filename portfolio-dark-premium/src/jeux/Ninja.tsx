@@ -54,6 +54,7 @@ export default function Ninja() {
   statutRef.current = statut
   const entree = useRef({ saut: false, bas: false })
   const echelle = useRef(1)
+  const hauteur = useRef(MONDE_H) // hauteur visible du monde : plus de ciel sur téléphone
   const fondu = useRef<{ de: number; vers: number; t0: number } | null>(null)
   const opts = useRef({ sound, vibe, records })
   opts.current = { sound, vibe, records }
@@ -67,6 +68,19 @@ export default function Ninja() {
     ctx.setTransform(k * dpr, 0, 0, k * dpr, 0, 0)
     const s = e.current
     const f = fondu.current
+    // Ciel en plus au-dessus du monde (téléphone), de la couleur du haut du ciel.
+    const extra = hauteur.current - MONDE_H
+    if (extra > 0) {
+      ctx.fillStyle = MONDES[f ? f.de : mondeDe(score(s))].ciel[0]
+      ctx.fillRect(0, 0, MONDE_L, extra + 1)
+      if (f) {
+        ctx.globalAlpha = Math.min(1, (s.t - f.t0) / FONDU)
+        ctx.fillStyle = MONDES[f.vers].ciel[0]
+        ctx.fillRect(0, 0, MONDE_L, extra + 1)
+        ctx.globalAlpha = 1
+      }
+      ctx.translate(0, extra)
+    }
     if (f) {
       const p = Math.min(1, (s.t - f.t0) / FONDU)
       dessinerMonde(ctx, MONDES[f.de], s.distance, s.t)
@@ -84,11 +98,15 @@ export default function Ninja() {
     const ro = new ResizeObserver(() => {
       const w = zone.clientWidth
       const dpr = window.devicePixelRatio || 1
-      echelle.current = w / MONDE_L
+      const k = w / MONDE_L
+      // Sur un écran étroit, la zone fait au moins 140 px de haut (ciel en plus) pour que tout y tienne.
+      const h = Math.max(w / 4, Math.min(140, w * 0.42))
+      echelle.current = k
+      hauteur.current = h / k
       cv.width = Math.round(w * dpr)
-      cv.height = Math.round((w / MONDE_L) * MONDE_H * dpr)
-      cv.style.width = `${w}px`
-      cv.style.height = `${(w / MONDE_L) * MONDE_H}px`
+      cv.height = Math.round(h * dpr)
+      // Largeur gérée en CSS (100 %) : le canvas ne force jamais la zone à rester large.
+      cv.style.height = `${h}px`
       dessiner()
     })
     ro.observe(zone)

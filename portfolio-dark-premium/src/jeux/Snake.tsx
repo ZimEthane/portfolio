@@ -149,8 +149,7 @@ export default function Snake() {
       taille.current = s
       cv.width = s * dpr
       cv.height = s * dpr
-      cv.style.width = `${s}px`
-      cv.style.height = `${s}px`
+      // Taille d'affichage gérée en CSS (100 %) : le canvas ne force jamais la zone à rester grande.
       redessiner()
     })
     ro.observe(zone)
@@ -282,10 +281,10 @@ export default function Snake() {
         <div className="t48-bar">
           <div className="t48-score"><span>Score</span><strong>{score}</strong></div>
           <div className="t48-score"><span>Record</span><strong>{Math.max(records.records[cle] ?? 0, score)}</strong></div>
-          <button type="button" className="t48-btn" onClick={basculerPause} disabled={statut === 'perdu'}>
-            {statut === 'joue' ? <><Pause size={16} /> Pause</> : <><Play size={16} /> Jouer</>}
+          <button type="button" className="t48-btn" onClick={basculerPause} disabled={statut === 'perdu'} aria-label={statut === 'joue' ? 'Pause' : 'Jouer'}>
+            {statut === 'joue' ? <><Pause size={16} /> <span className="t48-btn-texte">Pause</span></> : <><Play size={16} /> <span className="t48-btn-texte">Jouer</span></>}
           </button>
-          <button type="button" className="t48-btn" onClick={() => reset()}><RotateCcw size={16} /> Rejouer</button>
+          <button type="button" className="t48-btn" onClick={() => reset()} aria-label="Rejouer"><RotateCcw size={16} /> <span className="t48-btn-texte">Rejouer</span></button>
         </div>
 
         <Outils sound={sound} vibe={vibe} onSound={toggleSound} onVibe={toggleVibe} full={plein.full} onFull={plein.toggle}>
