@@ -1,7 +1,7 @@
 /* ===== Ninja ===== */
-.nj-zone { position: relative; width: 100%; max-width: 760px; border-radius: 14px; border: 1px solid #ffffff14; background: linear-gradient(180deg, #0f141b, #0b0e12); overflow: hidden; touch-action: manipulation; user-select: none; -webkit-user-select: none; outline: none; cursor: pointer; }
+.nj-zone { position: relative; flex-shrink: 0; width: 100%; min-width: 0; max-width: 760px; border-radius: 14px; border: 1px solid #ffffff14; background: linear-gradient(180deg, #0f141b, #0b0e12); overflow: hidden; touch-action: manipulation; user-select: none; -webkit-user-select: none; outline: none; cursor: pointer; }
 .nj-zone:focus-visible { box-shadow: 0 0 0 3px #a0c8ff; }
-.nj-zone canvas { display: block; }
+.nj-zone canvas { display: block; width: 100%; }
 .nj-overlay { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 8px; padding: 10px; background: #090b0daa; text-align: center; }
 .nj-overlay strong { display: inline-flex; align-items: center; gap: 8px; font-size: 20px; letter-spacing: -.03em; }
 .nj-overlay span { font-size: 12.5px; color: #b3bccc; }
@@ -42,4 +42,32 @@
 
 @media (prefers-reduced-motion: reduce) {
   .nj-annonce { animation-duration: 2.2s; animation-timing-function: steps(1, end); }
+}
+
+/* Téléphone : messages plus compacts pour tenir dans la zone de jeu */
+@media (max-width: 600px) {
+  .nj-overlay { gap: 5px; padding: 8px; }
+  .nj-overlay strong { font-size: 17px; }
+  .nj-overlay span { font-size: 11.5px; }
+  .nj-overlay .button { padding: 8px 13px; font-size: 13px; }
+}
+
+/* Plein écran : la zone grandit sans dépasser la hauteur de l'écran */
+.is-fullscreen .nj-zone { max-width: min(760px, calc((100dvh - 320px) * 4)); }
+
+/* Plein écran, téléphone à l'horizontale : scores et réglages sur une ligne,
+   grande zone de jeu, boutons en dessous */
+@media (orientation: landscape) and (max-height: 540px) {
+  .ninja .ms-panel.is-fullscreen {
+    flex-direction: row; flex-wrap: wrap; align-content: center; align-content: safe center; justify-content: center; gap: 8px 14px;
+    padding: max(8px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+  }
+  .ninja .is-fullscreen .t48-bar { width: auto; flex-wrap: nowrap; gap: 8px; }
+  .ninja .is-fullscreen .t48-score { min-width: 84px; padding: 4px 10px; }
+  .ninja .is-fullscreen .t48-score strong { font-size: 16px; }
+  .ninja .is-fullscreen .t48-btn { padding-top: 6px; padding-bottom: 6px; }
+  .ninja .is-fullscreen .nj-zone { flex: 0 0 100%; max-width: min(100%, calc((100dvh - 140px) * 4)); }
+  .ninja .is-fullscreen .nj-boutons { flex: 0 0 100%; max-width: 560px; }
+  .ninja .is-fullscreen .nj-btn { height: 50px; }
+  .ninja .is-fullscreen .ms-message { display: none; }
 }

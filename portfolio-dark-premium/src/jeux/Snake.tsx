@@ -149,8 +149,7 @@ export default function Snake() {
       taille.current = s
       cv.width = s * dpr
       cv.height = s * dpr
-      cv.style.width = `${s}px`
-      cv.style.height = `${s}px`
+      // Taille d'affichage gérée en CSS (100 %) : le canvas ne force jamais la zone à rester grande.
       redessiner()
     })
     ro.observe(zone)
