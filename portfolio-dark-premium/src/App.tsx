@@ -11,7 +11,10 @@ import { btsOptions, CONTACT_EMAIL, GITHUB_URL, LINKEDIN_URL, projects, skills, 
 const CV_URL = '/pdf/CV_Zimmermann_Ethane_2026.pdf'
 const GRID_URL = '/pdf/BTS_SIO_-_Annexe_8-1_-_Tableau_de_synthe_se_-_Epreuve_E4-_BTS_SIO_2024_-_Zimmermann_Ethane.pdf'
 
-const navItems = [['À propos', '#apropos'], ['Projets', '#projets'], ['Compétences', '#competences'], ['Parcours', '#parcours'], ['Veille', '#veille'], ['Jeux', '#jeux'], ['Tutos', '#tutos']]
+// Page Tutos : prête mais pas encore publiée. Passer à true pour l'afficher (menu + adresse #tutos).
+const TUTOS_EN_LIGNE = false
+
+const navItems = [['À propos', '#apropos'], ['Projets', '#projets'], ['Compétences', '#competences'], ['Parcours', '#parcours'], ['Veille', '#veille'], ['Jeux', '#jeux'], ...(TUTOS_EN_LIGNE ? [['Tutos', '#tutos']] : [])]
 
 // Pages à part entière (le reste du hash sert à défiler dans l'accueil).
 // Elles acceptent une sous-adresse : "#jeux/2048", "#tutos/lacets".
@@ -55,7 +58,7 @@ function ScrollTopButton() {
 function App() {
   const [menuOpen, setMenuOpen] = useState(false)
   const hash = useHash()
-  const page = hash === '#veille' ? 'veille' : isUnder(hash, '#jeux') ? 'jeux' : isUnder(hash, '#tutos') ? 'tutos' : 'home'
+  const page = hash === '#veille' ? 'veille' : isUnder(hash, '#jeux') ? 'jeux' : TUTOS_EN_LIGNE && isUnder(hash, '#tutos') ? 'tutos' : 'home'
   const closeMenu = () => setMenuOpen(false)
 
   // Clic sur un lien d'ancre de l'accueil (menu, boutons) : défilement doux au lieu du saut brusque.
