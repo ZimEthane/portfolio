@@ -97,3 +97,31 @@
 @media (prefers-reduced-motion: reduce) {
   .tuto-etape, .tuto-bravo { animation: none; }
 }
+
+/* ----- Éléments des contenus de tutos ----- */
+.tuto-formule { display: inline-flex; flex-wrap: wrap; gap: 5px; margin: 4px 0 10px; vertical-align: middle; }
+.tuto-formule kbd { min-width: 30px; text-align: center; padding: 4px 8px; font-size: 14px; color: #fff; border-color: color-mix(in srgb, var(--accent) 50%, transparent); background: color-mix(in srgb, var(--accent) 12%, transparent); }
+li .tuto-formule { display: flex; margin-top: 6px; }
+
+/* Fiche d'un composant de PC. */
+.pc-fiche { --c: #8bb9fa; display: grid; justify-items: center; gap: 6px; width: 100%; max-width: 300px; text-align: center; }
+.pc-fiche-icone { display: grid; place-items: center; width: 96px; height: 96px; margin-bottom: 6px; border-radius: 26px; color: var(--c); background: color-mix(in srgb, var(--c) 14%, transparent); border: 1px solid color-mix(in srgb, var(--c) 40%, transparent); box-shadow: 0 0 40px color-mix(in srgb, var(--c) 20%, transparent); }
+.pc-fiche strong { font-size: 20px; letter-spacing: -.03em; }
+.pc-fiche em { font-style: normal; font: 11px 'DM Mono', monospace; letter-spacing: .12em; text-transform: uppercase; color: var(--c); }
+.pc-fiche ul { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin: 10px 0 0; padding: 0; list-style: none; }
+.pc-fiche li { padding: 5px 10px; border-radius: 999px; border: 1px solid #ffffff16; background: #ffffff08; font-size: 11px; color: #c9d2e2; }
+
+/* Répartition du budget. */
+.pc-budget { display: grid; gap: 14px; width: 100%; max-width: 360px; }
+.pc-budget-ligne { display: grid; gap: 6px; }
+.pc-budget-ligne span { font-size: 12px; font-weight: 700; color: #dce6f7; }
+.pc-barre { display: flex; height: 22px; border-radius: 7px; overflow: hidden; background: #ffffff08; }
+.pc-barre i { display: block; height: 100%; border-right: 2px solid #07080a; }
+.pc-legende { display: flex; flex-wrap: wrap; gap: 6px 12px; margin: 4px 0 0; padding: 0; list-style: none; font-size: 10px; color: #a3acbd; }
+.pc-legende li { display: inline-flex; align-items: center; gap: 5px; }
+.pc-legende i { width: 10px; height: 10px; border-radius: 3px; }
+
+/* Liste de vérifications. */
+.pc-check { display: grid; gap: 9px; width: 100%; max-width: 360px; margin: 0; padding: 0; list-style: none; }
+.pc-check li { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 10px; border: 1px solid #ffffff10; background: #ffffff05; font-size: 12.5px; color: #dce6f7; }
+.pc-check span { display: grid; place-items: center; flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; background: #6fd59a; color: #062013; }
