@@ -60,7 +60,7 @@ Il rassemble mes projets de formation, mes compétences, mon parcours, ma veille
 | 🧰 **Compétences et outils** | Langages, systèmes, logiciels et outils que j'utilise, regroupés par catégorie |
 | 🎓 **Parcours** | Frise des stages, de la formation, des certifications, et présentation du BTS SIO (SLAM et SISR) |
 | 📰 **Page de veille** | Veille technologique sur Visual Studio Code : nouveautés, sources, avantages et limites, comparaison avec NetBeans |
-| 🎮 **Page Jeux** | 8 jeux jouables à la souris, au clavier et au doigt : Démineur, 2048, Sudoku, Puissance 4 (contre une IA ou à deux), Memory des technos, Snake, Blocs et Ninja (course sans fin à travers 8 mondes, avec 9 médailles à gagner). Guide « Comment jouer ? », records, sons, vibrations, plein écran sur téléphone, et une adresse par jeu (`#jeux/2048`) |
+| 🎮 **Page Jeux** | 9 jeux jouables à la souris, au clavier et au doigt : Démineur, 2048, Sudoku, Puissance 4 (contre une IA ou à deux), Memory des technos, Snake, Blocs, Ninja (course sans fin à travers 8 mondes, avec 9 médailles à gagner) et Glissières (500 niveaux générés et vérifiés par un solveur, avec indices). Guide « Comment jouer ? », records, sons, vibrations, plein écran sur téléphone, et une adresse par jeu (`#jeux/2048`) |
 | 📚 **Page Tutos** *(en préparation, pas encore en ligne)* | Tutos pas à pas illustrés, pour petits et grands : faire ses lacets, résoudre le cube 3×3, choisir les composants de son PC. S'active avec `TUTOS_EN_LIGNE` dans `App.tsx` |
 | ✉️ **Formulaire de contact** | Envoi par e-mail depuis le site, avec protection anti-robots et solution de secours |
 | ♿ **Accessibilité** | Libellés pour les lecteurs d'écran, navigation au clavier, contrastes vérifiés |

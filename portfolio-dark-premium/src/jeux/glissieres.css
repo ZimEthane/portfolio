@@ -1,0 +1,99 @@
+/* ===== Glissières ===== */
+
+/* Choix du niveau : 5 paliers, puis la grille des 100 niveaux du palier ouvert */
+.ms-levels.gl-paliers { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.ms-levels.gl-paliers button.is-open { border-color: #a0c8ff; background: #8bb9fa1c; }
+.gl-grille-niveaux { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 6px; padding: 12px; border-radius: 14px; border: 1px solid #ffffff10; background: #ffffff04; animation: gl-apparait .2s ease-out; }
+.gl-n { aspect-ratio: 1; min-width: 0; padding: 0; border-radius: 8px; border: 1px solid #ffffff10; background: #07080a; color: #8d95a6; font: 500 11px 'DM Mono', monospace; cursor: pointer; transition: border-color .15s; }
+.gl-n:hover { border-color: #8bb9fa80; }
+.gl-n.is-fait { color: #dce9ff; border-color: #8bb9fa50; background: #8bb9fa14; }
+.gl-n.is-parfait { color: #ffe9a8; border-color: #ffd36b70; background: #ffd36b1a; }
+.gl-n.is-current { outline: 2px solid #a0c8ff; outline-offset: 1px; }
+
+.gl-best { display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
+.gl-etoile { color: #ffd36b; fill: #ffd36b; flex: none; }
+
+/* La console, comme le jeu en vrai : écran LED, numéro du niveau, flèches */
+.gl-console { display: grid; justify-items: center; gap: 12px; width: min(100%, 360px); padding: 14px 14px 0; border-radius: 34px 34px 26px 26px; border: 1px solid #ffffff12; background: linear-gradient(180deg, #171a20, #0a0b0e); box-shadow: inset 0 1px 0 #ffffff14, 0 18px 40px #00000088; }
+.gl-tete { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; width: 100%; padding: 0 4px; }
+.gl-led { display: grid; grid-template-columns: repeat(4, 9px); grid-auto-rows: 9px; gap: 2px; padding: 6px; border-radius: 8px; border: 1px solid #ffffff12; background: #030405; box-shadow: inset 0 0 8px #000; }
+.gl-led.is-petit { grid-template-columns: repeat(4, 16px); grid-auto-rows: 16px; gap: 3px; padding: 8px; margin: 0 auto; }
+.gl-led i { border-radius: 2px; background: #ffffff08; }
+.gl-led i.is-R { background: #ff4d42; box-shadow: 0 0 5px #ff4d42aa; }
+.gl-led i.is-V { background: #3d9bff; box-shadow: 0 0 5px #3d9bffaa; }
+.gl-led i.is-H { background: #3ccf6e; box-shadow: 0 0 5px #3ccf6eaa; }
+.gl-led i.is-S { background: #ffc93c; box-shadow: 0 0 5px #ffc93caa; }
+.gl-num { display: grid; justify-items: start; line-height: 1.15; }
+.gl-num small { font: 9px 'DM Mono', monospace; letter-spacing: .14em; text-transform: uppercase; color: #8d95a6; }
+.gl-num strong { font: 500 26px 'DM Mono', monospace; letter-spacing: .06em; color: #ff6b5e; text-shadow: 0 0 10px #ff4d4280; }
+.gl-num span { font-size: 11.5px; font-weight: 700; color: #b3bccc; }
+.gl-fleches { display: flex; gap: 6px; }
+.gl-fleches button { display: grid; place-items: center; width: 38px; height: 44px; border-radius: 14px; border: 1px solid #ffffff18; background: linear-gradient(180deg, #23272f, #0d0f12); color: #dce6f7; cursor: pointer; box-shadow: inset 0 1px 0 #ffffff1a, 0 3px 6px #0008; }
+.gl-fleches button:hover:not(:disabled) { border-color: #8bb9fa80; }
+.gl-fleches button:disabled { opacity: .35; cursor: default; }
+
+/* Le plateau : 4 × 5 cases, ouverture en bas au milieu */
+.gl-cadre { position: relative; display: block; width: 100%; padding: 8px 8px 24px; border-radius: 16px 16px 22px 22px; background: #050607; overflow: hidden; }
+.gl-plateau {
+  position: relative; width: 100%; aspect-ratio: 4 / 5; border-radius: 10px;
+  background-color: #15181d;
+  background-image: linear-gradient(#ffffff07 1px, transparent 1px), linear-gradient(90deg, #ffffff07 1px, transparent 1px);
+  background-size: 25% 20%;
+  box-shadow: inset 0 2px 10px #000c;
+}
+.gl-sortie { position: absolute; bottom: 0; left: calc(8px + (100% - 16px) * .25); width: calc((100% - 16px) * .5); height: 24px; background: linear-gradient(#15181d, #15181d00); }
+.gl-sortie::after { content: ''; position: absolute; left: 50%; top: 6px; width: 10px; height: 10px; border-right: 2px solid #ff4d4290; border-bottom: 2px solid #ff4d4290; transform: translateX(-50%) rotate(45deg); }
+.gl-but { position: absolute; z-index: 0; border-radius: 12px; border: 2px dashed #ff4d4238; background: radial-gradient(circle, #ff4d4224 0 14%, transparent 15% 27%, #ff4d421c 28% 31%, transparent 32%); }
+
+.gl-piece {
+  position: absolute; z-index: 2; border-radius: 9px; cursor: grab; outline: none;
+  touch-action: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent;
+  background: linear-gradient(155deg, var(--clair), var(--base) 42%, var(--fonce));
+  --ombre: inset 0 2px 0 #ffffff5c, inset 0 -3px 0 #00000033;
+  box-shadow: var(--ombre), 0 3px 7px #000a;
+  transition: left .12s ease-out, top .12s ease-out, box-shadow .15s, transform .15s;
+}
+.gl-piece.is-R { --clair: #ff8a7d; --base: #ef3e33; --fonce: #b8241b; }
+.gl-piece.is-V { --clair: #7cc0ff; --base: #2f8fff; --fonce: #1a5fc4; }
+.gl-piece.is-H { --clair: #7fe6a3; --base: #33c167; --fonce: #1d8745; }
+.gl-piece.is-S { --clair: #ffe58a; --base: #ffc22e; --fonce: #c98d07; }
+.gl-piece:focus-visible { box-shadow: var(--ombre), 0 0 0 3px #ffffff, 0 3px 7px #000a; }
+.gl-piece.is-sel { box-shadow: var(--ombre), 0 0 0 3px #ffffff, 0 6px 14px #000c; }
+.gl-piece.is-drag { z-index: 3; cursor: grabbing; transform: scale(1.03); box-shadow: var(--ombre), 0 10px 18px #000c; transition: left .07s ease-out, top .07s ease-out, transform .15s; }
+.gl-piece.is-indice { animation: gl-indice 1s ease-in-out infinite; }
+@keyframes gl-indice { 50% { box-shadow: var(--ombre), 0 0 0 4px #ffd36b, 0 0 18px #ffd36baa; } }
+.gl-motif { position: absolute; inset: 0; width: 100%; height: 100%; fill: none; stroke-width: 4.5; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+.gl-motif-creux { stroke: #00000048; }
+.gl-motif-clair { stroke: #ffffff40; }
+
+/* Places possibles pour la pièce choisie, et coup conseillé par l'indice */
+.gl-fantome { position: absolute; z-index: 1; border-radius: 9px; border: 2px dashed #ffffff90; background: #ffffff12; cursor: pointer; animation: gl-apparait .18s ease-out; -webkit-tap-highlight-color: transparent; }
+.gl-fantome:hover { background: #ffffff24; }
+.gl-fantome.is-indice { border-color: #ffd36b; background: #ffd36b1f; }
+
+/* Victoire : le bloc rouge sort par l'ouverture, puis le message apparaît */
+.gl-piece.is-sortie { top: calc(100% + 40px) !important; opacity: 0; transition: top .7s cubic-bezier(.5, 0, .8, .4) .12s, opacity .35s ease-in .55s; }
+.gl-bravo { position: absolute; inset: 0; z-index: 4; display: grid; place-content: center; justify-items: center; gap: 10px; padding: 12px; border-radius: 10px; background: #090b0dd0; text-align: center; animation: gl-apparait .35s .65s both; }
+.gl-bravo strong { display: inline-flex; align-items: center; gap: 8px; font-size: 22px; letter-spacing: -.03em; }
+.gl-bravo span { font-size: 13px; color: #b3bccc; }
+.gl-bravo div { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.gl-bravo .button { border: 0; cursor: pointer; padding: 10px 14px; }
+@keyframes gl-apparait { from { opacity: 0; transform: scale(.96); } }
+
+/* Plein écran : le plateau grandit en fonction de la hauteur de l'écran */
+.is-fullscreen .gl-console { width: min(100%, clamp(240px, calc((100dvh - 395px) * .8 + 44px), 460px)); }
+
+@media (max-width: 800px) {
+  .ms-levels.gl-paliers { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 600px) {
+  .gl-grille-niveaux { gap: 4px; padding: 8px; }
+  .gl-console { padding: 12px 10px 0; border-radius: 28px 28px 22px 22px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gl-piece, .gl-piece.is-drag { transition: none; }
+  .gl-piece.is-indice { animation: none; box-shadow: var(--ombre), 0 0 0 4px #ffd36b; }
+  .gl-piece.is-sortie { transition: opacity .3s; }
+  .gl-bravo, .gl-fantome, .gl-grille-niveaux { animation: none; }
+}
