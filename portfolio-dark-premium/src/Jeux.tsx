@@ -6,6 +6,7 @@ import Demineur from './jeux/Demineur'
 import Memory from './jeux/Memory'
 import Jeu2048 from './jeux/Jeu2048'
 import Puissance4 from './jeux/Puissance4'
+import Snake from './jeux/Snake'
 import './jeux/jeux.css'
 
 interface GameInfo {
@@ -57,6 +58,7 @@ const games: GameInfo[] = [
     name: 'Snake',
     description: 'Guide le serpent vers la nourriture sans foncer dans un mur ni te mordre la queue : plus il mange, plus il grandit.',
     icon: <Worm size={16} />,
+    component: () => <Snake />,
   },
   {
     id: 'blocs',
