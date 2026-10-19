@@ -145,6 +145,21 @@ html.ms-lock .to-top { display: none; }
 .ms-zone-hint svg { flex-shrink: 0; color: #8bb9fa; }
 
 .ms-board.is-won .ms-cell, .ms-board.is-lost .ms-cell { cursor: default; }
+
+/* Anneau de l'appui long : part du centre de la case et s'élargit bien au-delà du doigt. */
+.ms-pulse {
+  position: absolute; z-index: 3; pointer-events: none;
+  left: calc(var(--pc) * (var(--cell) + var(--gap)) + var(--cell) / 2);
+  top: calc(var(--pr) * (var(--cell) + var(--gap)) + var(--cell) / 2);
+  width: calc(var(--cell) * 1.2); height: calc(var(--cell) * 1.2);
+  margin: calc(var(--cell) * -.6) 0 0 calc(var(--cell) * -.6);
+  border-radius: 50%; border: 3px solid #ff8585;
+  box-shadow: 0 0 18px #ff858599, inset 0 0 12px #ff858555;
+  animation: ms-pulse .55s cubic-bezier(.2, .7, .3, 1) forwards;
+}
+.ms-pulse.is-off { border-color: #8bb9fa; box-shadow: 0 0 18px #8bb9fa99, inset 0 0 12px #8bb9fa55; }
+@keyframes ms-pulse { from { transform: scale(.5); opacity: 1; } 60% { opacity: .9; } to { transform: scale(3.6); opacity: 0; } }
+@keyframes ms-pulse-fade { from { opacity: 1; } to { opacity: 0; } }
 .ms-board.is-won .ms-cell:not(.is-open):hover, .ms-board.is-lost .ms-cell:not(.is-open):hover { border-color: #ffffff14; }
 .ms-board.is-won { filter: drop-shadow(0 0 22px #6fd59a2a); }
 .ms-board.is-lost { animation: ms-shake .4s ease-out; }
@@ -240,4 +255,5 @@ html.ms-lock .to-top { display: none; }
 @media (prefers-reduced-motion: reduce) {
   .ms-board.is-lost { animation: none; }
   .ms-zone, .ms-guide::details-content { transition: none !important; }
+  .ms-pulse { animation: ms-pulse-fade .45s ease-out forwards; transform: scale(1.8); }
 }

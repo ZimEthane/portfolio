@@ -147,6 +147,9 @@ export default function Demineur() {
   const [selected, setSelected] = useState<number | null>(null) // chiffre cliqué ou touché
   const [hovered, setHovered] = useState<number | null>(null) // chiffre survolé à la souris
   const [full, setFull] = useState(false)
+  // Anneau visuel au moment où l'appui long pose (ou retire) un drapeau : sur iPhone, la vibration
+  // ne peut venir qu'au relâchement du doigt, l'anneau signale donc le bon moment.
+  const [pulse, setPulse] = useState<{ i: number; on: boolean; key: number } | null>(null)
 
   const gameRef = useRef(game)
   gameRef.current = game
@@ -216,6 +219,7 @@ export default function Demineur() {
     setNewRecord(false)
     setSelected(null)
     setHovered(null)
+    setPulse(null)
     setFocus(f => Math.min(f, d.rows * d.cols - 1))
   }
 
@@ -281,7 +285,11 @@ export default function Demineur() {
     press.current.timer = window.setTimeout(() => {
       press.current.timer = null
       press.current.fired = true
-      if (gameRef.current.state[i] !== 'open') apply(x => toggleFlag(x, i))
+      const before = gameRef.current.state[i]
+      if (before === 'open') return
+      apply(x => toggleFlag(x, i))
+      const after = gameRef.current.state[i]
+      if (after !== before) setPulse({ i, on: after === 'flag', key: Date.now() })
     }, LONG_PRESS_MS)
   }
   const onClick = (i: number) => {
@@ -448,6 +456,15 @@ export default function Demineur() {
               )
             })}
             {active !== null && <Zone box={zoneAround(active, game.rows, game.cols)} />}
+            {pulse && (
+              <span
+                key={pulse.key}
+                className={pulse.on ? 'ms-pulse' : 'ms-pulse is-off'}
+                style={{ '--pr': Math.floor(pulse.i / game.cols), '--pc': pulse.i % game.cols } as CSSProperties}
+                onAnimationEnd={() => setPulse(null)}
+                aria-hidden="true"
+              />
+            )}
           </label>
         </div>
 
