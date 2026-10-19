@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties, FormEvent, KeyboardEvent, MouseEvent, PointerEvent, ReactNode } from 'react'
-import { Bomb, Flag, Frown, Laugh, Pickaxe, Smile, Timer, Trophy, X } from 'lucide-react'
-import { chord, createGame, CUSTOM_LIMITS, elapsedSeconds, LEVELS, reveal, toggleFlag } from './demineur-logic'
+import { Bomb, Flag, Frame, Frown, Laugh, Pickaxe, ScanSearch, Smile, Timer, Trophy, X } from 'lucide-react'
+import { chord, createGame, CUSTOM_LIMITS, elapsedSeconds, LEVELS, neighbors, reveal, toggleFlag } from './demineur-logic'
 import type { Game } from './demineur-logic'
+import DemineurGuide from './DemineurGuide'
+import { Zone, zoneAround } from './zone'
 
 const RECORDS_KEY = 'ez-demineur-records'
+const AIDE_KEY = 'ez-demineur-aide'
 const LONG_PRESS_MS = 380
 
 type Records = Record<string, number>
@@ -24,6 +27,46 @@ function saveRecords(records: Records) {
   } catch {
     /* rien à faire */
   }
+}
+
+// Aide débutant activée par défaut ; le choix du visiteur est retenu.
+function loadAide(): boolean {
+  try {
+    return localStorage.getItem(AIDE_KEY) !== 'off'
+  } catch {
+    return true
+  }
+}
+function saveAide(on: boolean) {
+  try {
+    localStorage.setItem(AIDE_KEY, on ? 'on' : 'off')
+  } catch {
+    /* rien à faire */
+  }
+}
+
+const isNumber = (g: Game, i: number) => g.state[i] === 'open' && g.adj[i] > 0
+
+// Texte de l'aide débutant pour le chiffre encadré : uniquement à partir de ce qui est visible.
+function zoneHint(g: Game, i: number): string {
+  const n = g.adj[i]
+  const around = neighbors(i, g.rows, g.cols)
+  const flags = around.filter(k => g.state[k] === 'flag').length
+  const hidden = around.filter(k => g.state[k] === 'hidden').length
+  const left = n - flags
+  if (left < 0) return `Trop de drapeaux autour de ce ${n} : au moins un est mal placé.`
+  if (hidden === 0) return `Toutes les cases autour de ce ${n} sont déjà ouvertes ou marquées.`
+  if (left === 0) {
+    const intro = n === 1 ? 'Ce 1 a déjà son drapeau : s’il est juste,' : `Ce ${n} a déjà ses ${n} drapeaux : s’ils sont justes,`
+    const rest = hidden === 1 ? 'la case cachée restante est sûre' : `les ${hidden} cases cachées restantes sont sûres`
+    return `${intro} ${rest}. Clique sur le ${n} pour ${hidden === 1 ? 'l’ouvrir' : 'les ouvrir'}.`
+  }
+  if (left === hidden) {
+    return hidden === 1
+      ? `Il reste 1 mine et 1 seule case cachée autour de ce ${n} : c’est forcément elle.`
+      : `Il reste ${left} mines et ${hidden} cases cachées autour de ce ${n} : ce sont toutes des mines.`
+  }
+  return `Il reste ${left} mine${left > 1 ? 's' : ''} à trouver parmi les ${hidden} cases cachées du cadre.`
 }
 
 const formatTime = (s: number) => `${s.toFixed(1).replace('.', ',')} s`
@@ -86,6 +129,9 @@ export default function Demineur() {
   const [focus, setFocus] = useState(0)
   const [records, setRecords] = useState<Records>(loadRecords)
   const [newRecord, setNewRecord] = useState(false)
+  const [aide, setAide] = useState(loadAide)
+  const [selected, setSelected] = useState<number | null>(null) // chiffre cliqué ou touché
+  const [hovered, setHovered] = useState<number | null>(null) // chiffre survolé à la souris
 
   const gameRef = useRef(game)
   gameRef.current = game
@@ -98,6 +144,8 @@ export default function Demineur() {
     gameRef.current = g
     setGame(g)
     setNewRecord(false)
+    setSelected(null)
+    setHovered(null)
     setFocus(f => Math.min(f, d.rows * d.cols - 1))
   }
 
@@ -141,6 +189,7 @@ export default function Demineur() {
 
   const primary = (i: number) => {
     const g = gameRef.current
+    if (g.state[i] === 'open') setSelected(isNumber(g, i) ? i : null)
     if (g.state[i] === 'open') apply(x => chord(x, i))
     else if (mode === 'flag') apply(x => toggleFlag(x, i))
     else apply(x => reveal(x, i))
@@ -190,6 +239,7 @@ export default function Demineur() {
       const nc = Math.max(0, Math.min(cols - 1, c + moves[e.key][1]))
       const n = nr * cols + nc
       setFocus(n)
+      if (isNumber(gameRef.current, n)) setSelected(n)
       boardRef.current?.querySelector<HTMLButtonElement>(`[data-i="${n}"]`)?.focus()
     } else if (e.key === 'f' || e.key === 'F') {
       e.preventDefault()
@@ -202,8 +252,24 @@ export default function Demineur() {
   const boardStyle = { '--cols': game.cols, '--rows': game.rows } as CSSProperties
   const maxCustomMines = clampCustom(+custom.rows, +custom.cols, Infinity).mines
 
+  // Aide débutant : chiffre survolé en priorité, sinon le dernier chiffre cliqué.
+  const candidate = hovered ?? selected
+  const active = aide && !over && candidate !== null && candidate < game.state.length && isNumber(game, candidate) ? candidate : null
+  const inZone = new Set(active === null ? [] : neighbors(active, game.rows, game.cols))
+  const toggleAide = () => {
+    setAide(!aide)
+    saveAide(!aide)
+  }
+  const onPointerEnter = (e: PointerEvent, i: number) => {
+    if (e.pointerType !== 'mouse') return
+    const next = isNumber(gameRef.current, i) ? i : null
+    if (next !== hovered) setHovered(next)
+  }
+
   return (
     <section className="ms" aria-label="Démineur">
+      <DemineurGuide />
+
       <div className="ms-levels" role="radiogroup" aria-label="Difficulté">
         {[...LEVELS, { id: 'perso', label: 'Personnalisé', rows: 0, cols: 0, mines: 0 }].map(l => (
           <button key={l.id} type="button" role="radio" aria-checked={levelId === l.id} className={levelId === l.id ? 'is-active' : ''} onClick={() => chooseLevel(l.id)}>
@@ -230,9 +296,14 @@ export default function Demineur() {
           <span className="ms-counter" title="Temps"><Timer size={15} /> <Clock game={game} /></span>
         </div>
 
-        <div className="ms-mode" role="radiogroup" aria-label="Action au toucher">
-          <button type="button" role="radio" aria-checked={mode === 'dig'} className={mode === 'dig' ? 'is-active' : ''} onClick={() => setMode('dig')}><Pickaxe size={15} /> Creuser</button>
-          <button type="button" role="radio" aria-checked={mode === 'flag'} className={mode === 'flag' ? 'is-active' : ''} onClick={() => setMode('flag')}><Flag size={15} /> Drapeau</button>
+        <div className="ms-tools">
+          <div className="ms-mode" role="radiogroup" aria-label="Action au toucher">
+            <button type="button" role="radio" aria-checked={mode === 'dig'} className={mode === 'dig' ? 'is-active' : ''} onClick={() => setMode('dig')}><Pickaxe size={15} /> Creuser</button>
+            <button type="button" role="radio" aria-checked={mode === 'flag'} className={mode === 'flag' ? 'is-active' : ''} onClick={() => setMode('flag')}><Flag size={15} /> Drapeau</button>
+          </div>
+          <button type="button" role="switch" aria-checked={aide} className={aide ? 'ms-switch is-on' : 'ms-switch'} onClick={toggleAide} title="Encadre les 9 cases autour d’un chiffre">
+            <ScanSearch size={15} /> Aide débutant <span className="ms-switch-track" aria-hidden="true" />
+          </button>
         </div>
 
         <div className="ms-scroll">
@@ -243,9 +314,12 @@ export default function Demineur() {
             role="group"
             aria-label={`Grille de ${game.rows} lignes sur ${game.cols} colonnes`}
             onContextMenu={e => e.preventDefault()}
+            onPointerLeave={() => setHovered(null)}
           >
             {game.state.map((_, i) => {
-              const { className, content, label } = cellView(game, i)
+              const view = cellView(game, i)
+              const { content, label } = view
+              const className = view.className + (inZone.has(i) && game.state[i] === 'hidden' ? ' is-zone' : '') + (i === active ? ' is-center' : '')
               return (
                 <button
                   key={i}
@@ -255,6 +329,7 @@ export default function Demineur() {
                   tabIndex={i === focus ? 0 : -1}
                   aria-label={`Ligne ${Math.floor(i / game.cols) + 1}, colonne ${(i % game.cols) + 1} : ${label}`}
                   onPointerDown={e => onPointerDown(e, i)}
+                  onPointerEnter={e => onPointerEnter(e, i)}
                   onPointerUp={cancelPress}
                   onPointerLeave={cancelPress}
                   onPointerCancel={cancelPress}
@@ -267,6 +342,7 @@ export default function Demineur() {
                 </button>
               )
             })}
+            {active !== null && <Zone box={zoneAround(active, game.rows, game.cols)} />}
           </div>
         </div>
 
@@ -279,7 +355,8 @@ export default function Demineur() {
             <span className="ms-lose"><Bomb size={16} /> Boum ! Une mine a explosé.</span>
             <button type="button" className="button button-ghost" onClick={() => start(currentDims())}>Réessayer</button>
           </>}
-          {!over && <span className="ms-hint">
+          {!over && active !== null && <span className="ms-zone-hint" aria-live="off"><Frame size={15} /> {zoneHint(game, active)}</span>}
+          {!over && active === null && <span className="ms-hint" aria-live="off">
             <span className="ms-hint-mouse">Clic gauche : révéler · Clic droit : drapeau · Clic sur un chiffre : ouvrir autour</span>
             <span className="ms-hint-touch">Appui long : drapeau · Toucher un chiffre : ouvrir autour</span>
           </span>}

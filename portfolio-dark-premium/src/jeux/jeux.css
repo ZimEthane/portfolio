@@ -40,16 +40,28 @@
 .ms-face.is-lost { color: #ff8f8f; }
 .ms-face.is-won { color: #8de0a8; }
 
+.ms-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; }
+
+/* Interrupteur de l'aide débutant. */
+.ms-switch { display: inline-flex; align-items: center; gap: 9px; padding: 6px 7px 6px 14px; border-radius: 999px; border: 1px solid #ffffff14; background: #07080a; color: #9aa3b5; font-size: 12px; font-weight: 700; cursor: pointer; transition: color .2s, border-color .2s; }
+.ms-switch:hover { border-color: #8bb9fa60; }
+.ms-switch.is-on { color: #dce9ff; border-color: #8bb9fa70; }
+.ms-switch-track { position: relative; width: 34px; height: 20px; border-radius: 999px; background: #262b33; transition: background .2s; }
+.ms-switch-track::after { content: ''; position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%; background: #8d95a6; transition: transform .2s, background .2s; }
+.ms-switch.is-on .ms-switch-track { background: #4b7cc2; }
+.ms-switch.is-on .ms-switch-track::after { transform: translateX(14px); background: #fff; }
+
 /* Choix Creuser / Drapeau : seulement sur écran tactile. */
 .ms-mode { display: none; padding: 3px; border-radius: 999px; border: 1px solid #ffffff14; background: #07080a; }
 .ms-mode button { display: inline-flex; align-items: center; gap: 7px; padding: 8px 16px; border-radius: 999px; border: 0; background: none; color: #9aa3b5; font-size: 12px; font-weight: 700; cursor: pointer; }
 .ms-mode button.is-active { background: #a0c8ff; color: #101620; }
 
 /* La grille s'adapte à la largeur disponible ; si elle ne tient pas, on peut la faire défiler. */
-.ms-scroll { width: 100%; overflow-x: auto; padding: 3px; container-type: inline-size; }
+.ms-scroll { width: 100%; overflow-x: auto; padding: 9px; container-type: inline-size; }
 .ms-board {
   --gap: 3px;
   --cell: clamp(16px, calc((100vw - 140px - (var(--cols) - 1) * var(--gap)) / var(--cols)), 38px);
+  position: relative;
   width: max-content;
   margin-inline: auto;
   display: grid;
@@ -82,6 +94,26 @@
 .ms-cell.is-mine { background: #15181d; color: #dfe5ef; box-shadow: none; }
 .ms-cell.is-exploded { background: #7a1f2a; border-color: #ff7b7b90; color: #fff; }
 .ms-cell.is-wrong { background: #15181d; color: #ff7b7b; box-shadow: none; }
+/* Aide débutant : cadre autour du chiffre et de ses voisines, cases cachées teintées. */
+.ms-zone {
+  --off: 3px;
+  position: absolute; z-index: 2; pointer-events: none;
+  left: calc(var(--c0) * (var(--cell) + var(--gap)) - var(--off));
+  top: calc(var(--r0) * (var(--cell) + var(--gap)) - var(--off));
+  width: calc(var(--w) * var(--cell) + (var(--w) - 1) * var(--gap) + 2 * var(--off));
+  height: calc(var(--h) * var(--cell) + (var(--h) - 1) * var(--gap) + 2 * var(--off));
+  border: 2px solid #8bb9fa; border-radius: calc(var(--cell) * .28 + 3px);
+  box-shadow: 0 0 0 3px #8bb9fa1f, 0 0 9px #8bb9fa50;
+  transition: left .12s ease, top .12s ease, width .12s ease, height .12s ease;
+}
+.ms-cell.is-zone { background: linear-gradient(160deg, #2c4061, #1f2d44); border-color: #8bb9fa66; }
+.ms-cell.is-zone:hover { background: linear-gradient(160deg, #34496d, #24344e); border-color: #a0c8ff; }
+.ms-cell.is-center { background: #142236; border-color: #8bb9fa40; }
+.ms-cell.is-safe { background: #11261b; border-color: #6fd59a90; color: #8de0a8; box-shadow: none; }
+.ms-cell.is-deduced { background: #2b1418; border-color: #ff858599; }
+.ms-zone-hint { display: inline-flex; align-items: center; gap: 8px; max-width: 560px; font-size: 12.5px; font-weight: 600; line-height: 1.6; color: #bcd6ff; text-align: left; }
+.ms-zone-hint svg { flex-shrink: 0; color: #8bb9fa; }
+
 .ms-board.is-won .ms-cell, .ms-board.is-lost .ms-cell { cursor: default; }
 .ms-board.is-won .ms-cell:not(.is-open):hover, .ms-board.is-lost .ms-cell:not(.is-open):hover { border-color: #ffffff14; }
 .ms-board.is-won { filter: drop-shadow(0 0 22px #6fd59a2a); }
@@ -97,6 +129,40 @@
 .ms-hint { font-size: 12px; color: #7d8594; }
 .ms-hint-touch { display: none; }
 
+/* ===== Guide « Comment jouer ? » (dépliant) ===== */
+.ms-guide { border: 1px solid #ffffff12; border-radius: 14px; background: #ffffff04; transition: background .2s; }
+.ms-guide[open] { background: linear-gradient(145deg, #14161a, #0e1013); }
+.ms-guide summary { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-radius: 14px; cursor: pointer; list-style: none; }
+.ms-guide summary::-webkit-details-marker { display: none; }
+.ms-guide summary:focus-visible { outline: 2px solid #a0c8ff; outline-offset: 2px; }
+.ms-guide summary:hover .ms-guide-chevron { color: #fff; }
+.ms-guide-icon { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; border: 1px solid #8bb9fa30; background: #8bb9fa14; color: #aacdff; }
+.ms-guide-title { display: grid; gap: 3px; flex: 1; }
+.ms-guide-title strong { font-size: 14px; }
+.ms-guide-title small { font: 10px 'DM Mono', monospace; letter-spacing: .04em; color: #8d95a6; }
+.ms-guide-chevron { color: #8d95a6; transition: transform .25s, color .2s; }
+.ms-guide[open] .ms-guide-chevron { transform: rotate(180deg); }
+.ms-guide-body { display: grid; gap: 16px; padding: 4px 18px 20px; }
+.ms-steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 0; padding: 0; list-style: none; }
+.ms-step { display: flex; flex-direction: column; gap: 8px; padding: 14px; border: 1px solid #ffffff10; border-radius: 12px; background: #0b0d10; }
+.ms-step-visual { display: grid; place-items: center; min-height: 168px; margin-bottom: 6px; padding: 14px; border-radius: 10px; border: 1px solid #ffffff08; background: radial-gradient(circle at 50% 45%, #8bb9fa12, transparent 70%), #07080a; }
+.ms-step-num { font: 10px 'DM Mono', monospace; letter-spacing: .14em; color: #aacdff; }
+.ms-step h3 { margin: 0; font-size: 14px; letter-spacing: -.02em; }
+.ms-step p { margin: 0; font-size: 12px; line-height: 1.75; color: #a3acbd; }
+.ms-tips { padding: 14px 16px; border-radius: 12px; border: 1px dashed #ffffff1c; }
+.ms-tips h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 6px; font-size: 13px; color: #ffd36b; }
+.ms-tips ul { margin: 0; padding-left: 18px; font-size: 12px; line-height: 1.9; color: #a3acbd; }
+
+/* Mini-grilles du guide : même style que le jeu, en plus petit et non cliquables. */
+.ms-board.ms-mini { --cell: 24px; --gap: 3px; pointer-events: none; }
+
+/* Ouverture animée du guide sur les navigateurs qui le permettent. */
+@supports (interpolate-size: allow-keywords) {
+  .ms-guide { interpolate-size: allow-keywords; }
+  .ms-guide::details-content { height: 0; overflow: clip; transition: height .3s ease, content-visibility .3s allow-discrete; }
+  .ms-guide[open]::details-content { height: auto; }
+}
+
 .ms-records ul { display: flex; flex-wrap: wrap; gap: 10px; margin: 10px 0 0; padding: 0; list-style: none; }
 .ms-records li { display: grid; gap: 4px; min-width: 130px; padding: 11px 14px; border-radius: 10px; border: 1px solid #ffffff10; background: #ffffff04; }
 .ms-records li span { font-size: 11px; color: #8d95a6; }
@@ -106,6 +172,10 @@
   .ms-mode { display: inline-flex; }
   .ms-hint-mouse { display: none; }
   .ms-hint-touch { display: inline; }
+}
+
+@media (max-width: 1000px) {
+  .ms-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 800px) {
@@ -119,6 +189,10 @@
   .ms-board { --gap: 2px; }
   .ms-counter { min-width: 0; font-size: 16px; padding: 8px 10px; }
   .ms-records li { min-width: 0; flex: 1; }
+  .ms-steps { grid-template-columns: 1fr; }
+  .ms-guide summary { padding: 12px 14px; }
+  .ms-guide-body { padding: 2px 12px 14px; }
+  .ms-step-visual { min-height: 0; }
 }
 
 @supports (container-type: inline-size) {
@@ -127,4 +201,5 @@
 
 @media (prefers-reduced-motion: reduce) {
   .ms-board.is-lost { animation: none; }
+  .ms-zone, .ms-guide::details-content { transition: none !important; }
 }
