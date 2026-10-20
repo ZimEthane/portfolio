@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { KeyboardEvent } from 'react'
-import { AlertTriangle, Eraser, Lightbulb, Pencil, ScanSearch, Timer, Trophy, Undo2 } from 'lucide-react'
+import { AlertTriangle, Eraser, Lightbulb, Pencil, RotateCcw, ScanSearch, Timer, Trophy, Undo2 } from 'lucide-react'
 import { playSound } from './feedback'
 import Guide from './commun/Guide'
 import Outils from './commun/Outils'
@@ -18,7 +18,16 @@ const NIVEAUX: { id: Level; label: string }[] = [
 ]
 const PARTIE_KEY = 'ez-sudoku-partie'
 const AIDE_KEY = 'ez-sudoku-aide'
-const ERREURS_KEY = 'ez-sudoku-erreurs'
+const ERREURS_KEY = 'ez-sudoku-erreurs' // ancien réglage : erreurs affichées ou non
+const LIMITE_KEY = 'ez-sudoku-limite'
+// Erreurs : perdu au bout de 3 ou 5, sans limite, ou cachées (ni rouge ni limite).
+type Limite = '3' | '5' | 'sans' | 'cachees'
+const LIMITES: { id: Limite; label: string }[] = [
+  { id: '3', label: '3 max' },
+  { id: '5', label: '5 max' },
+  { id: 'sans', label: 'Sans limite' },
+  { id: 'cachees', label: 'Cachées' },
+]
 // Rangée du haut d'un clavier AZERTY, sans Maj.
 const AZERTY: Record<string, number> = { '&': 1, 'é': 2, '"': 3, "'": 4, '(': 5, '-': 6, 'è': 7, '_': 8, 'ç': 9 }
 
@@ -32,6 +41,7 @@ interface Partie {
   hints: number
   mistakes: number
   done: boolean
+  perdu?: boolean // trop d'erreurs
 }
 
 function nouvelle(level: Level): Partie {
@@ -54,12 +64,18 @@ function MiniCarre({ cases, surligne }: { cases: string; surligne?: number[] }) 
 export default function Sudoku() {
   const [partie, setPartie] = useState<Partie>(() => {
     const sauvee = loadJSON<Partie | null>(PARTIE_KEY, null)
-    return sauvee && !sauvee.done && sauvee.values?.length === 81 ? sauvee : nouvelle('facile')
+    return sauvee && !sauvee.done && !sauvee.perdu && sauvee.values?.length === 81 ? sauvee : nouvelle(sauvee?.level ?? 'facile')
   })
   const [sel, setSel] = useState<number | null>(null)
   const [notesMode, setNotesMode] = useState(false)
   const [aide, setAide] = useState(() => loadSetting(AIDE_KEY))
-  const [erreurs, setErreurs] = useState(() => loadSetting(ERREURS_KEY))
+  const [limite, setLimite] = useState<Limite>(() => {
+    const l = loadJSON<Limite | null>(LIMITE_KEY, null)
+    if (l && LIMITES.some(x => x.id === l)) return l
+    return loadSetting(ERREURS_KEY) ? '3' : 'cachees'
+  })
+  const max = limite === '3' ? 3 : limite === '5' ? 5 : null
+  const erreurs = limite !== 'cachees' // chiffres faux en rouge
   const [historique, setHistorique] = useState<{ values: Grid; notes: number[] }[]>([])
   const [record, setRecord] = useState(false)
 
@@ -74,16 +90,17 @@ export default function Sudoku() {
   // Sauvegarde automatique de la partie en cours.
   useEffect(() => saveJSON(PARTIE_KEY, partie), [partie])
 
+  const { puzzle, solution, values, notes } = partie
+  const done = partie.done || !!partie.perdu // grille finie : gagnée ou perdue
+
   // Chrono : une seconde de plus tant que la partie dure et que la page est visible.
   useEffect(() => {
-    if (partie.done) return
+    if (done) return
     const id = window.setInterval(() => {
-      if (!document.hidden) setPartie(p => (p.done ? p : { ...p, elapsed: p.elapsed + 1 }))
+      if (!document.hidden) setPartie(p => (p.done || p.perdu ? p : { ...p, elapsed: p.elapsed + 1 }))
     }, 1000)
     return () => window.clearInterval(id)
-  }, [partie.done])
-
-  const { puzzle, solution, values, notes, done } = partie
+  }, [done])
   const fausse = (i: number) => values[i] !== 0 && values[i] !== solution[i]
 
   const memoriser = () => setHistorique(h => [...h.slice(-99), { values, notes }])
@@ -102,6 +119,19 @@ export default function Sudoku() {
     setHistorique([])
     setSel(null)
     setRecord(false)
+  }
+
+  // Après une défaite : la même grille, depuis le début.
+  const reessayer = () => {
+    setPartie({ ...partie, values: [...puzzle], notes: new Array(81).fill(0), elapsed: 0, hints: 0, mistakes: 0, done: false, perdu: false })
+    setHistorique([])
+    setSel(null)
+    setRecord(false)
+  }
+
+  const changerLimite = (l: Limite) => {
+    setLimite(l)
+    saveJSON(LIMITE_KEY, l)
   }
 
   const entrer = (d: number, cible: number | null = sel) => {
@@ -127,7 +157,12 @@ export default function Sudoku() {
     let p: Partie = { ...partie, values: v, notes: n }
     if (d !== solution[i]) {
       p = { ...p, mistakes: p.mistakes + 1 }
-      if (erreurs) {
+      if (max && p.mistakes >= max) {
+        // Trop d'erreurs : la partie est perdue.
+        p = { ...p, perdu: true }
+        son('gameover')
+        haptique.request('error')
+      } else if (erreurs) {
         son('error')
         haptique.request('error')
       } else {
@@ -245,6 +280,7 @@ export default function Sudoku() {
           'Si une case n’a plus qu’une seule possibilité, c’est forcément elle : utilise les notes pour t’y retrouver.',
           'L’aide débutant surligne la ligne, la colonne et le carré de la case choisie, ainsi que les chiffres identiques.',
           'Bloqué ? Le bouton « Indice » remplit une case pour toi (mais la partie ne compte plus pour les records).',
+          'Au bout de 3 erreurs, la partie est perdue. Tu peux passer à 5, sans limite, ou cacher les erreurs avec le réglage « Erreurs ».',
         ]}
       />
 
@@ -260,7 +296,7 @@ export default function Sudoku() {
       <div ref={panelRef} className={plein.full ? 'ms-panel is-fullscreen' : 'ms-panel'}>
         <div className="sd-bar">
           <span className="ms-counter" title="Temps"><Timer size={15} /> {formatTemps(partie.elapsed)}</span>
-          <span className="ms-counter sd-fautes" title="Erreurs"><AlertTriangle size={15} /> {partie.mistakes}</span>
+          <span className={`ms-counter sd-fautes${max && partie.mistakes >= max - 1 ? ' is-limite' : ''}`} title={max ? `Erreurs (perdu à ${max})` : 'Erreurs'}><AlertTriangle size={15} /> {partie.mistakes}{max && <small> / {max}</small>}</span>
           <span className="ms-counter" title="Indices utilisés"><Lightbulb size={15} /> {partie.hints}</span>
         </div>
 
@@ -268,14 +304,17 @@ export default function Sudoku() {
           <button type="button" role="switch" aria-checked={aide} className={aide ? 'ms-switch is-on' : 'ms-switch'} onClick={() => { setAide(!aide); saveSetting(AIDE_KEY, !aide) }} title="Surligne la ligne, la colonne, le carré et les chiffres identiques">
             <ScanSearch size={15} /> Aide <span className="ms-switch-track" aria-hidden="true" />
           </button>
-          <button type="button" role="switch" aria-checked={erreurs} className={erreurs ? 'ms-switch is-on' : 'ms-switch'} onClick={() => { setErreurs(!erreurs); saveSetting(ERREURS_KEY, !erreurs) }} title="Affiche en rouge les chiffres faux">
-            <AlertTriangle size={15} /> Erreurs <span className="ms-switch-track" aria-hidden="true" />
-          </button>
+          <label className="ms-switch sd-limite" title="Nombre d'erreurs avant de perdre. « Cachées » : pas de limite et les chiffres faux ne sont pas en rouge.">
+            <AlertTriangle size={15} aria-hidden="true" /> Erreurs
+            <select value={limite} onChange={e => changerLimite(e.target.value as Limite)} aria-label="Erreurs autorisées">
+              {LIMITES.map(l => <option key={l.id} value={l.id}>{l.label}</option>)}
+            </select>
+          </label>
         </Outils>
 
         {haptique.input}
         <div className="sd-wrap" role="group" aria-label="Grille de Sudoku">
-          <label ref={grilleRef} {...haptique.labelProps} className={`sd-grille${done ? ' is-done' : ''}`}>
+          <label ref={grilleRef} {...haptique.labelProps} className={`sd-grille${partie.done ? ' is-done' : ''}${partie.perdu ? ' is-perdu' : ''}`}>
             {values.map((v, i) => (
               <div
                 key={i}
@@ -294,6 +333,16 @@ export default function Sudoku() {
               </div>
             ))}
           </label>
+          {partie.perdu && (
+            <div className="sd-perdu">
+              <strong>Perdu !</strong>
+              <span>{partie.mistakes} erreurs : c’est le maximum.</span>
+              <div>
+                <button type="button" className="button" onClick={reessayer}><RotateCcw size={15} /> Réessayer la grille</button>
+                <button type="button" className="button button-primary" onClick={() => choisirNiveau(partie.level)}>Nouvelle grille</button>
+              </div>
+            </div>
+          )}
         </div>
 
         <label {...haptique.labelProps} className="sd-pave" aria-label="Chiffres">
@@ -307,13 +356,15 @@ export default function Sudoku() {
 
         <div className="sd-actions">
           <button type="button" className={notesMode ? 'sd-action is-on' : 'sd-action'} aria-pressed={notesMode} onClick={() => setNotesMode(!notesMode)}><Pencil size={16} /> Notes</button>
-          <button type="button" className="sd-action" onClick={() => effacer()}><Eraser size={16} /> Effacer</button>
-          <button type="button" className="sd-action" onClick={annuler} disabled={!historique.length}><Undo2 size={16} /> Annuler</button>
+          <button type="button" className="sd-action" onClick={() => effacer()} disabled={done}><Eraser size={16} /> Effacer</button>
+          <button type="button" className="sd-action" onClick={annuler} disabled={done || !historique.length}><Undo2 size={16} /> Annuler</button>
           <button type="button" className="sd-action" onClick={indice} disabled={done}><Lightbulb size={16} /> Indice</button>
         </div>
 
         <div className="ms-message" aria-live="polite">
-          {done ? (
+          {partie.perdu ? (
+            <span className="sd-perdu-texte"><AlertTriangle size={16} /> Partie perdue : {partie.mistakes} erreurs</span>
+          ) : done ? (
             <>
               <span className="ms-win"><Trophy size={16} /> Grille terminée en {formatLong(partie.elapsed)}{partie.hints ? ` avec ${partie.hints} indice${partie.hints > 1 ? 's' : ''}` : ''}{record && ' : nouveau record !'}</span>
               <button type="button" className="button button-primary" onClick={() => choisirNiveau(partie.level)}>Nouvelle grille</button>
