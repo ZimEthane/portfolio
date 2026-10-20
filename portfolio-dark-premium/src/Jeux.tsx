@@ -50,6 +50,12 @@ const games: GameInfo[] = [
     component: lazy(() => import('./jeux/Glissieres')),
   },
   {
+    id: 'pose-blocs', name: 'Pose-blocs', categorie: 'reflexion', couleur: '#ff5f8f', nouveau: true,
+    court: 'Pose les pièces, vide les lignes.',
+    description: 'Fais glisser les pièces sur la grille de 8 × 8 : chaque ligne ou colonne remplie disparaît. Enchaîne les combos et garde de la place pour les trois pièces suivantes.',
+    component: lazy(() => import('./jeux/PoseBlocs')),
+  },
+  {
     id: 'snake', name: 'Snake', categorie: 'arcade', couleur: '#7bd6aa',
     court: 'Mange, grandis, ne te mords pas la queue.',
     description: 'Guide le serpent vers la nourriture sans foncer dans un mur ni te mordre la queue : plus il mange, plus il grandit.',
