@@ -7,26 +7,32 @@ import Outils from './commun/Outils'
 import { loadJSON, saveJSON, useSonVibrations } from './commun/reglages'
 import { useFullscreen } from './commun/useFullscreen'
 import { useHaptique } from './commun/useHaptique'
+import { ChoixNiveaux, palierDe, ProgressionPaliers } from './commun/Niveaux'
 import { aleatoire, indicesColonnes, indicesLignes, lire } from './nonogramme-logic'
 import type { Grille } from './nonogramme-logic'
 import { IMAGES } from './nonogramme-images'
+import { NIVEAUX } from './nonogramme-niveaux'
 import './nonogramme.css'
 
-const PROGRES_KEY = 'ez-nonogramme' // { "Chat": 83, … } : meilleur temps (s) des images trouvées
+const PROGRES_KEY = 'ez-nonogramme-500' // { "12": { t: 83, p: true } } : meilleur temps (s), et réussi sans erreur ni indice
+const NIVEAU_KEY = 'ez-nonogramme-500-niveau'
 const VIES = 3
 const INDICES = 3
-const TAILLES = [
-  { id: 5, nom: 'Facile', info: '5 × 5' },
-  { id: 10, nom: 'Moyen', info: '10 × 10' },
-  { id: 15, nom: 'Difficile', info: '15 × 15' },
-]
+const TAILLES = ['5 × 5', '8 × 8', '10 × 10', '12 × 12', '15 × 15']
+type Progres = Record<string, { t: number; p: boolean }>
+// Un niveau : une grille, ou [nom, grille] pour un dessin fait à la main.
+const niveau = (k: number) => {
+  const v = NIVEAUX[k - 1]
+  return typeof v === 'string' ? { nom: null, g: lire(v) } : { nom: v[0], g: lire(v[1]) }
+}
 
 // État d'une case : 0 inconnue, 1 noircie, 2 croix, 3 erreur (noircie à tort : croix rouge), 4 erreur (croix à tort : case noire marquée)
 type Case = 0 | 1 | 2 | 3 | 4
 const estNoire = (c: Case) => c === 1 || c === 4
 
 interface Partie {
-  nom: string | null // null : grille aléatoire
+  num: number | null // null : grille aléatoire
+  nom: string | null // nom du dessin, s'il en a un
   g: Grille
   etat: Case[]
   vies: number
@@ -35,7 +41,7 @@ interface Partie {
   fin: number | null
   issue: 'gagne' | 'perdu' | null
 }
-const nouvellePartie = (nom: string | null, g: Grille): Partie => ({ nom, g, etat: new Array(g.w * g.h).fill(0), vies: VIES, indices: INDICES, debut: Date.now(), fin: null, issue: null })
+const nouvellePartie = (num: number | null, nom: string | null, g: Grille): Partie => ({ num, nom, g, etat: new Array(g.w * g.h).fill(0), vies: VIES, indices: INDICES, debut: Date.now(), fin: null, issue: null })
 const temps = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
 
 // Une ligne (ou colonne) est terminée quand toutes ses cases noires sont trouvées : on coche le reste.
@@ -65,11 +71,16 @@ function Mini({ g, taille = 3 }: { g: Grille; taille?: number }) {
 }
 
 export default function Nonogramme() {
-  const [progres, setProgres] = useState<Record<string, number>>(() => loadJSON(PROGRES_KEY, {}))
-  const [taille, setTaille] = useState(5)
+  const [progres, setProgres] = useState<Progres>(() => loadJSON<Progres>(PROGRES_KEY, {}))
   const [partie, setPartie] = useState<Partie>(() => {
-    const im = IMAGES.find(i => !(i.nom in loadJSON<Record<string, number>>(PROGRES_KEY, {}))) ?? IMAGES[0]
-    return nouvellePartie(im.nom, lire(im.dessin))
+    let k = loadJSON<number>(NIVEAU_KEY, 0)
+    if (!(k >= 1 && k <= NIVEAUX.length)) {
+      const p = loadJSON<Progres>(PROGRES_KEY, {})
+      k = 1
+      while (k < NIVEAUX.length && p[String(k)]) k++
+    }
+    const n = niveau(k)
+    return nouvellePartie(k, n.nom, n.g)
   })
   const [mode, setMode] = useState<'noir' | 'croix'>('noir')
   const [curseur, setCurseur] = useState(0)
@@ -114,16 +125,20 @@ export default function Nonogramme() {
     return () => ro.disconnect()
   }, [g.w, maxLi])
 
-  const jouer = (nom: string | null, gr: Grille) => {
-    setPartie(nouvellePartie(nom, gr))
+  useEffect(() => {
+    if (partie.num) saveJSON(NIVEAU_KEY, partie.num)
+  }, [partie.num])
+  const jouer = (num: number | null, nom: string | null, gr: Grille) => {
+    setPartie(nouvellePartie(num, nom, gr))
     setCurseur(0)
     setMaintenant(Date.now())
   }
-  const choisirImage = (nom: string) => {
-    const im = IMAGES.find(i => i.nom === nom)!
-    jouer(im.nom, lire(im.dessin))
+  const choisirNiveau = (k: number) => {
+    const n = niveau(Math.max(1, Math.min(NIVEAUX.length, k)))
+    jouer(Math.max(1, Math.min(NIVEAUX.length, k)), n.nom, n.g)
   }
-  const nouvelleAleatoire = (t: number) => jouer(null, aleatoire(t))
+  const recommencer = () => (partie.num ? choisirNiveau(partie.num) : jouer(null, null, partie.g))
+  const nouvelleAleatoire = () => jouer(null, null, aleatoire(partie.g.w))
 
   // Applique une action à une case. Renvoie false si c'était une erreur (le glisser s'arrête).
   const agir = (i: number, action: 'noir' | 'croix', parClic: boolean): boolean => {
@@ -157,9 +172,12 @@ export default function Nonogramme() {
     }
     if (issue === 'gagne') {
       const s = Math.round((Date.now() - p.debut) / 1000)
-      if (p.nom) {
+      if (p.num) {
+        // Parfait : sans erreur et sans indice.
+        const parfait = vies === VIES && p.indices === INDICES
         setProgres(pr => {
-          const n = { ...pr, [p.nom!]: Math.min(s, pr[p.nom!] ?? Infinity) }
+          const ancien = pr[String(p.num)]
+          const n = { ...pr, [String(p.num)]: { t: Math.min(s, ancien?.t ?? Infinity), p: parfait || !!ancien?.p } }
           saveJSON(PROGRES_KEY, n)
           return n
         })
@@ -252,8 +270,12 @@ export default function Nonogramme() {
   const sx = (survol ?? curseur) % g.w
   const sy = Math.floor((survol ?? curseur) / g.w)
   const duree = Math.max(0, Math.round(((partie.fin ?? maintenant) - partie.debut) / 1000))
-  const parTaille = IMAGES.filter(im => lire(im.dessin).w === taille)
-  const trouvees = IMAGES.filter(im => im.nom in progres).length
+  const etatNiveau = (k: number) => {
+    const v = progres[String(k)]
+    return v ? (v.p ? 'parfait' : 'fait') : ''
+  }
+  const nbParfaits = Object.values(progres).filter(v => v.p).length
+  const meilleurTemps = partie.num ? progres[String(partie.num)]?.t : undefined
 
   return (
     <section className="ms nonogramme" aria-label="Nonogramme">
@@ -262,7 +284,7 @@ export default function Nonogramme() {
           { title: 'Lis les nombres', text: 'Chaque nombre est un groupe de cases noires qui se suivent, dans l’ordre, sur la ligne (à gauche) ou la colonne (en haut). « 3 1 » : un groupe de 3, au moins une case vide, puis un groupe de 1.', visual: <Mini g={lire(IMAGES[0].dessin)} taille={14} /> },
           { title: 'Noircis ou coche', text: 'Mode « carré » pour noircir une case, mode « croix » pour marquer une case vide. Tu peux glisser pour remplir plusieurs cases d’un coup. Clic droit : croix.' },
           { title: 'Attention aux erreurs', text: 'Une erreur coûte un cœur et la case est corrigée. À trois erreurs, la grille est perdue.' },
-          { title: 'Découvre l’image', text: `${IMAGES.length} dessins à découvrir, du 5 × 5 au 15 × 15, et des grilles aléatoires à l’infini. Une ligne terminée se coche toute seule.` },
+          { title: 'Découvre l’image', text: `${NIVEAUX.length} grilles du 5 × 5 au 15 × 15, avec des dessins et de petits personnages à découvrir. Une ligne terminée se coche toute seule. Sans erreur ni indice : niveau parfait.` },
         ]}
         astuces={[
           'Commence par les grands nombres : dans une ligne de 10, un groupe de 8 noircit forcément les 6 cases du milieu.',
@@ -271,36 +293,12 @@ export default function Nonogramme() {
         ]}
       />
 
-      <div className="ms-levels ng-tailles" role="group" aria-label="Taille des grilles">
-        {TAILLES.map(t => {
-          const n = IMAGES.filter(im => lire(im.dessin).w === t.id)
-          return (
-            <button key={t.id} type="button" aria-pressed={taille === t.id} className={taille === t.id ? 'is-active' : ''} onClick={() => setTaille(t.id)}>
-              <strong>{t.nom}</strong>
-              <small>{t.info} · {n.filter(im => im.nom in progres).length}/{n.length}</small>
-            </button>
-          )
-        })}
-      </div>
-      <div className="ng-images" role="group" aria-label="Choisir une image">
-        {parTaille.map((im, k) => {
-          const fait = im.nom in progres
-          return (
-            <button key={im.nom} type="button" className={`${fait ? 'is-fait' : ''}${partie.nom === im.nom ? ' is-current' : ''}`} onClick={() => choisirImage(im.nom)} aria-label={fait ? `${im.nom}, trouvée en ${temps(progres[im.nom])}` : `Image ${k + 1}, à découvrir`}>
-              {fait ? <Mini g={lire(im.dessin)} taille={taille === 5 ? 7 : taille === 10 ? 4 : 3} /> : <span className="ng-q">?</span>}
-              <small>{fait ? im.nom : `n° ${k + 1}`}</small>
-            </button>
-          )
-        })}
-        <button type="button" className={`ng-alea${partie.nom === null && partie.g.w === taille ? ' is-current' : ''}`} onClick={() => nouvelleAleatoire(taille)}>
-          <Shuffle size={18} />
-          <small>Aléatoire</small>
-        </button>
-      </div>
+      <ChoixNiveaux courant={partie.num ?? 0} etat={etatNiveau} onChoisir={choisirNiveau} details={TAILLES} parfait="sans erreur ni indice" />
 
       <div ref={panelRef} className={plein.full ? 'ms-panel is-fullscreen' : 'ms-panel'}>
         <div className="sd-bar ng-bar">
-          <span className="ms-counter" title="Temps"><Timer size={15} /> {temps(duree)}</span>
+          <span className="ms-counter" title="Niveau">{partie.num ? `Niveau ${partie.num}` : 'Aléatoire'}<small className="ng-palier">{partie.num ? palierDe(partie.num).nom : `${g.w} × ${g.h}`}</small></span>
+          <span className="ms-counter" title={meilleurTemps !== undefined ? `Ton meilleur temps : ${temps(meilleurTemps)}` : 'Temps'}><Timer size={15} /> {temps(duree)}</span>
           <span className="ms-counter ng-vies" title="Vies" aria-label={`${partie.vies} vie${partie.vies > 1 ? 's' : ''}`}>
             {Array.from({ length: VIES }, (_, k) => <Heart key={`${k}-${secoue}`} size={16} className={k < partie.vies ? 'is-on' : k === partie.vies && secoue ? 'is-perdu' : ''} />)}
           </span>
@@ -367,13 +365,11 @@ export default function Nonogramme() {
                 <strong>{partie.issue === 'gagne' ? <><Trophy size={18} /> {partie.nom ? `C’est : ${partie.nom} !` : 'Grille terminée !'}</> : 'Plus de cœurs…'}</strong>
                 <span>{partie.issue === 'gagne' ? `En ${temps(duree)}${partie.vies < VIES ? `, avec ${VIES - partie.vies} erreur${VIES - partie.vies > 1 ? 's' : ''}` : ', sans erreur'}` : 'Trois erreurs : on recommence ?'}</span>
                 <div>
-                  <button type="button" className="button" onClick={() => (partie.nom ? choisirImage(partie.nom) : jouer(null, partie.g))}><RotateCcw size={15} /> Rejouer</button>
+                  <button type="button" className="button" onClick={recommencer}><RotateCcw size={15} /> Rejouer</button>
                   {partie.issue === 'gagne' && (
-                    <button type="button" className="button button-primary" onClick={() => {
-                      const suivante = IMAGES.find(im => !(im.nom in progres) && im.nom !== partie.nom)
-                      if (partie.nom && suivante) choisirImage(suivante.nom)
-                      else nouvelleAleatoire(g.w)
-                    }}>Grille suivante</button>
+                    <button type="button" className="button button-primary" onClick={() => (partie.num && partie.num < NIVEAUX.length ? choisirNiveau(partie.num + 1) : nouvelleAleatoire())}>
+                      {partie.num ? 'Niveau suivant' : 'Autre grille'}
+                    </button>
                   )}
                 </div>
               </div>
@@ -383,7 +379,8 @@ export default function Nonogramme() {
 
         <div className="sd-actions">
           <button type="button" className="sd-action" onClick={indice} disabled={!!partie.issue || partie.indices <= 0}><Lightbulb size={16} /> Indice ({partie.indices})</button>
-          <button type="button" className="sd-action" onClick={() => (partie.nom ? choisirImage(partie.nom) : jouer(null, partie.g))}><RotateCcw size={16} /> Recommencer</button>
+          <button type="button" className="sd-action" onClick={recommencer}><RotateCcw size={16} /> Recommencer</button>
+          <button type="button" className="sd-action" onClick={nouvelleAleatoire} title="Une grille au hasard, de la même taille"><Shuffle size={16} /> Aléatoire</button>
         </div>
 
         <div className="ms-message">
@@ -397,13 +394,10 @@ export default function Nonogramme() {
       <div className="ms-records">
         <span className="mini-label">Ta progression sur cet appareil</span>
         <ul>
-          <li><span>Images découvertes</span><strong>{trouvees} / {IMAGES.length}</strong></li>
-          {TAILLES.map(t => {
-            const n = IMAGES.filter(im => lire(im.dessin).w === t.id && im.nom in progres)
-            const best = n.length ? Math.min(...n.map(im => progres[im.nom])) : null
-            return <li key={t.id}><span>{t.info}</span><strong>{best !== null ? temps(best) : '—'}</strong><small>meilleur temps</small></li>
-          })}
+          <li><span>Niveaux réussis</span><strong>{Object.keys(progres).length} / {NIVEAUX.length}</strong></li>
+          <li><span>Parfaits</span><strong>{nbParfaits} / {NIVEAUX.length}</strong><small>sans erreur ni indice</small></li>
         </ul>
+        <ProgressionPaliers etat={etatNiveau} />
       </div>
     </section>
   )

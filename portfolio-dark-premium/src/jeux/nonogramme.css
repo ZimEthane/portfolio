@@ -78,3 +78,5 @@
 .ng-plateau.is-gagne .ng-case.is-axe, .ng-plateau.is-gagne .is-vise { background: transparent; }
 .ng-plateau.is-gagne .ng-case.e1, .ng-plateau.is-gagne .ng-case.e4 { background: #2a3d5c; }
 .ng-plateau.is-gagne .ng-case.is-curseur { box-shadow: none; }
+
+.ng-palier { margin-left: 6px; font: 10px 'DM Mono', monospace; letter-spacing: .04em; color: #8d95a6; }
