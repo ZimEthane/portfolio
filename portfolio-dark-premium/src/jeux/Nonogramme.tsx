@@ -251,7 +251,7 @@ export default function Nonogramme() {
   const colFinie = (x: number) => Array.from({ length: g.h }, (_, y) => y * g.w + x).every(i => !g.cases[i] || estNoire(partie.etat[i]))
   const sx = (survol ?? curseur) % g.w
   const sy = Math.floor((survol ?? curseur) / g.w)
-  const duree = Math.round(((partie.fin ?? maintenant) - partie.debut) / 1000)
+  const duree = Math.max(0, Math.round(((partie.fin ?? maintenant) - partie.debut) / 1000))
   const parTaille = IMAGES.filter(im => lire(im.dessin).w === taille)
   const trouvees = IMAGES.filter(im => im.nom in progres).length
 
