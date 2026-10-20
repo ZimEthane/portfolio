@@ -304,6 +304,35 @@ function Minigolf() {
   )
 }
 
+function Mots() {
+  const lettres = ['M', 'A', 'I', 'S', 'O', 'N']
+  const mots: [string, boolean][] = [['AMI', true], ['SON', false], ['MAIN', true], ['MAISON', false]]
+  return (
+    <Svg fond="#1d1d42">
+      {mots.map(([m, ok], k) => m.split('').map((c, i) => (
+        <g key={`${k}-${i}`}>
+          <rect x={10 + i * 10.5} y={12 + k * 19} width="9.5" height="9.5" rx="2" fill={ok ? '#ff8a3d' : '#ffffff14'} />
+          {ok && <text x={14.75 + i * 10.5} y={19.6 + k * 19} textAnchor="middle" fontSize="7" fontWeight="800" fill="#24112a">{c}</text>}
+        </g>
+      )))}
+      <circle cx="118" cy="50" r="34" fill="#ffffff0c" stroke="#ffffff18" />
+      <polyline points="118,25 139.65,62.5 96.35,62.5" fill="none" stroke="#ff8a3d" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
+      {lettres.map((c, i) => {
+        const a = -Math.PI / 2 + (i / 6) * Math.PI * 2
+        const x = 118 + Math.cos(a) * 25
+        const y = 50 + Math.sin(a) * 25
+        const choisi = i === 0 || i === 2 || i === 4
+        return (
+          <g key={c}>
+            <circle cx={x} cy={y} r="8" fill={choisi ? '#ff8a3d' : '#f6efe0'} />
+            <text x={x} y={y + 3} textAnchor="middle" fontSize="9" fontWeight="800" fill={choisi ? '#fff' : '#2a2148'}>{c}</text>
+          </g>
+        )
+      })}
+    </Svg>
+  )
+}
+
 export const APERCUS: Record<string, () => ReactNode> = {
   demineur: Demineur,
   '2048': Jeu2048,
@@ -322,4 +351,5 @@ export const APERCUS: Record<string, () => ReactNode> = {
   mahjong: Mahjong,
   glouton: Glouton,
   minigolf: Minigolf,
+  mots: Mots,
 }

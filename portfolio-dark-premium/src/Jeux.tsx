@@ -68,6 +68,12 @@ const games: GameInfo[] = [
     component: lazy(() => import('./jeux/Points')),
   },
   {
+    id: 'mots', name: 'Mots mélangés', categorie: 'reflexion', couleur: '#ff8a3d', nouveau: true,
+    court: 'Relie les lettres, trouve tous les mots.',
+    description: 'Fais glisser ton doigt sur la roue de lettres pour écrire des mots et remplir la grille. 100 niveaux, de 4 à 7 lettres, et des mots bonus à dénicher dans un dictionnaire de 300 000 mots.',
+    component: lazy(() => import('./jeux/Mots')),
+  },
+  {
     id: 'snake', name: 'Snake', categorie: 'arcade', couleur: '#7bd6aa',
     court: 'Mange, grandis, ne te mords pas la queue.',
     description: 'Guide le serpent vers la nourriture sans foncer dans un mur ni te mordre la queue : plus il mange, plus il grandit.',
