@@ -1,0 +1,28 @@
+/* ===== Mahjong ===== */
+.ms-levels.mj-dispos { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.mj-wrap { position: relative; display: flex; justify-content: center; width: 100%; padding: 14px 6px; border-radius: 16px; border: 1px solid #ffffff10; background: radial-gradient(ellipse at 50% 30%, #1f3d36, #0f1f1c 75%); overflow: hidden; contain: inline-size; }
+.mj-plateau { position: relative; display: block; flex: none; }
+.mj-tuile { position: absolute; width: var(--tw); height: var(--th); border-radius: calc(var(--tw) * .14); background: linear-gradient(150deg, #fffdf5, #ece2c8); box-shadow: inset 0 0 0 1px #d6c79c, 2px 2px 0 #cdbb8c, 3px 4px 0 #9c8659, 4px 6px 8px #0007; cursor: pointer; outline: none; -webkit-tap-highlight-color: transparent; transition: filter .15s, transform .12s; }
+.mj-tuile svg { display: block; width: 100%; height: 100%; padding: 7% 5%; box-sizing: border-box; }
+.mj-tuile:focus-visible { box-shadow: inset 0 0 0 1px #d6c79c, 2px 2px 0 #cdbb8c, 3px 4px 0 #9c8659, 0 0 0 3px #a0c8ff; }
+.mj-plateau.avec-aide .mj-tuile:not(.is-libre) { filter: brightness(.6) saturate(.6); cursor: default; }
+.mj-tuile.is-sel { background: linear-gradient(150deg, #fff6c4, #ffd96a); box-shadow: inset 0 0 0 2px #e6a100, 2px 2px 0 #cdbb8c, 3px 4px 0 #9c8659, 0 0 14px #ffd36b; transform: translate(-1px, -2px); }
+.mj-tuile.is-indice { animation: mj-indice 1s ease-in-out infinite; }
+@keyframes mj-indice { 50% { box-shadow: inset 0 0 0 2px #4fd06a, 2px 2px 0 #cdbb8c, 3px 4px 0 #9c8659, 0 0 16px #4fd06a; } }
+.mj-tuile.is-secoue { animation: mj-secoue .3s ease; }
+@keyframes mj-secoue { 25% { transform: translateX(-3px); } 60% { transform: translateX(3px); } }
+
+.mj-fin { position: absolute; inset: 0; z-index: 99999; display: grid; place-content: center; justify-items: center; gap: 10px; padding: 16px; background: #0b1412cc; text-align: center; animation: mj-fin .35s ease-out both; }
+.mj-fin strong { display: inline-flex; align-items: center; gap: 8px; font-size: 22px; letter-spacing: -.03em; color: #ffd36b; }
+.mj-fin span { max-width: 300px; font-size: 13px; color: #c3d3ca; }
+.mj-fin div { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.mj-fin .button { border: 0; cursor: pointer; padding: 10px 14px; }
+@keyframes mj-fin { from { opacity: 0; } }
+
+@media (max-width: 600px) {
+  .mj-wrap { padding: 10px 4px; border-radius: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mj-tuile.is-indice, .mj-tuile.is-secoue, .mj-fin { animation: none; }
+  .mj-tuile.is-indice { box-shadow: inset 0 0 0 2px #4fd06a; }
+}
