@@ -56,6 +56,12 @@ const games: GameInfo[] = [
     component: lazy(() => import('./jeux/PoseBlocs')),
   },
   {
+    id: 'nonogramme', name: 'Nonogramme', categorie: 'reflexion', couleur: '#8bb9fa', nouveau: true,
+    court: 'Noircis les cases, découvre le dessin.',
+    description: 'Les nombres indiquent les groupes de cases noires de chaque ligne et colonne : noircis les bonnes cases pour faire apparaître un dessin. 32 images du 5 × 5 au 15 × 15, et des grilles aléatoires.',
+    component: lazy(() => import('./jeux/Nonogramme')),
+  },
+  {
     id: 'snake', name: 'Snake', categorie: 'arcade', couleur: '#7bd6aa',
     court: 'Mange, grandis, ne te mords pas la queue.',
     description: 'Guide le serpent vers la nourriture sans foncer dans un mur ni te mordre la queue : plus il mange, plus il grandit.',
