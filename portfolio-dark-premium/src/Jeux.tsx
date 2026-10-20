@@ -62,6 +62,12 @@ const games: GameInfo[] = [
     component: lazy(() => import('./jeux/Nonogramme')),
   },
   {
+    id: 'points', name: 'Relier les points', categorie: 'reflexion', couleur: '#ffd84d', nouveau: true,
+    court: 'Relie les couleurs, remplis la grille.',
+    description: 'Relie chaque paire de points de la même couleur sans croiser les autres chemins, en remplissant toute la grille. 100 niveaux du 5 × 5 au 8 × 8, chacun avec une seule solution.',
+    component: lazy(() => import('./jeux/Points')),
+  },
+  {
     id: 'snake', name: 'Snake', categorie: 'arcade', couleur: '#7bd6aa',
     court: 'Mange, grandis, ne te mords pas la queue.',
     description: 'Guide le serpent vers la nourriture sans foncer dans un mur ni te mordre la queue : plus il mange, plus il grandit.',
@@ -116,7 +122,9 @@ function Carte({ g }: { g: GameInfo }) {
 
 function Accueil() {
   const [cat, setCat] = useState<Categorie | 'tous'>('tous')
-  const liste = cat === 'tous' ? games : games.filter(g => g.categorie === cat)
+  // Les nouveautés d'abord, puis les autres jeux dans l'ordre de la liste.
+  const tries = [...games.filter(g => g.nouveau), ...games.filter(g => !g.nouveau)]
+  const liste = cat === 'tous' ? tries : tries.filter(g => g.categorie === cat)
   return (
     <>
       <header className="jeux-head">

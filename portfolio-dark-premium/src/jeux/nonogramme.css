@@ -67,6 +67,7 @@
 .is-fullscreen .ng-wrap { max-width: min(680px, calc((100svh - 230px) * var(--w, 1))); }
 
 @media (max-width: 600px) {
+  .nonogramme .ms-records ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .ng-images { grid-template-columns: repeat(auto-fill, minmax(62px, 1fr)); gap: 6px; }
   .ng-plateau { padding: 6px 6px 8px 4px; border-radius: 12px; }
 }
