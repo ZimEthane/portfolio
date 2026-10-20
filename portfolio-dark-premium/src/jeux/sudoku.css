@@ -2,8 +2,16 @@
 .ms-levels.sd-niveaux { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .sd-bar { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
 .sd-fautes svg { color: #ff9a9a; }
+.sd-fautes small { color: #7d8594; font-size: inherit; }
+.sd-fautes.is-limite { color: #ffb0b0; border-color: #ff7b7b55; }
 
-.sd-wrap { width: 100%; max-width: 460px; container-type: inline-size; }
+/* Réglage des erreurs : une pastille comme les interrupteurs, avec une liste. */
+.sd-limite { cursor: default; padding-right: 6px; }
+.sd-limite select { appearance: none; -webkit-appearance: none; padding: 4px 24px 4px 10px; border-radius: 999px; border: 0; background: #262b33 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23c9d6ea' stroke-width='1.6'/%3E%3C/svg%3E") no-repeat right 9px center; color: #dce9ff; font: inherit; cursor: pointer; }
+.sd-limite select:focus-visible { outline: 2px solid #a0c8ff; outline-offset: 2px; }
+.sd-limite option { background: #12151a; color: #dce9ff; }
+
+.sd-wrap { position: relative; width: 100%; max-width: 460px; container-type: inline-size; }
 .is-fullscreen .sd-wrap, .is-fullscreen .sd-pave { max-width: min(560px, calc(100svh - 330px)); }
 .sd-grille { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); border: 2px solid #8bb9fa80; border-radius: 12px; overflow: hidden; background: #0b0e12; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
 .sd-cell {
@@ -33,6 +41,17 @@
 .sd-grille.is-done { border-color: #6fd59a; box-shadow: 0 0 24px #6fd59a40; }
 .sd-grille.is-done .sd-cell { cursor: default; }
 .sd-grille.is-done .sd-cell.is-user { color: #8de0a8; }
+
+.sd-grille.is-perdu { border-color: #ff7b7b; box-shadow: 0 0 24px #ff7b7b30; }
+.sd-grille.is-perdu .sd-cell { cursor: default; }
+.sd-perdu { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 10px; padding: 14px; border-radius: 12px; background: #0b0e12d9; text-align: center; animation: sd-perdu .3s ease-out .1s both; }
+.sd-perdu strong { font-size: 24px; letter-spacing: -.03em; color: #ffb0b0; }
+.sd-perdu span { font-size: 13px; color: #c9d1de; }
+.sd-perdu div { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 4px; }
+.sd-perdu .button { border: 0; cursor: pointer; padding: 10px 14px; }
+.sd-perdu-texte { display: inline-flex; align-items: center; gap: 8px; color: #ffb0b0; font-weight: 700; }
+@keyframes sd-perdu { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .sd-perdu { animation: none; } }
 
 /* Pavé de chiffres. */
 .sd-pave { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 6px; width: 100%; max-width: 460px; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
