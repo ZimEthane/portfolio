@@ -122,6 +122,12 @@ const games: GameInfo[] = [
     component: lazy(() => import('./jeux/Mahjong')),
   },
   {
+    id: 'joute', name: 'Joute de lettres', categorie: 'plateau', couleur: '#d9826a', nouveau: true,
+    court: 'Place tes mots, bats l’ordinateur.',
+    description: 'Le jeu de lettres sur plateau, contre l’ordinateur : pose des mots croisés avec tes 7 lettres, vise les cases qui comptent double ou triple. Trois niveaux, dictionnaire de 311 000 mots.',
+    component: lazy(() => import('./jeux/Joute')),
+  },
+  {
     id: 'puissance-4', name: 'Puissance 4', categorie: 'plateau', couleur: '#ffd36b',
     court: 'Aligne 4 jetons avant l’ordinateur.',
     description: 'Aligne 4 jetons de ta couleur, à l’horizontale, à la verticale ou en diagonale, avant l’ordinateur (ou un ami).',

@@ -333,6 +333,33 @@ function Mots() {
   )
 }
 
+function Joute() {
+  const c = 11
+  const couleur: Record<string, string> = { T: '#c2410c', D: '#d9826a', t: '#1d5fd1', d: '#74b3e6' }
+  const plan = ['T..d...T..', '.D...t...t', '..D...d.d.', 'd..D...d..', '....D.....', '.t...t...t', '..d...d.d.']
+  const tuiles: [number, number, string][] = [[2, 3, 'J'], [3, 3, 'O'], [4, 3, 'U'], [5, 3, 'T'], [6, 3, 'E'], [5, 1, 'M'], [5, 2, 'O'], [5, 4, 'S']]
+  return (
+    <Svg fond="#0d2a24">
+      {plan.map((l, y) => l.split('').map((ch, x) => (
+        <rect key={`${x}-${y}`} x={20 + x * c} y={6 + y * c} width={c - 1.2} height={c - 1.2} rx="1.5" fill={couleur[ch] ?? '#17463d'} />
+      )))}
+      {tuiles.map(([x, y, l]) => (
+        <g key={`t${x}${y}`}>
+          <rect x={20 + x * c} y={6 + y * c} width={c - 1.2} height={c - 1.2} rx="1.5" fill="#f4e7c8" />
+          <text x={24.9 + x * c} y={13.6 + y * c} textAnchor="middle" fontSize="7" fontWeight="800" fill="#2b2118">{l}</text>
+        </g>
+      ))}
+      <rect x="128" y="10" width="24" height="80" rx="4" fill="#2b2118" />
+      {['A', 'R', 'E', 'N', 'S'].map((l, k) => (
+        <g key={l}>
+          <rect x="131" y={13 + k * 15} width="18" height="13" rx="2" fill="#f4e7c8" />
+          <text x="140" y={22.5 + k * 15} textAnchor="middle" fontSize="8.5" fontWeight="800" fill="#2b2118">{l}</text>
+        </g>
+      ))}
+    </Svg>
+  )
+}
+
 export const APERCUS: Record<string, () => ReactNode> = {
   demineur: Demineur,
   '2048': Jeu2048,
@@ -352,4 +379,5 @@ export const APERCUS: Record<string, () => ReactNode> = {
   glouton: Glouton,
   minigolf: Minigolf,
   mots: Mots,
+  joute: Joute,
 }

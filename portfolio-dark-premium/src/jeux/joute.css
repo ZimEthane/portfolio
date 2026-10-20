@@ -1,0 +1,79 @@
+/* ===== Joute de lettres ===== */
+.jt-niveaux { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.jt-confirmer { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; padding: 10px 12px; border-radius: 14px; border: 1px solid #ffd36b40; background: #ffd36b0d; font-size: 13px; color: #f0e3bf; }
+
+.jt-scores .t48-score { transition: border-color .2s, box-shadow .2s; }
+.jt-scores .t48-score.is-tour { border-color: #7bd6aa90; box-shadow: 0 0 0 1px #7bd6aa40; }
+
+.jt-jeu { position: relative; width: 100%; max-width: 560px; }
+.is-fullscreen .jt-jeu { max-width: min(560px, calc(100svh - 330px)); }
+.jt-plateau { position: relative; display: grid; grid-template-columns: repeat(15, minmax(0, 1fr)); gap: 2px; padding: 5px; border-radius: 12px; background: #0d2a24; border: 1px solid #ffffff14; container-type: inline-size; outline: none; user-select: none; -webkit-user-select: none; }
+.jt-plateau:focus-visible { box-shadow: 0 0 0 3px #a0c8ff; }
+.jt-case { position: relative; display: grid; place-items: center; aspect-ratio: 1; min-width: 0; border-radius: 3px; background: #17463d; color: #ffffffd0; font: 700 clamp(6px, 1.9cqw, 10px) Manrope, sans-serif; letter-spacing: -.02em; cursor: pointer; }
+.jt-case.is-mt { background: #c2410c; }
+.jt-case.is-md { background: #d9826a; color: #3b1408; }
+.jt-case.is-lt { background: #1d5fd1; }
+.jt-case.is-ld { background: #74b3e6; color: #0b2a4a; }
+.jt-case.is-centre { background: #d9826a; color: #3b1408; font-size: clamp(9px, 3.6cqw, 18px); }
+.jt-plateau:focus-visible .jt-case.is-curseur { outline: 2px solid #ffe08a; outline-offset: 1px; z-index: 2; }
+
+.jt-tuile { position: relative; display: grid; place-items: center; width: 100%; height: 100%; border-radius: 3px; background: linear-gradient(160deg, #fbf3df, #ecdcb6); box-shadow: inset 0 -2px 0 #c9b083; color: #2b2118; font: 800 clamp(9px, 3.7cqw, 19px) Manrope, sans-serif; line-height: 1; }
+.jt-tuile small { position: absolute; right: 9%; bottom: 6%; font-size: .45em; font-weight: 700; }
+.jt-tuile.is-joker { color: #a3541a; }
+.jt-etoile { font-style: normal; font-size: .7em; color: #c9b083; }
+.jt-tuile.is-temp { background: linear-gradient(160deg, #fff4bf, #ffd96a); box-shadow: inset 0 -2px 0 #d9a53a, 0 0 0 2px #ffe08a; cursor: grab; touch-action: none; animation: jt-pose .18s ease-out; }
+.jt-tuile.is-dernier { box-shadow: inset 0 -2px 0 #c9b083, 0 0 0 2px #7bd6aa; animation: jt-pose .3s ease-out; }
+@keyframes jt-pose { from { transform: scale(.6); } }
+
+.jt-bulle { position: absolute; left: calc(5px + (var(--x) + 1) * (100% - 10px) / 15); top: calc(5px + var(--y) * (100% - 10px) / 15 - 6px); z-index: 3; min-width: 20px; padding: 2px 5px; border-radius: 999px; background: #7bd6aa; color: #06281d; font: 800 11px Manrope, sans-serif; text-align: center; pointer-events: none; transform: translateX(-35%); }
+
+.jt-chevalet { display: flex; justify-content: center; gap: 6px; width: 100%; max-width: 420px; padding: 8px; border-radius: 14px; background: #2b2118; box-shadow: inset 0 -3px 0 #1b140e; }
+.jt-chevalet .jt-lettre { width: auto; height: auto; flex: 1 1 0; max-width: 48px; aspect-ratio: 1; padding: 0; border: 0; border-radius: 7px; font-size: clamp(16px, 5.4vw, 24px); cursor: grab; touch-action: none; transition: transform .12s, opacity .15s; }
+.jt-chevalet .jt-lettre small { font-size: 10px; }
+.jt-chevalet .jt-lettre.is-choisie { transform: translateY(-6px); box-shadow: inset 0 -2px 0 #c9b083, 0 0 0 3px #ffe08a; }
+.jt-chevalet .jt-lettre.is-posee { opacity: .18; cursor: default; }
+.jt-chevalet .jt-lettre:disabled:not(.is-posee) { cursor: default; }
+.jt-chevalet .jt-lettre:focus-visible { outline: 3px solid #a0c8ff; outline-offset: 2px; }
+.jt-chevalet.is-echange .jt-lettre.is-choisie { box-shadow: inset 0 -2px 0 #c9b083, 0 0 0 3px #ff8a8a; }
+.jt-fantome { position: fixed; left: 0; top: 0; z-index: 3000; width: 46px; height: 46px; margin: -23px 0 0 -23px; border-radius: 7px; font-size: 22px; pointer-events: none; box-shadow: 0 10px 22px #000a; }
+@media (pointer: coarse) { .jt-fantome { margin-top: -62px; } }
+
+.jt-jouer { border-color: #7bd6aa60; color: #c9f2dd; }
+.jt-jouer:not(:disabled):hover { border-color: #7bd6aa; }
+.jt-aide { flex-basis: 100%; text-align: center; font-size: 12px; color: #b3bccc; }
+.jt-message { display: inline-flex; align-items: center; gap: 6px; }
+.jt-message.is-non { color: #ffaaaa; }
+.jt-message.is-ordi { color: #a9e6c8; }
+
+.jt-chargement, .jt-fin { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 10px; padding: 16px; border-radius: 12px; background: #0b1714d9; text-align: center; }
+.jt-chargement span { font-size: 14px; color: #c3d6cf; }
+.jt-fin { animation: jt-fin .35s ease-out both; }
+.jt-fin strong { display: inline-flex; align-items: center; gap: 8px; font-size: 24px; letter-spacing: -.03em; }
+.jt-fin span { font-size: 15px; color: #c3d6cf; font-variant-numeric: tabular-nums; }
+.jt-fin .button, .jt-chargement .button { border: 0; cursor: pointer; }
+@keyframes jt-fin { from { opacity: 0; } }
+
+.jt-journal-bouton { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; border: 1px solid #ffffff14; background: none; color: #9aa3b5; font: 600 12px Manrope, sans-serif; cursor: pointer; }
+.jt-journal { display: grid; gap: 4px; width: 100%; max-width: 420px; max-height: 220px; margin: 0; padding: 8px; overflow-y: auto; border-radius: 12px; border: 1px solid #ffffff10; list-style: none; font-size: 12px; }
+.jt-journal li { display: grid; grid-template-columns: 76px 1fr auto; gap: 8px; align-items: baseline; padding: 4px 6px; border-radius: 6px; }
+.jt-journal li span { color: #8d95a6; }
+.jt-journal li b { color: #e8edf5; font-weight: 700; overflow-wrap: anywhere; }
+.jt-journal li em { color: #7bd6aa; font-style: normal; font-variant-numeric: tabular-nums; }
+.jt-journal li.is-ordi { background: #ffffff05; }
+
+.jt-modale { position: fixed; inset: 0; z-index: 3000; display: grid; place-items: center; padding: 16px; background: #000a; }
+.jt-modale-boite { display: grid; justify-items: center; gap: 12px; width: min(360px, 100%); padding: 16px; border-radius: 16px; border: 1px solid #ffffff18; background: #12161c; }
+.jt-modale-boite strong { font-size: 15px; }
+.jt-alphabet { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; width: 100%; }
+.jt-alphabet button { aspect-ratio: 1; border: 0; border-radius: 7px; background: linear-gradient(160deg, #fbf3df, #ecdcb6); color: #a3541a; font: 800 17px Manrope, sans-serif; cursor: pointer; }
+.jt-alphabet button:hover, .jt-alphabet button:focus-visible { outline: 2px solid #ffe08a; }
+
+@media (max-width: 600px) {
+  .jt-plateau { gap: 1px; padding: 3px; border-radius: 9px; }
+  .jt-case, .jt-tuile { border-radius: 2px; }
+  .jt-bulle { left: calc(3px + (var(--x) + 1) * (100% - 6px) / 15); top: calc(3px + var(--y) * (100% - 6px) / 15 - 6px); }
+  .joute .ms-records ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .jt-tuile.is-temp, .jt-tuile.is-dernier, .jt-fin { animation: none; }
+}
