@@ -100,7 +100,7 @@ const games: GameInfo[] = [
   {
     id: 'glouton', name: 'Glouton', categorie: 'arcade', couleur: '#a6e22e', nouveau: true,
     court: 'Mange toutes les graines, fuis les monstres.',
-    description: 'Mange toutes les graines du labyrinthe sans te faire attraper par les quatre monstres. Les super-graines les rendent peureux : à toi de les croquer !',
+    description: 'Mange toutes les graines du labyrinthe sans te faire attraper par les quatre monstres. Les super-graines les rendent peureux : à toi de les croquer ! Un nouveau labyrinthe à chaque niveau.',
     component: lazy(() => import('./jeux/Glouton')),
   },
   {

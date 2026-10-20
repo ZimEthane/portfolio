@@ -2,31 +2,16 @@
 // Le glouton mange les graines ; quatre monstres le poursuivent, chacun à sa façon.
 // Une super-graine rend les monstres peureux : on peut alors les manger.
 
-export const PLAN = [
-  '###################',
-  '#o.......#.......o#',
-  '#.##.###.#.###.##.#',
-  '#.................#',
-  '#.##.#.#####.#.##.#',
-  '#....#...#...#....#',
-  '####.### # ###.####',
-  '   #.#   M   #.#   ',
-  '####.# ##-## #.####',
-  '    .  #MMM#  .    ',
-  '####.# ##### #.####',
-  '   #.#       #.#   ',
-  '####.# ##### #.####',
-  '#........#........#',
-  '#.##.###.#.###.##.#',
-  '#o.#.....P.....#.o#',
-  '##.#.#.#####.#.#.##',
-  '#....#...#...#....#',
-  '#.######.#.######.#',
-  '#.................#',
-  '###################',
-]
+import { PLANS } from './glouton-plans'
+
+// Le labyrinthe change à chaque niveau (10 plans, puis on recommence au premier).
+export let PLAN = PLANS[0]
 export const W = PLAN[0].length
 export const H = PLAN.length
+export const planDuNiveau = (niveau: number) => (niveau - 1) % PLANS.length
+export function choisirPlan(niveau: number) {
+  PLAN = PLANS[planDuNiveau(niveau)]
+}
 
 export type Dir = 'haut' | 'bas' | 'gauche' | 'droite'
 export const DELTA: Record<Dir, [number, number]> = { haut: [0, -1], bas: [0, 1], gauche: [-1, 0], droite: [1, 0] }
@@ -109,10 +94,12 @@ function placer(etat: Etat): Etat {
 }
 
 export function nouvellePartie(): Etat {
+  choisirPlan(1)
   const { g, s } = grainesInitiales()
   return placer({ joueur: { x: 0, y: 0, dir: 'gauche', voulu: null }, monstres: [], graines: g, super: s, score: 0, vies: 3, niveau: 1, peur: 0, combo: 0, temps: 0, fruit: null, fruitsVus: 0, statut: 'pret', pause: 0 })
 }
 export function niveauSuivant(e: Etat): Etat {
+  choisirPlan(e.niveau + 1)
   const { g, s } = grainesInitiales()
   return placer({ ...e, graines: g, super: s, niveau: e.niveau + 1, fruit: null, fruitsVus: 0, statut: 'joue' })
 }
