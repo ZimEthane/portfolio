@@ -304,6 +304,90 @@ function Minigolf() {
   )
 }
 
+function Mots() {
+  const lettres = ['M', 'A', 'I', 'S', 'O', 'N']
+  const mots: [string, boolean][] = [['AMI', true], ['SON', false], ['MAIN', true], ['MAISON', false]]
+  return (
+    <Svg fond="#1d1d42">
+      {mots.map(([m, ok], k) => m.split('').map((c, i) => (
+        <g key={`${k}-${i}`}>
+          <rect x={10 + i * 10.5} y={12 + k * 19} width="9.5" height="9.5" rx="2" fill={ok ? '#ff8a3d' : '#ffffff14'} />
+          {ok && <text x={14.75 + i * 10.5} y={19.6 + k * 19} textAnchor="middle" fontSize="7" fontWeight="800" fill="#24112a">{c}</text>}
+        </g>
+      )))}
+      <circle cx="118" cy="50" r="34" fill="#ffffff0c" stroke="#ffffff18" />
+      <polyline points="118,25 96.35,62.5 139.65,62.5" fill="none" stroke="#ff8a3d" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
+      {lettres.map((c, i) => {
+        const a = -Math.PI / 2 + (i / 6) * Math.PI * 2
+        const x = 118 + Math.cos(a) * 25
+        const y = 50 + Math.sin(a) * 25
+        const choisi = i === 0 || i === 2 || i === 4
+        return (
+          <g key={c}>
+            <circle cx={x} cy={y} r="8" fill={choisi ? '#ff8a3d' : '#f6efe0'} />
+            <text x={x} y={y + 3} textAnchor="middle" fontSize="9" fontWeight="800" fill={choisi ? '#fff' : '#2a2148'}>{c}</text>
+          </g>
+        )
+      })}
+    </Svg>
+  )
+}
+
+function Joute() {
+  const c = 11
+  const couleur: Record<string, string> = { T: '#c2410c', D: '#d9826a', t: '#1d5fd1', d: '#74b3e6' }
+  const plan = ['T..d...T..', '.D...t...t', '..D...d.d.', 'd..D...d..', '....D.....', '.t...t...t', '..d...d.d.']
+  const tuiles: [number, number, string][] = [[2, 3, 'J'], [3, 3, 'O'], [4, 3, 'U'], [5, 3, 'T'], [6, 3, 'E'], [5, 1, 'M'], [5, 2, 'O'], [5, 4, 'S']]
+  return (
+    <Svg fond="#0d2a24">
+      {plan.map((l, y) => l.split('').map((ch, x) => (
+        <rect key={`${x}-${y}`} x={20 + x * c} y={6 + y * c} width={c - 1.2} height={c - 1.2} rx="1.5" fill={couleur[ch] ?? '#17463d'} />
+      )))}
+      {tuiles.map(([x, y, l]) => (
+        <g key={`t${x}${y}`}>
+          <rect x={20 + x * c} y={6 + y * c} width={c - 1.2} height={c - 1.2} rx="1.5" fill="#f4e7c8" />
+          <text x={24.9 + x * c} y={13.6 + y * c} textAnchor="middle" fontSize="7" fontWeight="800" fill="#2b2118">{l}</text>
+        </g>
+      ))}
+      <rect x="128" y="10" width="24" height="80" rx="4" fill="#2b2118" />
+      {['A', 'R', 'E', 'N', 'S'].map((l, k) => (
+        <g key={l}>
+          <rect x="131" y={13 + k * 15} width="18" height="13" rx="2" fill="#f4e7c8" />
+          <text x="140" y={22.5 + k * 15} textAnchor="middle" fontSize="8.5" fontWeight="800" fill="#2b2118">{l}</text>
+        </g>
+      ))}
+    </Svg>
+  )
+}
+
+function RaseMottes() {
+  return (
+    <Svg fond="#141a40">
+      {[[12, 10], [40, 22], [70, 8], [98, 18], [130, 12], [150, 30], [22, 34], [84, 36]].map(([x, y]) => <rect key={`${x}${y}`} x={x} y={y} width="1" height="1" fill="#ffffffaa" />)}
+      <path d="M0 100V78Q20 62 40 72T80 66T120 76T160 64V100Z" fill="#2f6b3a" />
+      <path d="M0 78Q20 62 40 72T80 66T120 76T160 64" fill="none" stroke="#7bd66a" strokeWidth="1.4" />
+      <g transform="translate(112 66)">
+        <rect x="-5" y="-6" width="10" height="6" rx="1.5" fill="#ffd84d" />
+        <rect x="-5" y="-4" width="10" height="1.6" fill="#7a5a00" />
+      </g>
+      <g transform="translate(84 58)">
+        <path d="M-1.6 0V-7Q0 -11 1.6 -7V0Z" fill="#e8edf5" />
+        <path d="M-1.6 -3L-3.4 0H-1.6ZM1.6 -3L3.4 0H1.6Z" fill="#ff5a5a" />
+        <path d="M-1.2 0L0 4L1.2 0Z" fill="#ffd84d" />
+      </g>
+      <g transform="translate(42 38) scale(1.6)">
+        <path d="M-5 -1L-9 0L-5 1Z" fill="#ff8a3d" />
+        <path d="M6 0L-2 -2.2L-5 -1.3V1.3L-2 2.2Z" fill="#e8f4ff" />
+        <path d="M0 1L-4 4L-2.4 1ZM0 -1L-4 -3.4L-2.4 -1Z" fill="#2dd4ff" />
+      </g>
+      <path d="M58 38H66M74 38H82" stroke="#fff7a8" strokeWidth="1.2" />
+      <ellipse cx="60" cy="54" rx="2.2" ry="1.5" fill="#1a1f2a" stroke="#ff6b6b" strokeWidth=".6" />
+      <rect x="6" y="6" width="34" height="5" rx="2" fill="#00000066" />
+      <rect x="7" y="7" width="22" height="3" rx="1.5" fill="#7bd66a" />
+    </Svg>
+  )
+}
+
 export const APERCUS: Record<string, () => ReactNode> = {
   demineur: Demineur,
   '2048': Jeu2048,
@@ -322,4 +406,7 @@ export const APERCUS: Record<string, () => ReactNode> = {
   mahjong: Mahjong,
   glouton: Glouton,
   minigolf: Minigolf,
+  mots: Mots,
+  joute: Joute,
+  'rase-mottes': RaseMottes,
 }

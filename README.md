@@ -60,7 +60,7 @@ Il rassemble mes projets de formation, mes compétences, mon parcours, ma veille
 | 🧰 **Compétences et outils** | Langages, systèmes, logiciels et outils que j'utilise, regroupés par catégorie |
 | 🎓 **Parcours** | Frise des stages, de la formation, des certifications, et présentation du BTS SIO (SLAM et SISR) |
 | 📰 **Page de veille** | Veille technologique sur Visual Studio Code : nouveautés, sources, avantages et limites, comparaison avec NetBeans |
-| 🎮 **Page Jeux** | 17 jeux jouables à la souris, au clavier et au doigt, présentés sur une page de garde avec un aperçu de chacun : Démineur, 2048, Sudoku, Puissance 4 (contre une IA ou à deux), Memory des technos, Snake, Blocs, Ninja (course sans fin à travers 8 mondes, avec 9 médailles à gagner), Glissières (500 niveaux), Pose-blocs, Labyrinthe (60 niveaux), Nonogramme (32 dessins et grilles aléatoires), Relier les points (100 niveaux), Solitaire (pioche par 1 ou par 3), Mahjong (3 dispositions, toujours une solution), Glouton (labyrinthe et monstres) et Mini-golf (9 trous). Les niveaux sont générés par ordinateur puis vérifiés par un solveur. Guide « Comment jouer ? », records, sons, vibrations, plein écran sur téléphone, une adresse par jeu (`#jeux/2048`), et chaque jeu n’est chargé que quand on l’ouvre |
+| 🎮 **Page Jeux** | 20 jeux jouables à la souris, au clavier et au doigt, présentés sur une page de garde avec un aperçu de chacun : Démineur, 2048, Sudoku, Puissance 4 (contre une IA ou à deux), Memory des technos, Snake, Blocs, Ninja (course sans fin à travers 8 mondes, avec 9 médailles à gagner), Glissières (500 niveaux), Pose-blocs, Labyrinthe (60 niveaux), Nonogramme (32 dessins et grilles aléatoires), Relier les points (100 niveaux), Solitaire (pioche par 1 ou par 3), Mahjong (3 dispositions, toujours une solution), Glouton (labyrinthe et monstres), Mini-golf (9 trous), Mots mélangés (100 niveaux), Joute de lettres (jeu de lettres sur plateau contre l'ordinateur, 3 niveaux) et Rase-mottes (jeu de tir à défilement, 6 zones). Dictionnaire français de 311 000 mots pour les jeux de lettres. Les niveaux sont générés par ordinateur puis vérifiés par un solveur. Guide « Comment jouer ? », records, sons, vibrations, plein écran sur téléphone, une adresse par jeu (`#jeux/2048`), et chaque jeu n’est chargé que quand on l’ouvre |
 | 📚 **Page Tutos** *(en préparation, pas encore en ligne)* | Tutos pas à pas illustrés, pour petits et grands : faire ses lacets, résoudre le cube 3×3, choisir les composants de son PC. S'active avec `TUTOS_EN_LIGNE` dans `App.tsx` |
 | ✉️ **Formulaire de contact** | Envoi par e-mail depuis le site, avec protection anti-robots et solution de secours |
 | ♿ **Accessibilité** | Libellés pour les lecteurs d'écran, navigation au clavier, contrastes vérifiés |
@@ -168,7 +168,7 @@ portfolio/
     ├── src/
     │   ├── App.tsx               Page d'accueil, menu, pied de page
     │   ├── Veille.tsx            Page de veille technologique
-    │   ├── Jeux.tsx              Page Jeux (onglets des jeux)
+    │   ├── Jeux.tsx              Page Jeux (page de garde, puis un jeu par adresse)
     │   ├── jeux/                 Un fichier de logique et un composant par jeu
     │   │   └── commun/           Outils partagés : réglages, plein écran, vibrations, guide
     │   ├── Tutos.tsx             Page Tutos (liste et lecteur pas à pas)
@@ -183,6 +183,12 @@ portfolio/
     ├── package.json
     └── vite.config.ts
 ```
+
+## Crédits
+
+- Dictionnaire des jeux de lettres : [an-array-of-french-words](https://github.com/words/an-array-of-french-words) (licence MIT), mis en majuscules sans accents.
+- Mots courants de Mots mélangés : [most-common-words-by-language](https://github.com/oprogramador/most-common-words-by-language) (licence MIT, d'après FrequencyWords de Hermit Dave).
+- Tous les jeux, leurs dessins et leurs niveaux sont faits pour ce site ; les noms et les personnages sont originaux.
 
 ## Contact
 

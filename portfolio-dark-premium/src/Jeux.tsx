@@ -68,6 +68,12 @@ const games: GameInfo[] = [
     component: lazy(() => import('./jeux/Points')),
   },
   {
+    id: 'mots', name: 'Mots mélangés', categorie: 'reflexion', couleur: '#ff8a3d', nouveau: true,
+    court: 'Relie les lettres, trouve tous les mots.',
+    description: 'Fais glisser ton doigt sur la roue de lettres pour écrire des mots et remplir la grille. 100 niveaux, de 4 à 7 lettres, et des mots bonus à dénicher dans un dictionnaire de 300 000 mots.',
+    component: lazy(() => import('./jeux/Mots')),
+  },
+  {
     id: 'snake', name: 'Snake', categorie: 'arcade', couleur: '#7bd6aa',
     court: 'Mange, grandis, ne te mords pas la queue.',
     description: 'Guide le serpent vers la nourriture sans foncer dans un mur ni te mordre la queue : plus il mange, plus il grandit.',
@@ -104,6 +110,12 @@ const games: GameInfo[] = [
     component: lazy(() => import('./jeux/Minigolf')),
   },
   {
+    id: 'rase-mottes', name: 'Rase-mottes', categorie: 'arcade', couleur: '#2dd4ff', nouveau: true,
+    court: 'Vole au ras du sol, tire et bombarde.',
+    description: 'Un jeu de tir à défilement : pilote ton vaisseau au ras du relief, détruis les fusées, fais le plein en touchant les réservoirs et traverse six zones jusqu’à la base ennemie.',
+    component: lazy(() => import('./jeux/RaseMottes')),
+  },
+  {
     id: 'solitaire', name: 'Solitaire', categorie: 'plateau', couleur: '#4fbf7a', nouveau: true,
     court: 'Range les quatre familles, de l’As au Roi.',
     description: 'Le solitaire classique : descends les cartes en alternant les couleurs dans les colonnes et monte les quatre familles de l’As au Roi. Pioche par 1 ou par 3.',
@@ -114,6 +126,12 @@ const games: GameInfo[] = [
     court: 'Retire les tuiles libres par paires.',
     description: 'Retire les tuiles identiques deux par deux, à condition qu’elles soient libres, jusqu’à vider le plateau. Trois dispositions, et chaque donne a une solution.',
     component: lazy(() => import('./jeux/Mahjong')),
+  },
+  {
+    id: 'joute', name: 'Joute de lettres', categorie: 'plateau', couleur: '#d9826a', nouveau: true,
+    court: 'Place tes mots, bats l’ordinateur.',
+    description: 'Le jeu de lettres sur plateau, contre l’ordinateur : pose des mots croisés avec tes 7 lettres, vise les cases qui comptent double ou triple. Trois niveaux, dictionnaire de 311 000 mots.',
+    component: lazy(() => import('./jeux/Joute')),
   },
   {
     id: 'puissance-4', name: 'Puissance 4', categorie: 'plateau', couleur: '#ffd36b',

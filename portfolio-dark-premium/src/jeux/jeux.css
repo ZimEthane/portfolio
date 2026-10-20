@@ -254,6 +254,7 @@ html.ms-lock .to-top { display: none; }
 .t48-score { position: relative; display: grid; gap: 2px; min-width: 96px; padding: 8px 14px; border-radius: 10px; border: 1px solid #ffffff10; background: #07080a; text-align: center; }
 .t48-score span { font: 9px 'DM Mono', monospace; letter-spacing: .14em; text-transform: uppercase; color: #8d95a6; }
 .t48-score strong { font: 500 19px 'DM Mono', monospace; color: #dce9ff; }
+.t48-score strong small { font-size: 12px; color: #8d95a6; }
 .t48-btn { display: inline-flex; align-items: center; gap: 7px; padding: 0 14px; border-radius: 10px; border: 1px solid #ffffff14; background: #ffffff06; color: #cfd8ea; font: 700 12px Manrope, sans-serif; cursor: pointer; transition: border-color .2s, opacity .2s; }
 .t48-btn:hover:not(:disabled) { border-color: #8bb9fa70; }
 .t48-btn:disabled { opacity: .4; cursor: default; }
