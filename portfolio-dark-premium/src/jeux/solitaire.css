@@ -38,7 +38,7 @@
 .sl-fin .button { border: 0; cursor: pointer; }
 @keyframes sl-fin { from { opacity: 0; } }
 
-.is-fullscreen .sl-table { max-width: min(760px, calc((100svh - 240px) * 1.05)); }
+.is-fullscreen .sl-table { max-width: min(760px, calc((100svh - 250px) * 1.1)); }
 
 @media (max-width: 600px) {
   .sl-table { gap: 10px; padding: 8px 6px 10px; border-radius: 12px; }
