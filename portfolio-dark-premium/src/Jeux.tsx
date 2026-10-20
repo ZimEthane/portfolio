@@ -105,8 +105,8 @@ const games: GameInfo[] = [
   },
   {
     id: 'minigolf', name: 'Mini-golf', categorie: 'arcade', couleur: '#4fd06a', nouveau: true,
-    court: '9 trous, le moins de coups possible.',
-    description: 'Tire en arrière comme un lance-pierre et vise le trou. 9 trous avec sable, eau, champignons, pente et moulin : fais le parcours en un minimum de coups.',
+    court: '500 trous, le moins de coups possible.',
+    description: 'Tire en arrière comme un lance-pierre et vise le trou. 500 trous en 5 paliers, avec sable, eau, champignons, pentes et moulins : fais chaque trou au par pour gagner l’étoile.',
     component: lazy(() => import('./jeux/Minigolf')),
   },
   {

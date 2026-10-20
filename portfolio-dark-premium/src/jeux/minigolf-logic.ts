@@ -1,4 +1,4 @@
-// Mini-golf : 9 trous vus de dessus. On tire la balle en tirant vers l'arrière (comme un lance-pierre).
+// Mini-golf : 500 trous vus de dessus. On tire la balle en tirant vers l'arrière (comme un lance-pierre).
 // Monde en unités : 100 de large × 160 de haut.
 
 export interface P { x: number; y: number }
@@ -14,6 +14,89 @@ export interface Trou {
   moulin?: { x: number; y: number; long: number; vitesse: number } // pale qui tourne autour de (x, y)
   depart: P
   trou: P
+  murs?: [P, P][] // trous générés : murs en segments (le parcours est fait de cases)
+  gazon?: { x: number; y: number; w: number; h: number }[] // trous générés : les cases de gazon
+}
+
+// ----- Trous générés : un parcours fait de cases de 20 × 20 (5 colonnes, 8 lignes) -----
+export const CASE = 20
+export const COLONNES = 5
+export const LIGNES = 8
+// Un trou généré, en abrégé (voir minigolf-niveaux.ts).
+export interface CodeTrou {
+  n: string // nom
+  p: number // par
+  g: string // les 40 cases, ligne par ligne : '#' fermée, sinon un chiffre hexadécimal = passages ouverts (1 haut, 2 droite, 4 bas, 8 gauche)
+  d: [number, number] // départ
+  t: [number, number] // trou
+  s?: number[][] // sable [x, y, w, h]
+  e?: number[][] // eau [x, y, w, h]
+  b?: number[][] // champignons [x, y, r]
+  o?: number[][] // blocs [x, y, w, h]
+  f?: number[][] // pentes [x, y, w, h, fx, fy]
+  m?: number[] // moulin [x, y, long, vitesse]
+}
+
+// Fabrique un trou à partir de son code : gazon, murs (fusionnés quand ils se suivent) et pièges.
+export function trouDepuisCode(c: CodeTrou): Trou {
+  const gazon: Trou['gazon'] = []
+  const h: Map<number, [number, number][]> = new Map() // murs horizontaux : y → [x1, x2]
+  const v: Map<number, [number, number][]> = new Map() // murs verticaux : x → [y1, y2]
+  const ajouter = (m: Map<number, [number, number][]>, k: number, a: number, b: number) => {
+    const l = m.get(k) ?? []
+    l.push([a, b])
+    m.set(k, l)
+  }
+  for (let r = 0; r < LIGNES; r++) {
+    for (let col = 0; col < COLONNES; col++) {
+      const ch = c.g[r * COLONNES + col]
+      if (ch === '#') continue
+      const ouv = parseInt(ch, 16)
+      const x = col * CASE
+      const y = r * CASE
+      gazon.push({ x, y, w: CASE, h: CASE })
+      // Chaque mur n'est ajouté qu'une fois : le haut et la gauche de chaque case, plus le bas et la droite s'il n'y a pas de case ouverte de l'autre côté.
+      const voisinOuvert = (rr: number, cc: number) => rr >= 0 && cc >= 0 && rr < LIGNES && cc < COLONNES && c.g[rr * COLONNES + cc] !== '#'
+      if (!(ouv & 1)) ajouter(h, y, x, x + CASE)
+      if (!(ouv & 8)) ajouter(v, x, y, y + CASE)
+      if (!(ouv & 4) && !voisinOuvert(r + 1, col)) ajouter(h, y + CASE, x, x + CASE)
+      if (!(ouv & 2) && !voisinOuvert(r, col + 1)) ajouter(v, x + CASE, y, y + CASE)
+    }
+  }
+  const murs: [P, P][] = []
+  const fusionner = (m: Map<number, [number, number][]>, horizontal: boolean) => {
+    for (const [k, l] of m) {
+      l.sort((a, b) => a[0] - b[0])
+      let [a, b] = l[0]
+      const pousser = () => murs.push(horizontal ? [{ x: a, y: k }, { x: b, y: k }] : [{ x: k, y: a }, { x: k, y: b }])
+      for (const [x1, x2] of l.slice(1)) {
+        if (x1 <= b) b = Math.max(b, x2)
+        else {
+          pousser()
+          ;[a, b] = [x1, x2]
+        }
+      }
+      pousser()
+    }
+  }
+  fusionner(h, true)
+  fusionner(v, false)
+  const rect = (q: number[]) => ({ x: q[0], y: q[1], w: q[2], h: q[3] })
+  return {
+    nom: c.n,
+    par: c.p,
+    bord: [],
+    murs,
+    gazon,
+    obstacles: (c.o ?? []).map(q => [{ x: q[0], y: q[1] }, { x: q[0] + q[2], y: q[1] }, { x: q[0] + q[2], y: q[1] + q[3] }, { x: q[0], y: q[1] + q[3] }]),
+    bumpers: (c.b ?? []).map(q => ({ x: q[0], y: q[1], r: q[2] })),
+    sable: (c.s ?? []).map(rect),
+    eau: (c.e ?? []).map(rect),
+    pentes: (c.f ?? []).map(q => ({ ...rect(q), fx: q[4], fy: q[5] })),
+    moulin: c.m ? { x: c.m[0], y: c.m[1], long: c.m[2], vitesse: c.m[3] } : undefined,
+    depart: { x: c.d[0], y: c.d[1] },
+    trou: { x: c.t[0], y: c.t[1] },
+  }
 }
 
 const rect = (x: number, y: number, w: number, h: number): P[] => [{ x, y }, { x: x + w, y }, { x: x + w, y: y + h }, { x, y: y + h }]
@@ -34,6 +117,18 @@ export const TROUS: Trou[] = [
 export const RAYON = 2.1
 export const RAYON_TROU = 3.4
 const RESTITUTION = 0.72
+
+// Le trou d'un niveau (1 à 500) : un des trous dessinés à la main, ou un trou généré.
+const cache = new Map<number, Trou>()
+export function trouDuNiveau(niveaux: (CodeTrou | number)[], n: number): Trou {
+  let t = cache.get(n)
+  if (!t) {
+    const c = niveaux[n - 1]
+    t = typeof c === 'number' ? TROUS[c] : trouDepuisCode(c)
+    cache.set(n, t)
+  }
+  return t
+}
 export const VITESSE_MAX = 150 // unités par seconde (tir le plus fort)
 
 export interface Balle { x: number; y: number; vx: number; vy: number }
@@ -44,7 +139,8 @@ const dedans = (p: P, z: { x: number; y: number; w: number; h: number }) => p.x 
 function segments(t: Trou, temps: number): [P, P][] {
   const s: [P, P][] = []
   const poly = (pts: P[]) => pts.forEach((a, k) => s.push([a, pts[(k + 1) % pts.length]]))
-  poly(t.bord)
+  if (t.bord.length) poly(t.bord)
+  if (t.murs) s.push(...t.murs)
   t.obstacles.forEach(poly)
   if (t.moulin) {
     const a = temps * t.moulin.vitesse
@@ -56,7 +152,7 @@ function segments(t: Trou, temps: number): [P, P][] {
   }
   return s
 }
-export const pales = (t: Trou, temps: number) => (t.moulin ? segments({ ...t, bord: [], obstacles: [] }, temps) : [])
+export const pales = (t: Trou, temps: number) => (t.moulin ? segments({ ...t, bord: [], obstacles: [], murs: undefined }, temps) : [])
 
 // Rebond sur un segment : on repousse la balle hors du mur et on renvoie la vitesse.
 function rebondSegment(b: Balle, a: P, c: P): boolean {
