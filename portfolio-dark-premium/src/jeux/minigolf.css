@@ -1,0 +1,29 @@
+/* ===== Mini-golf ===== */
+.mg-zone { position: relative; width: 100%; min-width: 0; max-width: 380px; margin: 0 auto; border-radius: 16px; overflow: hidden; background: #122119; border: 1px solid #c9a66b40; box-shadow: 0 10px 30px #00000055; touch-action: none; user-select: none; -webkit-user-select: none; outline: none; cursor: crosshair; contain: inline-size; }
+.mg-zone:focus-visible { box-shadow: 0 0 0 3px #a0c8ff; }
+.mg-zone canvas { display: block; }
+.is-fullscreen .mg-zone { max-width: min(460px, calc((100svh - 275px) * 100 / 160)); }
+
+.mg-nom { margin: 0 0 -4px; color: #e8edf5; font-size: 14px; font-weight: 700; text-align: center; }
+.mg-message { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); padding: 6px 12px; border-radius: 999px; background: #1d4f8fdd; color: #fff; font-size: 13px; font-weight: 700; white-space: nowrap; pointer-events: none; animation: mg-toast .25s ease-out; }
+.mg-bravo { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 2px; background: #0b0e1255; pointer-events: none; animation: mg-pop .3s ease-out; }
+.mg-bravo strong { font-size: 30px; letter-spacing: -.03em; color: #fff; text-shadow: 0 2px 12px #000a; }
+.mg-bravo span { color: #dfe6f0; font-size: 14px; font-weight: 600; text-shadow: 0 1px 6px #000a; }
+@keyframes mg-pop { from { opacity: 0; transform: scale(.92); } }
+@keyframes mg-toast { from { opacity: 0; transform: translate(-50%, 6px); } }
+
+.mg-carte { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 14px; padding: 12px; background: #0b0e12e6; text-align: center; cursor: default; }
+.mg-carte strong { display: inline-flex; align-items: center; gap: 8px; font-size: 22px; letter-spacing: -.03em; }
+.mg-carte table { border-collapse: collapse; font-size: 12px; font-variant-numeric: tabular-nums; }
+.mg-carte th, .mg-carte td { padding: 5px 4px; min-width: 22px; border-bottom: 1px solid #ffffff14; }
+.mg-carte th { color: #8d97a8; font-weight: 600; }
+.mg-carte td:first-child, .mg-carte th:first-child { text-align: left; color: #8d97a8; padding-right: 8px; }
+.mg-carte td:last-child, .mg-carte th:last-child { font-weight: 800; color: #e8edf5; padding-left: 8px; }
+.mg-toi td { font-weight: 700; }
+.mg-toi .is-moins { color: #6be08a; }
+.mg-toi .is-plus { color: #ff8f8f; }
+.mg-carte .button { border: 0; cursor: pointer; }
+
+@media (max-width: 400px) {
+  .mg-carte th, .mg-carte td { padding: 4px 2px; min-width: 18px; font-size: 11px; }
+}

@@ -92,6 +92,30 @@ const games: GameInfo[] = [
     component: lazy(() => import('./jeux/Labyrinthe')),
   },
   {
+    id: 'glouton', name: 'Glouton', categorie: 'arcade', couleur: '#a6e22e', nouveau: true,
+    court: 'Mange toutes les graines, fuis les monstres.',
+    description: 'Mange toutes les graines du labyrinthe sans te faire attraper par les quatre monstres. Les super-graines les rendent peureux : à toi de les croquer !',
+    component: lazy(() => import('./jeux/Glouton')),
+  },
+  {
+    id: 'minigolf', name: 'Mini-golf', categorie: 'arcade', couleur: '#4fd06a', nouveau: true,
+    court: '9 trous, le moins de coups possible.',
+    description: 'Tire en arrière comme un lance-pierre et vise le trou. 9 trous avec sable, eau, champignons, pente et moulin : fais le parcours en un minimum de coups.',
+    component: lazy(() => import('./jeux/Minigolf')),
+  },
+  {
+    id: 'solitaire', name: 'Solitaire', categorie: 'plateau', couleur: '#4fbf7a', nouveau: true,
+    court: 'Range les quatre familles, de l’As au Roi.',
+    description: 'Le solitaire classique : descends les cartes en alternant les couleurs dans les colonnes et monte les quatre familles de l’As au Roi. Pioche par 1 ou par 3.',
+    component: lazy(() => import('./jeux/Solitaire')),
+  },
+  {
+    id: 'mahjong', name: 'Mahjong', categorie: 'plateau', couleur: '#e8c27a', nouveau: true,
+    court: 'Retire les tuiles libres par paires.',
+    description: 'Retire les tuiles identiques deux par deux, à condition qu’elles soient libres, jusqu’à vider le plateau. Trois dispositions, et chaque donne a une solution.',
+    component: lazy(() => import('./jeux/Mahjong')),
+  },
+  {
     id: 'puissance-4', name: 'Puissance 4', categorie: 'plateau', couleur: '#ffd36b',
     court: 'Aligne 4 jetons avant l’ordinateur.',
     description: 'Aligne 4 jetons de ta couleur, à l’horizontale, à la verticale ou en diagonale, avant l’ordinateur (ou un ami).',

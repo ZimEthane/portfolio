@@ -1,0 +1,11 @@
+/* ===== Glouton ===== */
+.gl-zone { position: relative; display: grid; place-items: center; width: 100%; min-width: 0; max-width: 460px; border-radius: 14px; border: 1px solid #2de0c440; background: #070a12; box-shadow: 0 0 24px #2de0c41a; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; outline: none; contain: inline-size; }
+.gl-zone:focus-visible { box-shadow: 0 0 0 3px #a0c8ff; }
+.gl-zone canvas { display: block; }
+.is-fullscreen .gl-zone { max-width: min(560px, calc((100svh - 250px) * 19 / 21)); }
+.gl-overlay { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 10px; padding: 16px; background: #070a12c4; text-align: center; }
+.gl-overlay strong { display: inline-flex; align-items: center; gap: 8px; font-size: 22px; letter-spacing: -.03em; }
+.gl-overlay span { max-width: 260px; font-size: 13px; line-height: 1.6; color: #b3bccc; }
+.gl-overlay .button { border: 0; cursor: pointer; }
+.gl-vies strong { display: flex; justify-content: center; gap: 3px; min-height: 22px; align-items: center; color: #a6e22e; }
+.gl-vies strong svg { fill: #a6e22e; }

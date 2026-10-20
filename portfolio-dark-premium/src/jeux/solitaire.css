@@ -1,0 +1,48 @@
+/* ===== Solitaire ===== */
+.ms-levels.sl-modes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.sl-unite { font: 500 11px Manrope, sans-serif; letter-spacing: 0; color: #8d95a6; }
+
+.sl-table { position: relative; display: grid; gap: 14px; width: 100%; max-width: 760px; padding: 14px; border-radius: 16px; background: radial-gradient(ellipse at 50% 0%, #1d3a2e, #10201a 70%); border: 1px solid #ffffff10; user-select: none; -webkit-user-select: none; }
+.sl-haut, .sl-colonnes { display: grid; grid-template-columns: repeat(7, var(--w)); justify-content: space-between; }
+.sl-emplacement { position: relative; width: var(--w); height: var(--h); border-radius: calc(var(--w) * .1); border: 1.5px dashed #ffffff26; }
+.sl-pioche { display: grid; place-items: center; color: #9fb8aa; cursor: pointer; -webkit-tap-highlight-color: transparent; outline: none; }
+.sl-pioche:focus-visible { box-shadow: 0 0 0 3px #a0c8ff; }
+.sl-pioche .sl-carte { cursor: pointer; }
+.sl-defausse { border-color: transparent; }
+.sl-fond-symbole { position: absolute; inset: 0; display: grid; place-items: center; font-size: calc(var(--w) * .5); color: #ffffff1c; }
+.sl-colonne { position: relative; width: var(--w); }
+.sl-colonne::before { content: ''; position: absolute; left: 0; top: 0; width: var(--w); height: var(--h); border-radius: calc(var(--w) * .1); border: 1.5px dashed #ffffff1a; box-sizing: border-box; }
+.is-cible::before, .sl-fondation.is-cible { border-color: #7bd6aa; border-style: solid; background: #7bd6aa14; }
+.is-indice::before, .sl-emplacement.is-indice { border-color: #ffd36b; border-style: solid; }
+
+/* Les cartes */
+.sl-carte { position: absolute; left: 0; top: 0; width: var(--w); height: var(--h); border-radius: calc(var(--w) * .1); background: linear-gradient(160deg, #ffffff, #eef2f8); box-shadow: 0 1px 2px #0009, inset 0 0 0 1px #00000018; cursor: grab; touch-action: none; outline: none; -webkit-tap-highlight-color: transparent; }
+.sl-carte:focus-visible { box-shadow: 0 0 0 3px #a0c8ff; }
+.sl-carte.is-rouge { color: #d6343a; }
+.sl-carte.is-noire { color: #18202e; }
+.sl-carte.is-dos { background: repeating-linear-gradient(45deg, #2f5fa8 0 4px, #24498a 4px 8px); box-shadow: 0 1px 2px #0009, inset 0 0 0 2px #f2f5fa, inset 0 0 0 4px #24498a; cursor: default; }
+.sl-carte.is-cachee { opacity: 0; }
+.sl-carte.is-indice { box-shadow: 0 0 0 3px #ffd36b, 0 0 16px #ffd36baa; }
+.sl-coin { position: absolute; top: 5%; left: 8%; display: flex; align-items: baseline; gap: 1px; font: 800 calc(var(--w) * .27)/1 Manrope, sans-serif; letter-spacing: -.04em; }
+.sl-coin i { font-style: normal; font-size: .9em; }
+.sl-centre { position: absolute; right: 9%; bottom: 7%; font-size: calc(var(--w) * .5); line-height: 1; }
+.sl-centre.is-tete { right: auto; left: 50%; bottom: 14%; transform: translateX(-50%); font: 800 calc(var(--w) * .44)/1 Manrope, sans-serif; }
+.sl-tete-enseigne { position: absolute; right: 9%; bottom: 5%; font-size: calc(var(--w) * .22); line-height: 1; }
+
+.sl-fantome { position: fixed; left: 0; top: 0; z-index: 2000; width: var(--w); pointer-events: none; will-change: transform; }
+.sl-fantome .sl-carte { box-shadow: 0 12px 22px #000b, inset 0 0 0 1px #00000018; cursor: grabbing; }
+
+.sl-fin { position: absolute; inset: 0; z-index: 50; display: grid; place-content: center; justify-items: center; gap: 10px; border-radius: 16px; background: #0b1410cc; text-align: center; animation: sl-fin .4s ease-out both; }
+.sl-fin strong { display: inline-flex; align-items: center; gap: 8px; font-size: 24px; letter-spacing: -.03em; color: #ffd36b; }
+.sl-fin span { font-size: 13px; color: #c3d3ca; }
+.sl-fin .button { border: 0; cursor: pointer; }
+@keyframes sl-fin { from { opacity: 0; } }
+
+.is-fullscreen .sl-table { max-width: min(760px, calc((100svh - 240px) * 1.05)); }
+
+@media (max-width: 600px) {
+  .sl-table { gap: 10px; padding: 8px 6px 10px; border-radius: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sl-fin { animation: none; }
+}

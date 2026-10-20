@@ -216,6 +216,94 @@ function Points() {
   )
 }
 
+function Solitaire() {
+  // Une carte : coin en haut à gauche, grand symbole au centre.
+  const carte = (x: number, y: number, rang: string, sym: string, rouge: boolean) => (
+    <g key={`${x}-${y}`}>
+      <rect x={x} y={y} width="24" height="34" rx="3" fill="#fbfcfe" stroke="#00000030" strokeWidth=".6" />
+      <text x={x + 3} y={y + 9} fontSize="8" fontWeight="800" fill={rouge ? '#d6343a' : '#1a2233'}>{rang}</text>
+      <text x={x + 12} y={y + 25} textAnchor="middle" fontSize="13" fill={rouge ? '#d6343a' : '#1a2233'}>{sym}</text>
+    </g>
+  )
+  const dos = (x: number, y: number) => <rect key={`d${x}-${y}`} x={x} y={y} width="24" height="34" rx="3" fill="#2f5fa8" stroke="#f2f5fa" strokeWidth="1.2" />
+  return (
+    <Svg fond="#17372a">
+      {dos(14, 8)}
+      {[0, 1, 2, 3].map(k => <rect key={k} x={70 + k * 20} y="8" width="17" height="24" rx="3" fill="none" stroke="#ffffff26" />)}
+      {carte(70, 8, 'A', '♥', true)}
+      {[0, 1].map(k => dos(14 + 28, 40 + k * 5))}
+      {carte(42, 50, 'K', '♠', false)}
+      {carte(42, 60, 'Q', '♥', true)}
+      {[0, 1, 2].map(k => dos(98, 40 + k * 5))}
+      {carte(98, 55, '9', '♣', false)}
+      {carte(98, 65, '8', '♦', true)}
+      {carte(126, 46, '5', '♠', false)}
+      {carte(14, 52, '7', '♦', true)}
+    </Svg>
+  )
+}
+
+function Mahjong() {
+  // Des tuiles empilées : bambous, ronds et caractères.
+  const tuile = (x: number, y: number, motif: 'bambou' | 'rond' | 'car', sel = false) => (
+    <g key={`${x}-${y}`}>
+      <rect x={x + 2.5} y={y + 3} width="20" height="26" rx="3" fill="#9c8659" />
+      <rect x={x} y={y} width="20" height="26" rx="3" fill={sel ? '#ffd96a' : '#fbf6e6'} stroke="#d6c79c" strokeWidth=".8" />
+      {motif === 'bambou' && [-4, 0, 4].map(d => <rect key={d} x={x + 9 + d} y={y + 6} width="2.4" height="14" rx="1.2" fill="#1f9a5a" />)}
+      {motif === 'rond' && <><circle cx={x + 10} cy={y + 13} r="6" fill="none" stroke="#2a6fd6" strokeWidth="1.8" /><circle cx={x + 10} cy={y + 13} r="2.4" fill="#d6343a" /></>}
+      {motif === 'car' && <><rect x={x + 6} y={y + 6} width="8" height="2" fill="#1a2233" /><rect x={x + 9} y={y + 6} width="2" height="9" fill="#1a2233" /><rect x={x + 5} y={y + 17} width="10" height="3" rx="1" fill="#d6343a" /></>}
+    </g>
+  )
+  const motifs = ['bambou', 'rond', 'car'] as const
+  return (
+    <Svg fond="#173530">
+      {[0, 1, 2, 3, 4, 5].map(k => tuile(18 + k * 21, 52, motifs[k % 3]))}
+      {[0, 1, 2, 3].map(k => tuile(39 + k * 21, 30, motifs[(k + 1) % 3], k === 1))}
+      {[0, 1].map(k => tuile(60 + k * 21, 8, motifs[(k + 2) % 3], k === 0))}
+    </Svg>
+  )
+}
+
+function Glouton() {
+  return (
+    <Svg fond="#070a12">
+      <path d="M10 10H150V90H10ZM30 30H70V50M90 30H130M110 30V70M30 70H90M50 50V70" fill="none" stroke="#2de0c4" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" opacity=".75" />
+      {[44, 56, 68, 80, 92].map(x => <circle key={x} cx={x} cy="20" r="1.5" fill="#e8edf5" />)}
+      {[30, 42, 54, 66, 78].map(y => <circle key={y} cx="20" cy={y + 2} r="1.5" fill="#e8edf5" />)}
+      <circle cx="140" cy="20" r="3.5" fill="#ffd84d" />
+      <circle cx="122" cy="80" r="1.5" fill="#e8edf5" /><circle cx="134" cy="80" r="1.5" fill="#e8edf5" />
+      {/* Le glouton */}
+      <circle cx="32" cy="20" r="8" fill="#a6e22e" />
+      <circle cx="30" cy="17" r="2.2" fill="#fff" /><circle cx="36" cy="17" r="2.2" fill="#fff" />
+      <circle cx="31" cy="17" r="1" fill="#10200a" /><circle cx="37" cy="17" r="1" fill="#10200a" />
+      <ellipse cx="34" cy="23.5" rx="3" ry="1.8" fill="#2b4a0e" />
+      {/* Un monstre */}
+      <g fill="#ff4d6d" stroke="#ff4d6d" strokeWidth="1.2">
+        <rect x="92" y="74" width="16" height="13" rx="6" />
+        <path d="M96 75l-2-4M104 75l2-4" fill="none" />
+        <circle cx="94" cy="70.5" r="1.3" /><circle cx="106" cy="70.5" r="1.3" />
+      </g>
+      <circle cx="97" cy="79" r="2.2" fill="#fff" /><circle cx="103" cy="79" r="2.2" fill="#fff" />
+      <circle cx="96" cy="79" r="1" fill="#1a2a6a" /><circle cx="102" cy="79" r="1" fill="#1a2a6a" />
+    </Svg>
+  )
+}
+
+function Minigolf() {
+  return (
+    <Svg fond="#0b0e12">
+      <path d="M18 88V30Q18 12 36 12H142V52H66V88Z" fill="#339552" stroke="#c9a66b" strokeWidth="3" strokeLinejoin="round" />
+      <rect x="86" y="18" width="26" height="16" rx="7" fill="#e3cd92" />
+      <circle cx="30" cy="62" r="5" fill="#e8394a" /><circle cx="30" cy="62" r="2.6" fill="none" stroke="#fff" strokeWidth=".8" />
+      <circle cx="128" cy="32" r="3.6" fill="#0a1a10" />
+      <path d="M128 32V15" stroke="#e8edf5" strokeWidth="1" />
+      <path d="M128 15q5 1 9 3l-9 3z" fill="#ff4d4d" />
+      <path d="M44 76Q44 40 70 32T116 30" fill="none" stroke="#9cf0b0" strokeWidth="1.2" strokeDasharray="2.5 2.5" />
+      <circle cx="44" cy="78" r="3" fill="#fff" />
+    </Svg>
+  )
+}
+
 export const APERCUS: Record<string, () => ReactNode> = {
   demineur: Demineur,
   '2048': Jeu2048,
@@ -230,4 +318,8 @@ export const APERCUS: Record<string, () => ReactNode> = {
   labyrinthe: Labyrinthe,
   nonogramme: Nonogramme,
   points: Points,
+  solitaire: Solitaire,
+  mahjong: Mahjong,
+  glouton: Glouton,
+  minigolf: Minigolf,
 }
