@@ -1,15 +1,8 @@
 /* ===== 2048 ===== */
 .ms-levels.t48-tailles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 
-.t48-bar { display: flex; flex-wrap: wrap; align-items: stretch; justify-content: center; gap: 10px; width: 100%; max-width: 520px; }
-.t48-score { position: relative; display: grid; gap: 2px; min-width: 96px; padding: 8px 14px; border-radius: 10px; border: 1px solid #ffffff10; background: #07080a; text-align: center; }
-.t48-score span { font: 9px 'DM Mono', monospace; letter-spacing: .14em; text-transform: uppercase; color: #8d95a6; }
-.t48-score strong { font: 500 19px 'DM Mono', monospace; color: #dce9ff; }
 .t48-plus { position: absolute; left: 50%; top: 4px; font: 700 13px 'DM Mono', monospace; font-style: normal; color: #8de0a8; pointer-events: none; animation: t48-plus .7s ease-out forwards; }
 @keyframes t48-plus { from { opacity: 1; transform: translate(-50%, 0); } to { opacity: 0; transform: translate(-50%, -26px); } }
-.t48-btn { display: inline-flex; align-items: center; gap: 7px; padding: 0 14px; border-radius: 10px; border: 1px solid #ffffff14; background: #ffffff06; color: #cfd8ea; font: 700 12px Manrope, sans-serif; cursor: pointer; transition: border-color .2s, opacity .2s; }
-.t48-btn:hover:not(:disabled) { border-color: #8bb9fa70; }
-.t48-btn:disabled { opacity: .4; cursor: default; }
 
 /* Grille : la taille des cases suit la largeur disponible. */
 .t48-wrap { width: 100%; max-width: 440px; container-type: inline-size; }
@@ -81,17 +74,9 @@
 
 @media (max-width: 600px) {
   .t48-board { --g: 8px; --p: 8px; }
-  .t48-score { min-width: 0; flex: 1; padding: 7px 10px; }
-  .t48-btn { padding: 9px 12px; }
   /* Tailles : « 4×4 » puis la description en dessous, au lieu d'une coupure au milieu */
   .t48-tailles small { display: grid; }
   .t48-sep { display: none; }
-}
-/* Écran étroit : boutons à côté des scores en icônes seules (2048, Snake), pour laisser la place aux scores */
-@media (max-width: 440px) {
-  .t48-btn-texte { display: none; }
-  .t48-btn { justify-content: center; min-width: 46px; padding: 9px 12px; }
-  .t48-score span { letter-spacing: .1em; }
 }
 @media (hover: none), (pointer: coarse) {
   .t48-fleches { display: none; }

@@ -1,0 +1,80 @@
+/* ===== Nonogramme ===== */
+.ms-levels.ng-tailles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.ng-images { display: grid; grid-template-columns: repeat(auto-fill, minmax(74px, 1fr)); gap: 8px; }
+.ng-images button { display: grid; justify-items: center; align-content: center; gap: 6px; min-height: 78px; padding: 8px 4px; border-radius: 11px; border: 1px solid #ffffff10; background: #ffffff04; color: #9aa3b5; cursor: pointer; transition: border-color .15s; }
+.ng-images button:hover { border-color: #8bb9fa60; }
+.ng-images button.is-current { border-color: #8bb9fa; background: #8bb9fa14; }
+.ng-images button.is-fait { color: #dce6f7; }
+.ng-images small { font-size: 10.5px; font-weight: 600; line-height: 1.2; text-align: center; }
+.ng-q { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 8px; background: #ffffff08; font: 700 18px 'DM Mono', monospace; color: #6b7384; }
+.ng-alea { color: #aacdff !important; }
+.ng-mini { display: grid; gap: 0; padding: 3px; border-radius: 4px; background: #f3f6fb; }
+.ng-mini i { background: transparent; }
+.ng-mini i.is-on { background: #2a3d5c; }
+
+.ng-bar { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.ng-vies { gap: 4px !important; }
+.ng-vies svg { color: #4a5160; }
+.ng-vies svg.is-on { color: #ff6b6b; fill: #ff6b6b; }
+.ng-vies svg.is-perdu { animation: ng-coeur .5s ease-out; }
+@keyframes ng-coeur { 0% { transform: scale(1.5); color: #ff6b6b; } 100% { transform: scale(1); } }
+
+.ng-mode { display: inline-flex; padding: 3px; border-radius: 999px; border: 1px solid #ffffff14; background: #07080a; }
+.ng-mode button { display: grid; place-items: center; width: 44px; height: 34px; border-radius: 999px; border: 0; background: none; color: #9aa3b5; cursor: pointer; }
+.ng-mode button.is-active { background: #a0c8ff; color: #101620; }
+
+/* Le plateau : une feuille claire, indices en haut et à gauche */
+.ng-wrap { display: flex; justify-content: center; width: 100%; max-width: 680px; }
+.ng-plateau { position: relative; display: grid; grid-template-columns: auto calc(var(--cell) * var(--w) + 4px); grid-template-rows: auto calc(var(--cell) * var(--h) + 4px) auto; padding: 8px 10px 10px 6px; border-radius: 14px; background: #f3f6fb; color: #2a3d5c; font-size: max(9.5px, calc(var(--cell) * .48)); user-select: none; -webkit-user-select: none; }
+.ng-coin { grid-area: 1 / 1; }
+.ng-cols { grid-area: 1 / 2; display: grid; grid-template-columns: repeat(var(--w), var(--cell)); align-items: end; padding: 0 2px 4px; }
+.ng-cols div { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 1px; padding-bottom: 2px; border-radius: 6px 6px 0 0; font: 600 1em/1.15 'DM Mono', monospace; }
+.ng-lignes { grid-area: 2 / 1; display: grid; grid-template-rows: repeat(var(--h), var(--cell)); padding: 2px 0; }
+.ng-lignes div { display: flex; align-items: center; justify-content: flex-end; gap: .45em; padding: 0 6px 0 4px; border-radius: 6px 0 0 6px; font: 600 1em/1 'DM Mono', monospace; }
+.ng-cols .is-vise, .ng-lignes .is-vise { background: #dfe8f7; }
+.ng-cols .is-fini, .ng-lignes .is-fini { color: #a9b5c8; }
+.ng-label { grid-area: 2 / 2; display: block; }
+.ng-grille { display: grid; grid-template-columns: repeat(var(--w), var(--cell)); grid-auto-rows: var(--cell); border: 2px solid #2a3d5c; background: #fff; touch-action: none; outline: none; cursor: pointer; }
+.ng-grille:focus-visible { box-shadow: 0 0 0 3px #3d7bff80; }
+.ng-grille.is-secoue { animation: ng-secoue .3s ease; }
+@keyframes ng-secoue { 25% { transform: translateX(-4px); } 60% { transform: translateX(3px); } }
+.ng-case { position: relative; border-right: 1px solid #d3dbe8; border-bottom: 1px solid #d3dbe8; }
+.ng-case.bd { border-right: 2px solid #6b7a92; }
+.ng-case.bb { border-bottom: 2px solid #6b7a92; }
+.ng-case.is-axe.e0, .ng-case.is-axe.e2 { background: #eaf1fc; }
+.ng-case.is-curseur { box-shadow: inset 0 0 0 2px #3d7bff; }
+.ng-case.e1, .ng-case.e4 { background: #2a3d5c; }
+.ng-case.e4::after { content: ''; position: absolute; inset: 30%; border-radius: 50%; background: #ff5a5f; }
+/* Croix */
+.ng-case.e2::before, .ng-case.e2::after, .ng-case.e3::before, .ng-case.e3::after { content: ''; position: absolute; left: 22%; right: 22%; top: 50%; height: max(1.5px, calc(var(--cell) * .07)); border-radius: 2px; background: #9aa8bd; transform: rotate(45deg); }
+.ng-case.e2::after, .ng-case.e3::after { transform: rotate(-45deg); }
+.ng-case.e3::before, .ng-case.e3::after { background: #ff5a5f; }
+
+/* Grille terminée : l'image apparaît */
+.ng-plateau.is-gagne .ng-case.e2::before, .ng-plateau.is-gagne .ng-case.e2::after, .ng-plateau.is-gagne .ng-case.e3::before, .ng-plateau.is-gagne .ng-case.e3::after { opacity: 0; transition: opacity .5s; }
+.ng-plateau.is-gagne .ng-case { border-color: transparent; transition: border-color .6s; }
+.ng-plateau.is-gagne .ng-case.e4::after { opacity: 0; }
+.ng-plateau.is-gagne .ng-grille { border-color: transparent; }
+
+.ng-fin { grid-column: 1 / -1; display: grid; justify-items: center; gap: 8px; padding: 14px 6px 4px; text-align: center; animation: ng-fin .4s ease-out both; }
+.ng-fin strong { display: inline-flex; align-items: center; gap: 8px; font-size: 18px; color: #1a2a44; }
+.ng-fin span { font-size: 13px; color: #5a6b85; }
+.ng-fin div { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.ng-fin .button { border: 0; cursor: pointer; padding: 10px 14px; }
+.ng-fin .button:not(.button-primary) { background: #dfe6f2; color: #1a2a44; }
+@keyframes ng-fin { from { opacity: 0; transform: translateY(6px); } }
+
+.is-fullscreen .ng-wrap { max-width: min(680px, calc((100svh - 230px) * var(--w, 1))); }
+
+@media (max-width: 600px) {
+  .nonogramme .ms-records ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ng-images { grid-template-columns: repeat(auto-fill, minmax(62px, 1fr)); gap: 6px; }
+  .ng-plateau { padding: 6px 6px 8px 4px; border-radius: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ng-grille.is-secoue, .ng-vies svg.is-perdu, .ng-fin { animation: none; }
+}
+/* Grille terminée : plus de surbrillance de ligne ni de curseur */
+.ng-plateau.is-gagne .ng-case.is-axe, .ng-plateau.is-gagne .is-vise { background: transparent; }
+.ng-plateau.is-gagne .ng-case.e1, .ng-plateau.is-gagne .ng-case.e4 { background: #2a3d5c; }
+.ng-plateau.is-gagne .ng-case.is-curseur { box-shadow: none; }

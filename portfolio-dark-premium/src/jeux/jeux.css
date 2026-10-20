@@ -3,13 +3,37 @@
 .jeux-head { padding: 36px 0 36px; border-bottom: 1px solid #ffffff10; }
 .jeux-head h1 { max-width: 20ch; font-size: clamp(34px, 5vw, 56px); line-height: 1.12; letter-spacing: -.06em; margin: 0 0 20px; font-weight: 700; text-wrap: balance; }
 .jeux-head p { max-width: 560px; margin: 0 0 28px; font-size: 14px; line-height: 1.9; color: #9aa3b5; }
-.jeux-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
-.jeux-tabs button { display: inline-flex; align-items: center; gap: 8px; font: 600 12px Manrope, sans-serif; color: #cfd8ea; background: #ffffff08; border: 1px solid #ffffff14; border-radius: 999px; padding: 9px 16px; cursor: pointer; transition: border-color .2s, color .2s, background .2s; }
-.jeux-tabs button:hover { border-color: #8bb9fa80; color: #fff; }
-.jeux-tabs button.is-active { border-color: #8bb9fa90; background: #8bb9fa16; color: #fff; }
 .jeux-game { padding-top: 48px; }
-.jeux-game-head h2 { margin: 0 0 10px; font-size: clamp(22px, 2.6vw, 30px); letter-spacing: -.045em; font-weight: 650; }
+.jeux-game-head h1, .jeux-game-head h2 { margin: 0 0 10px; font-size: clamp(22px, 2.6vw, 30px); letter-spacing: -.045em; font-weight: 650; }
 .jeux-game-head p { max-width: 640px; margin: 0 0 24px; font-size: 13px; line-height: 1.85; color: #9aa3b5; }
+
+/* Page de garde : filtres et cartes des jeux */
+.jx-filtres { display: flex; flex-wrap: wrap; gap: 8px; }
+.jx-filtres button { display: inline-flex; align-items: center; gap: 8px; padding: 9px 15px; border-radius: 999px; border: 1px solid #ffffff14; background: #ffffff06; color: #cfd8ea; font: 600 12px Manrope, sans-serif; cursor: pointer; transition: border-color .2s, background .2s, color .2s; }
+.jx-filtres button:hover { border-color: #8bb9fa80; color: #fff; }
+.jx-filtres button.is-active { border-color: #8bb9fa90; background: #8bb9fa16; color: #fff; }
+.jx-filtres small { font: 10px 'DM Mono', monospace; color: #8d95a6; }
+.jx-filtres button.is-active small { color: #aacdff; }
+.jx-grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(232px, 1fr)); gap: 16px; padding-top: 36px; }
+.jx-carte { display: flex; flex-direction: column; min-width: 0; border-radius: 14px; border: 1px solid #ffffff10; background: #111417; overflow: hidden; transition: border-color .2s; }
+.jx-carte:hover { border-color: color-mix(in srgb, var(--c) 65%, transparent); }
+.jx-carte:focus-visible { outline: 2px solid var(--c); outline-offset: 3px; }
+.jx-apercu { display: block; aspect-ratio: 16 / 10; border-bottom: 1px solid #ffffff0c; }
+.jx-apercu svg { display: block; width: 100%; height: 100%; }
+.jx-texte { display: grid; gap: 5px; padding: 14px 16px 16px; }
+.jx-texte strong { display: flex; align-items: center; gap: 8px; font-size: 15px; letter-spacing: -.02em; color: #f2f5fa; }
+.jx-texte strong em { font: 600 10px Manrope, sans-serif; font-style: normal; color: #101620; background: #a0c8ff; border-radius: 999px; padding: 2px 8px; }
+.jx-texte > span { font-size: 12px; line-height: 1.55; color: #9aa3b5; }
+.jx-chargement { display: grid; place-items: center; min-height: 320px; border: 1px solid #ffffff10; border-radius: 16px; color: #8d95a6; font-size: 13px; }
+
+/* Bas de la page d'un jeu : jeu précédent, tous les jeux, jeu suivant */
+.jx-suite { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; margin-top: 48px; padding-top: 22px; border-top: 1px solid #ffffff10; }
+.jx-suite a { display: inline-flex; align-items: center; gap: 10px; color: #cfd8ea; font-size: 13px; font-weight: 600; }
+.jx-suite a:hover { color: #fff; }
+.jx-suite small { display: block; font-size: 11px; font-weight: 500; color: #8d95a6; }
+.jx-suite .jx-tous { padding: 9px 15px; border-radius: 999px; border: 1px solid #ffffff14; background: #ffffff06; font-size: 12px; }
+.jx-suite .jx-suivant { justify-self: end; text-align: right; }
+.jeux.is-game .jeux-game { padding-top: 28px; }
 
 /* ===== Démineur ===== */
 .ms { display: grid; gap: 16px; }
@@ -224,12 +248,52 @@ html.ms-lock .to-top { display: none; }
   .ms-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
+/* ===== Éléments partagés par plusieurs jeux (chaque jeu est chargé séparément) ===== */
+/* Scores et boutons au-dessus du jeu (2048, Snake, Blocs, Ninja, Glissières…) */
+.t48-bar { display: flex; flex-wrap: wrap; align-items: stretch; justify-content: center; gap: 10px; width: 100%; max-width: 520px; }
+.t48-score { position: relative; display: grid; gap: 2px; min-width: 96px; padding: 8px 14px; border-radius: 10px; border: 1px solid #ffffff10; background: #07080a; text-align: center; }
+.t48-score span { font: 9px 'DM Mono', monospace; letter-spacing: .14em; text-transform: uppercase; color: #8d95a6; }
+.t48-score strong { font: 500 19px 'DM Mono', monospace; color: #dce9ff; }
+.t48-btn { display: inline-flex; align-items: center; gap: 7px; padding: 0 14px; border-radius: 10px; border: 1px solid #ffffff14; background: #ffffff06; color: #cfd8ea; font: 700 12px Manrope, sans-serif; cursor: pointer; transition: border-color .2s, opacity .2s; }
+.t48-btn:hover:not(:disabled) { border-color: #8bb9fa70; }
+.t48-btn:disabled { opacity: .4; cursor: default; }
+/* Boutons d'action ronds (Sudoku, Glissières…) */
+.sd-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.sd-action { display: inline-flex; align-items: center; gap: 7px; padding: 9px 14px; border-radius: 999px; border: 1px solid #ffffff14; background: #07080a; color: #cfd8ea; font: 700 12px Manrope, sans-serif; cursor: pointer; transition: border-color .2s, opacity .2s, background .2s; }
+.sd-action:hover:not(:disabled) { border-color: #8bb9fa70; }
+.sd-action:disabled { opacity: .4; cursor: default; }
+.sd-action.is-on { background: #a0c8ff; border-color: #a0c8ff; color: #101620; }
+/* Petite ligne sous un record (Snake, Memory…) */
+.ms-records li small { font-size: 10px; color: #7d8594; }
+/* Message par-dessus la zone de jeu (Snake, Blocs) */
+.snake-overlay { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 10px; padding: 16px; background: #090b0dc4; backdrop-filter: blur(2px); text-align: center; }
+.snake-overlay strong { display: inline-flex; align-items: center; gap: 8px; font-size: 22px; letter-spacing: -.03em; }
+.snake-overlay span { max-width: 260px; font-size: 13px; line-height: 1.6; color: #b3bccc; }
+.snake-overlay .button { border: 0; cursor: pointer; margin-top: 4px; }
+@media (max-width: 600px) {
+  .t48-score { min-width: 0; flex: 1; padding: 7px 10px; }
+  .t48-btn { padding: 9px 12px; }
+  .sd-action { padding: 8px 11px; }
+}
+/* Écran étroit : boutons à côté des scores en icônes seules (2048, Snake), pour laisser la place aux scores */
+@media (max-width: 440px) {
+  .t48-btn-texte { display: none; }
+  .t48-btn { justify-content: center; min-width: 46px; padding: 9px 12px; }
+  .t48-score span { letter-spacing: .1em; }
+}
+
 @media (max-width: 800px) {
   .ms-levels { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 600px) {
   .jeux { padding-top: 28px; }
+  .jx-grille { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding-top: 28px; }
+  .jx-texte { padding: 11px 12px 13px; gap: 3px; }
+  .jx-texte strong { font-size: 14px; }
+  .jx-texte > span { font-size: 11.5px; line-height: 1.45; }
+  .jx-suite { grid-template-columns: 1fr 1fr; }
+  .jx-suite .jx-tous { grid-column: 1 / -1; grid-row: 1; justify-self: center; }
   .jeux-game { padding-top: 36px; }
   .ms-panel { padding: 14px 12px 16px; border-radius: 14px; gap: 14px; }
   .ms-board { --gap: 2px; }
@@ -259,4 +323,3 @@ html.ms-lock .to-top { display: none; }
 }
 
 /* Badge « bientôt » sur les onglets des jeux encore en chantier. */
-.jeux-soon { font: 9px 'DM Mono', monospace; letter-spacing: .08em; text-transform: uppercase; color: #ffcc4d; background: #ffcc4d14; border: 1px solid #ffcc4d40; border-radius: 999px; padding: 2px 7px; }
