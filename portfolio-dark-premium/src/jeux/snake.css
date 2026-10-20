@@ -9,10 +9,6 @@
 @keyframes snake-choc { 20% { transform: translateX(-6px); } 45% { transform: translateX(5px); } 70% { transform: translateX(-2px); } }
 .is-fullscreen .snake-zone { max-width: min(560px, calc(100svh - 260px)); }
 
-.snake-overlay { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 10px; padding: 16px; background: #090b0dc4; backdrop-filter: blur(2px); text-align: center; }
-.snake-overlay strong { display: inline-flex; align-items: center; gap: 8px; font-size: 22px; letter-spacing: -.03em; }
-.snake-overlay span { max-width: 260px; font-size: 13px; line-height: 1.6; color: #b3bccc; }
-.snake-overlay .button { border: 0; cursor: pointer; margin-top: 4px; }
 
 /* Croix directionnelle (écrans tactiles uniquement). */
 .snake-croix { display: none; grid-template-columns: repeat(3, 60px); grid-template-rows: repeat(3, 52px); gap: 6px; grid-template-areas: '. haut .' 'gauche . droite' '. bas .'; }

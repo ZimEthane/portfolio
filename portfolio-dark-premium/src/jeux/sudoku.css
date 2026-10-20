@@ -44,11 +44,6 @@
 .sd-chiffre.is-full { opacity: .32; }
 .sd-chiffre.is-notes { color: #9aa3b5; font-size: 15px; border-style: dashed; }
 
-.sd-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
-.sd-action { display: inline-flex; align-items: center; gap: 7px; padding: 9px 14px; border-radius: 999px; border: 1px solid #ffffff14; background: #07080a; color: #cfd8ea; font: 700 12px Manrope, sans-serif; cursor: pointer; transition: border-color .2s, opacity .2s, background .2s; }
-.sd-action:hover:not(:disabled) { border-color: #8bb9fa70; }
-.sd-action:disabled { opacity: .4; cursor: default; }
-.sd-action.is-on { background: #a0c8ff; border-color: #a0c8ff; color: #101620; }
 
 /* Illustrations du guide. */
 .sd-mini { display: grid; grid-template-columns: repeat(3, 28px); border: 2px solid #8bb9fa80; border-radius: 8px; overflow: hidden; }
@@ -60,5 +55,4 @@
 @media (max-width: 600px) {
   .sd-pave { gap: 4px; }
   .sd-chiffre { font-size: 17px; padding: 7px 0 5px; border-radius: 8px; }
-  .sd-action { padding: 8px 11px; }
 }

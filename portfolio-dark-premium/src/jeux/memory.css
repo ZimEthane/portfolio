@@ -1,6 +1,5 @@
 /* ===== Memory ===== */
 .ms-levels.mem-levels { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.ms-records li small { font-size: 10px; color: #7d8594; }
 
 .mem-grille {
   --c: var(--cols); --r: var(--rows); --g: 10px;
