@@ -316,7 +316,7 @@ function Mots() {
         </g>
       )))}
       <circle cx="118" cy="50" r="34" fill="#ffffff0c" stroke="#ffffff18" />
-      <polyline points="118,25 139.65,62.5 96.35,62.5" fill="none" stroke="#ff8a3d" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
+      <polyline points="118,25 96.35,62.5 139.65,62.5" fill="none" stroke="#ff8a3d" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
       {lettres.map((c, i) => {
         const a = -Math.PI / 2 + (i / 6) * Math.PI * 2
         const x = 118 + Math.cos(a) * 25
@@ -360,6 +360,34 @@ function Joute() {
   )
 }
 
+function RaseMottes() {
+  return (
+    <Svg fond="#141a40">
+      {[[12, 10], [40, 22], [70, 8], [98, 18], [130, 12], [150, 30], [22, 34], [84, 36]].map(([x, y]) => <rect key={`${x}${y}`} x={x} y={y} width="1" height="1" fill="#ffffffaa" />)}
+      <path d="M0 100V78Q20 62 40 72T80 66T120 76T160 64V100Z" fill="#2f6b3a" />
+      <path d="M0 78Q20 62 40 72T80 66T120 76T160 64" fill="none" stroke="#7bd66a" strokeWidth="1.4" />
+      <g transform="translate(112 66)">
+        <rect x="-5" y="-6" width="10" height="6" rx="1.5" fill="#ffd84d" />
+        <rect x="-5" y="-4" width="10" height="1.6" fill="#7a5a00" />
+      </g>
+      <g transform="translate(84 58)">
+        <path d="M-1.6 0V-7Q0 -11 1.6 -7V0Z" fill="#e8edf5" />
+        <path d="M-1.6 -3L-3.4 0H-1.6ZM1.6 -3L3.4 0H1.6Z" fill="#ff5a5a" />
+        <path d="M-1.2 0L0 4L1.2 0Z" fill="#ffd84d" />
+      </g>
+      <g transform="translate(42 38) scale(1.6)">
+        <path d="M-5 -1L-9 0L-5 1Z" fill="#ff8a3d" />
+        <path d="M6 0L-2 -2.2L-5 -1.3V1.3L-2 2.2Z" fill="#e8f4ff" />
+        <path d="M0 1L-4 4L-2.4 1ZM0 -1L-4 -3.4L-2.4 -1Z" fill="#2dd4ff" />
+      </g>
+      <path d="M58 38H66M74 38H82" stroke="#fff7a8" strokeWidth="1.2" />
+      <ellipse cx="60" cy="54" rx="2.2" ry="1.5" fill="#1a1f2a" stroke="#ff6b6b" strokeWidth=".6" />
+      <rect x="6" y="6" width="34" height="5" rx="2" fill="#00000066" />
+      <rect x="7" y="7" width="22" height="3" rx="1.5" fill="#7bd66a" />
+    </Svg>
+  )
+}
+
 export const APERCUS: Record<string, () => ReactNode> = {
   demineur: Demineur,
   '2048': Jeu2048,
@@ -380,4 +408,5 @@ export const APERCUS: Record<string, () => ReactNode> = {
   minigolf: Minigolf,
   mots: Mots,
   joute: Joute,
+  'rase-mottes': RaseMottes,
 }

@@ -1,0 +1,18 @@
+/* ===== Rase-mottes ===== */
+.rm-zone { position: relative; flex-shrink: 0; width: 100%; min-width: 0; max-width: 760px; border-radius: 14px; border: 1px solid #ffffff14; background: #0b1030; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; outline: none; cursor: crosshair; contain: inline-size; }
+.rm-zone:focus-visible { box-shadow: 0 0 0 3px #a0c8ff; }
+.rm-zone canvas { display: block; width: 100%; aspect-ratio: 16 / 10; }
+.is-fullscreen .rm-zone { max-width: min(100%, calc((100svh - 230px) * 1.6)); }
+.rm-overlay { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 8px; padding: 12px; background: #05081acc; text-align: center; }
+.rm-overlay strong { display: inline-flex; align-items: center; gap: 8px; font-size: 22px; letter-spacing: -.03em; }
+.rm-overlay span { max-width: 300px; font-size: 13px; color: #b9c3dc; }
+.rm-overlay .button { border: 0; cursor: pointer; }
+.rm-vies strong { display: flex; justify-content: center; gap: 3px; min-height: 22px; align-items: center; color: #2dd4ff; }
+.rm-vies strong svg { fill: #2dd4ff; }
+
+.rm-boutons { display: none; width: 100%; max-width: 420px; }
+.rm-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 60px; border-radius: 16px; border: 1px solid #ff6b6b60; background: #ff6b6b14; color: #ffd0d0; font: 700 15px Manrope, sans-serif; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
+.rm-btn:active { background: #ff6b6b33; border-color: #ff6b6b; }
+@media (hover: none), (pointer: coarse) {
+  .rm-boutons { display: block; }
+}

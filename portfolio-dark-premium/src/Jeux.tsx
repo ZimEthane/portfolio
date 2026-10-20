@@ -110,6 +110,12 @@ const games: GameInfo[] = [
     component: lazy(() => import('./jeux/Minigolf')),
   },
   {
+    id: 'rase-mottes', name: 'Rase-mottes', categorie: 'arcade', couleur: '#2dd4ff', nouveau: true,
+    court: 'Vole au ras du sol, tire et bombarde.',
+    description: 'Un jeu de tir à défilement : pilote ton vaisseau au ras du relief, détruis les fusées, fais le plein en touchant les réservoirs et traverse six zones jusqu’à la base ennemie.',
+    component: lazy(() => import('./jeux/RaseMottes')),
+  },
+  {
     id: 'solitaire', name: 'Solitaire', categorie: 'plateau', couleur: '#4fbf7a', nouveau: true,
     court: 'Range les quatre familles, de l’As au Roi.',
     description: 'Le solitaire classique : descends les cartes en alternant les couleurs dans les colonnes et monte les quatre familles de l’As au Roi. Pioche par 1 ou par 3.',
