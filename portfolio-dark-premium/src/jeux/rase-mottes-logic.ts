@@ -49,6 +49,7 @@ export interface Etat {
   message: { texte: string; t: number } | null
   graine: number
   prochaineVie: number // score à atteindre pour gagner une vie
+  bonus: Bonus
 
 }
 
@@ -152,7 +153,7 @@ export function genererZone(k: number, graine: number): Relief {
 export function nouvelEtat(graine = 1): Etat {
   return {
     t: 0, camera: 0, vitesse: 26, boucle: 0, joueur: { x: 28, y: 40, invincible: 0 }, tirs: [], bombes: [], explosions: [],
-    carburant: 100, score: 0, vies: 3, statut: 'pret', mortDepuis: 0, reliefs: new Map(), cadence: 0, message: null, graine, prochaineVie: VIE_TOUS_LES,
+    carburant: 100, score: 0, vies: 3, statut: 'pret', mortDepuis: 0, reliefs: new Map(), cadence: 0, message: null, graine, prochaineVie: VIE_TOUS_LES, bonus: sansBonus(),
   }
 }
 
@@ -195,7 +196,12 @@ export function ennemisProches(e: Etat): Ennemi[] {
 }
 
 export interface Commandes { dx: number; dy: number; tir: boolean; bombe: boolean } // dx, dy : de -1 à 1
-export interface Evenement { type: 'tir' | 'bombe' | 'explosion' | 'plein' | 'mort' | 'base' | 'zone' | 'fin' | 'fuite' | 'vie'; force?: number }
+export interface Evenement { type: 'tir' | 'bombe' | 'explosion' | 'plein' | 'mort' | 'base' | 'zone' | 'fin' | 'fuite' | 'vie' | 'bonus' | 'bouclier'; force?: number }
+
+// Bonus des caisses « ? » : tir double et tir rapide (quelques secondes), bouclier (protège d'un choc).
+export interface Bonus { double: number; rapide: number; bouclier: boolean }
+export const DUREE_BONUS = 12
+const sansBonus = (): Bonus => ({ double: 0, rapide: 0, bouclier: false })
 export const VIE_TOUS_LES = 5000 // une vie en plus tous les 5 000 points
 export const VIES_MAX = 5
 
@@ -224,6 +230,7 @@ export function pas(e: Etat, c: Commandes, dt: number): Evenement[] {
         e.carburant = 100
         e.tirs = []
         e.bombes = []
+        e.bonus = sansBonus()
         e.statut = 'jeu'
       }
     }
@@ -235,6 +242,8 @@ export function pas(e: Etat, c: Commandes, dt: number): Evenement[] {
   e.camera += e.vitesse * dt
   const j = e.joueur
   j.invincible = Math.max(0, j.invincible - dt)
+  e.bonus.double = Math.max(0, e.bonus.double - dt)
+  e.bonus.rapide = Math.max(0, e.bonus.rapide - dt)
   j.x = Math.max(8, Math.min(LARGEUR * 0.62, j.x + c.dx * 62 * dt))
   j.y = Math.max(4, Math.min(HAUTEUR - 4, j.y + c.dy * 62 * dt))
   const zone = zoneDe(e.camera + j.x)
@@ -248,9 +257,10 @@ export function pas(e: Etat, c: Commandes, dt: number): Evenement[] {
 
   // Tirs et bombes
   e.cadence -= dt
-  if (c.tir && e.cadence <= 0 && e.tirs.length < 4) {
-    e.tirs.push({ x: e.camera + j.x + 6, y: j.y })
-    e.cadence = 0.17
+  if (c.tir && e.cadence <= 0 && e.tirs.length < (e.bonus.double || e.bonus.rapide ? 10 : 4)) {
+    if (e.bonus.double) e.tirs.push({ x: e.camera + j.x + 4, y: j.y - 1.8 }, { x: e.camera + j.x + 4, y: j.y + 1.8 })
+    else e.tirs.push({ x: e.camera + j.x + 6, y: j.y })
+    e.cadence = e.bonus.rapide ? 0.085 : 0.17
     ev.push({ type: 'tir' })
   }
   if (c.bombe && e.bombes.length < 2 && !e.bombes.some(b => b.vy < 18)) {
@@ -264,7 +274,20 @@ export function pas(e: Etat, c: Commandes, dt: number): Evenement[] {
     exploser(n.x, n.y - 2, n.type === 'base' ? 14 : 6, COULEUR[n.type])
     let pts = POINTS[n.type]
     if (n.type === 'fusee' && n.vol) pts = 80
-    if (n.type === 'mystere') pts = [100, 200, 300][Math.floor(Math.random() * 3)]
+    if (n.type === 'mystere') {
+      pts = 100
+      // Une caisse « ? » donne un bonus au hasard.
+      const r = Math.random()
+      const b = r < 0.3 ? 'double' : r < 0.55 ? 'rapide' : r < 0.8 ? 'bouclier' : r < 0.92 || e.vies >= VIES_MAX ? 'plein' : 'vie'
+      if (b === 'double') e.bonus.double = DUREE_BONUS
+      else if (b === 'rapide') e.bonus.rapide = DUREE_BONUS
+      else if (b === 'bouclier') e.bonus.bouclier = true
+      else if (b === 'plein') e.carburant = 100
+      else e.vies++
+      const nom = { double: 'tir double', rapide: 'tir rapide', bouclier: 'bouclier', plein: 'plein de carburant', vie: 'une vie en plus' }[b]
+      e.message = { texte: `Bonus : ${nom} !`, t: e.t }
+      ev.push({ type: 'bonus' })
+    }
     e.score += pts
     if (e.score >= e.prochaineVie) {
       e.prochaineVie += VIE_TOUS_LES
@@ -369,6 +392,15 @@ export function pas(e: Etat, c: Commandes, dt: number): Evenement[] {
 
   // Le vaisseau touche-t-il quelque chose ?
   const mourir = () => {
+    // Le bouclier encaisse le choc à ta place.
+    if (e.bonus.bouclier && e.carburant > 0) {
+      e.bonus.bouclier = false
+      j.invincible = 1.6
+      exploser(xj, j.y, 8, '#5ad8ff')
+      e.message = { texte: 'Le bouclier t’a sauvé !', t: e.t }
+      ev.push({ type: 'bouclier' })
+      return
+    }
     e.statut = 'mort'
     e.mortDepuis = 0
     e.vies--
@@ -378,11 +410,16 @@ export function pas(e: Etat, c: Commandes, dt: number): Evenement[] {
   if (!j.invincible) {
     const coins: [number, number][] = [[-5, -1.5], [5, 0], [-5, 2], [0, 2.2], [3, -1]]
     if (coins.some(([dx, dy]) => j.y + dy >= solEn(e, xj + dx) || j.y + dy <= plafondEn(e, xj + dx))) mourir()
-    else if (proches.some(n => !n.mort && n.type !== 'reservoir' && n.type !== 'mystere' && n.type !== 'base' && touche(n, xj, j.y, 2.5))) mourir()
-    else if (proches.some(n => !n.mort && (n.type === 'reservoir' || n.type === 'mystere' || n.type === 'base') && touche(n, xj, j.y, 2))) mourir()
-    else if (e.carburant <= 0) {
-      e.message = { texte: 'Plus de carburant !', t: e.t }
-      mourir()
+    else {
+      const choc = proches.find(n => !n.mort && touche(n, xj, j.y, n.type === 'reservoir' || n.type === 'mystere' || n.type === 'base' ? 2 : 2.5))
+      if (choc) {
+        // Avec un bouclier, ce qu'on percute est détruit (sauf les comètes et la base).
+        if (e.bonus.bouclier && choc.type !== 'comete' && choc.type !== 'base') detruire(choc)
+        mourir()
+      } else if (e.carburant <= 0) {
+        e.message = { texte: 'Plus de carburant !', t: e.t }
+        mourir()
+      }
     }
   } else if (e.carburant <= 0) e.carburant = 1
   return ev
