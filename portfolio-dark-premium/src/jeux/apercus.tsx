@@ -177,12 +177,11 @@ function Labyrinthe() {
   return (
     <Svg fond="#0a0614">
       <path d="M14 10H146V90H14ZM34 30H90M110 30V70M34 50H70V90M90 50V70H130" fill="none" stroke="#a24cff" strokeWidth="5" strokeLinejoin="round" />
-      {[44, 54, 64, 74].map(x => <circle key={x} cx={x} cy="40" r="1.8" fill="#ffd84d" />)}
-      {[60, 70, 80].map(y => <circle key={y} cx="122" cy={y} r="1.8" fill="#ffd84d" />)}
+      <path d="M44 40l3-6 3 6 3-6 3 6" fill="#ff4d6d" />
       <rect x="18" y="74" width="12" height="12" rx="2" fill="#4dffd2" />
       <rect x="21" y="78" width="2" height="2" fill="#0a0614" /><rect x="25" y="78" width="2" height="2" fill="#0a0614" />
       <path d="M40 80h22" stroke="#4dffd240" strokeWidth="3" strokeLinecap="round" />
-      <rect x="132" y="14" width="10" height="12" rx="2" fill="#ffd84d" />
+      <rect x="132" y="14" width="11" height="11" rx="1" fill="#4dffb833" stroke="#4dffb8" strokeWidth="1.6" />
     </Svg>
   )
 }

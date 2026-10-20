@@ -94,7 +94,7 @@ const games: GameInfo[] = [
   {
     id: 'labyrinthe', name: 'Labyrinthe', categorie: 'arcade', couleur: '#c45cff', nouveau: true,
     court: 'Glisse jusqu’au mur, trouve la sortie.',
-    description: 'Le héros fonce tout droit jusqu’au prochain mur : trouve le bon chemin vers la sortie, évite les pics et ramasse les points. 60 niveaux à débloquer.',
+    description: 'Le héros fonce tout droit jusqu’au prochain mur : trouve le chemin vers la sortie en un minimum de coups, sans toucher les pics. 500 niveaux, de débutant à expert.',
     component: lazy(() => import('./jeux/Labyrinthe')),
   },
   {
