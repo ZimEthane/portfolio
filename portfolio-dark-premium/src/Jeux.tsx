@@ -74,6 +74,12 @@ const games: GameInfo[] = [
     component: lazy(() => import('./jeux/Ninja')),
   },
   {
+    id: 'labyrinthe', name: 'Labyrinthe', categorie: 'arcade', couleur: '#c45cff', nouveau: true,
+    court: 'Glisse jusqu’au mur, trouve la sortie.',
+    description: 'Le héros fonce tout droit jusqu’au prochain mur : trouve le bon chemin vers la sortie, évite les pics et ramasse les points. 60 niveaux à débloquer.',
+    component: lazy(() => import('./jeux/Labyrinthe')),
+  },
+  {
     id: 'puissance-4', name: 'Puissance 4', categorie: 'plateau', couleur: '#ffd36b',
     court: 'Aligne 4 jetons avant l’ordinateur.',
     description: 'Aligne 4 jetons de ta couleur, à l’horizontale, à la verticale ou en diagonale, avant l’ordinateur (ou un ami).',
