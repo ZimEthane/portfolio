@@ -175,6 +175,7 @@ export default function Glouton() {
   const e = useRef(etat)
   const c = useRef(16)
   const murs = useRef<HTMLCanvasElement | null>(null)
+  const mursDuPlan = useRef<string[] | null>(null) // le labyrinthe dessiné dans « murs »
   const pauseRef = useRef(false)
   pauseRef.current = enPause
   const reglages = useRef({ sound, vibe })
@@ -201,6 +202,7 @@ export default function Glouton() {
       cv.style.width = `${W * t}px`
       cv.style.height = `${H * t}px`
       murs.current = dessinerMurs(t, dpr)
+      mursDuPlan.current = PLAN
     })
     ro.observe(zone)
     return () => ro.disconnect()
@@ -272,6 +274,11 @@ export default function Glouton() {
       const k = c.current
       const dpr = window.devicePixelRatio || 1
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      // Nouveau niveau, nouveau labyrinthe : on redessine les murs.
+      if (mursDuPlan.current !== PLAN && k) {
+        murs.current = dessinerMurs(k, window.devicePixelRatio || 1)
+        mursDuPlan.current = PLAN
+      }
       if (murs.current) ctx.drawImage(murs.current, 0, 0, W * k, H * k)
       const s = e.current
       ctx.fillStyle = '#f4e9c8'
@@ -368,7 +375,7 @@ export default function Glouton() {
     <section className="ms glouton" aria-label="Glouton">
       <Guide
         etapes={[
-          { title: 'Mange toutes les graines', text: 'Dirige le glouton avec les flèches (ou en glissant le doigt). Le niveau est fini quand il n’y a plus une graine.' },
+          { title: 'Mange toutes les graines', text: 'Dirige le glouton avec les flèches (ou en glissant le doigt). Le niveau est fini quand il n’y a plus une graine : au suivant, nouveau labyrinthe (10 en tout) et monstres plus rapides.' },
           { title: 'Évite les monstres', text: 'Quatre monstres te poursuivent, chacun à sa manière : le rouge fonce sur toi, le rose te coupe la route, le bleu t’encercle, l’ambre est plus timide.' },
           { title: 'Les super-graines', text: 'Les grosses graines dorées rendent les monstres peureux quelques secondes : mange-les pour 200, 400, 800 puis 1600 points.' },
           { title: 'Tunnels et bonus', text: 'Le passage au milieu à gauche et à droite te fait ressortir de l’autre côté. Un joyau rose apparaît parfois : il rapporte gros.' },

@@ -6,33 +6,30 @@ import Guide from './commun/Guide'
 import Outils from './commun/Outils'
 import { loadJSON, saveJSON, useSonVibrations } from './commun/reglages'
 import { useFullscreen } from './commun/useFullscreen'
+import { ChoixNiveaux, ProgressionPaliers } from './commun/Niveaux'
 import { chargerLexique } from './lexique'
 import type { Lexique } from './lexique'
 import { lireNiveau, prochainIndice } from './mots-logic'
 import { NIVEAUX } from './mots-niveaux'
 import './mots.css'
 
-const PROGRES_KEY = 'ez-mots' // { fait: [numéros réussis], indices, bonus }
-const PARTIE_KEY = 'ez-mots-partie'
-const PALIERS = [
-  { nom: '4 lettres', de: 1, a: 20 },
-  { nom: '5 lettres', de: 21, a: 50 },
-  { nom: '6 lettres', de: 51, a: 80 },
-  { nom: '7 lettres', de: 81, a: 100 },
-]
+const PROGRES_KEY = 'ez-mots-500' // { fait: [niveaux réussis], parfaits: [réussis sans indice], indices, bonus }
+const PARTIE_KEY = 'ez-mots-500-partie'
+const LETTRES = ['4 lettres', '5 lettres', '6 lettres', '7 lettres', '8 lettres']
 const BONUS_PAR_INDICE = 3 // un indice gagné tous les 3 mots bonus
 
-interface Progres { fait: number[]; indices: number; bonus: number }
+interface Progres { fait: number[]; parfaits: number[]; indices: number; bonus: number }
 interface Partie { num: number; trouves: string[]; reveles: Record<string, number[]>; bonus: string[] }
 const nouvelle = (num: number): Partie => ({ num, trouves: [], reveles: {}, bonus: [] })
+const PROGRES_VIDE: Progres = { fait: [], parfaits: [], indices: 3, bonus: 0 }
 type Message = { texte: string; ton: 'ok' | 'bonus' | 'non' | 'info'; id: number }
 
 export default function Mots() {
-  const [progres, setProgres] = useState<Progres>(() => loadJSON<Progres>(PROGRES_KEY, { fait: [], indices: 3, bonus: 0 }))
+  const [progres, setProgres] = useState<Progres>(() => ({ ...PROGRES_VIDE, ...loadJSON<Partial<Progres>>(PROGRES_KEY, {}) }))
   const [partie, setPartie] = useState<Partie>(() => {
     const p = loadJSON<Partie | null>(PARTIE_KEY, null)
     if (p && p.num >= 1 && p.num <= NIVEAUX.length && Array.isArray(p.trouves)) return { ...nouvelle(p.num), ...p }
-    const fait = loadJSON<Progres>(PROGRES_KEY, { fait: [], indices: 3, bonus: 0 }).fait
+    const fait = loadJSON<Partial<Progres>>(PROGRES_KEY, {}).fait ?? []
     let k = 1
     while (k < NIVEAUX.length && fait.includes(k)) k++
     return nouvelle(k)
@@ -44,7 +41,6 @@ export default function Mots() {
   const [doigt, setDoigt] = useState<{ x: number; y: number } | null>(null)
   const [message, setMessage] = useState<Message | null>(null)
   const [nouveau, setNouveau] = useState<string | null>(null) // dernier mot trouvé (animation)
-  const [palier, setPalier] = useState<number | null>(null)
   const [voirBonus, setVoirBonus] = useState(false)
   const [gain, setGain] = useState(false) // le niveau qu'on vient de finir a rapporté un indice
   const [lexique, setLexique] = useState<Lexique | null>(null)
@@ -86,7 +82,6 @@ export default function Mots() {
 
   const charger = (num: number) => {
     setPartie(nouvelle(Math.max(1, Math.min(NIVEAUX.length, num))))
-    setPalier(null)
     setVoirBonus(false)
     setMessage(null)
   }
@@ -96,7 +91,14 @@ export default function Mots() {
     if (nv.mots.every(x => trouves.includes(x))) {
       // Niveau réussi : on le note et on gagne un indice (la première fois).
       setGain(!progres.fait.includes(p.num))
-      setProgres(g => (g.fait.includes(p.num) ? g : { ...g, fait: [...g.fait, p.num], indices: g.indices + 1 }))
+      // Parfait : aucune lettre dévoilée par un indice.
+      const sansIndice = Object.keys(p.reveles).length === 0
+      setProgres(g => ({
+        ...g,
+        fait: g.fait.includes(p.num) ? g.fait : [...g.fait, p.num],
+        parfaits: sansIndice && !g.parfaits.includes(p.num) ? [...g.parfaits, p.num] : g.parfaits,
+        indices: g.indices + (g.fait.includes(p.num) ? 0 : 1),
+      }))
       window.setTimeout(() => {
         if (sound) playSound('win')
         if (vibe && canVibrate()) vibrate('win')
@@ -267,8 +269,6 @@ export default function Mots() {
   // Taille des cases selon le nombre total de lettres à placer.
   const totalLettres = nv.mots.reduce((a, m) => a + m.length, 0)
   const taille = totalLettres <= 24 ? 34 : totalLettres <= 40 ? 30 : totalLettres <= 60 ? 26 : 23
-  const fait = (k: number) => progres.fait.includes(k)
-  const ouvert = (k: number) => k === 1 || fait(k) || fait(k - 1) || k === partie.num
   const nbIndice = progres.indices
   const enCours = sel.length > 0
 
@@ -288,35 +288,16 @@ export default function Mots() {
         ]}
       />
 
+      <ChoixNiveaux courant={partie.num} etat={k => (progres.parfaits.includes(k) ? 'parfait' : progres.fait.includes(k) ? 'fait' : '')} onChoisir={charger} details={LETTRES} parfait="sans indice" />
+
       <div ref={panelRef} className={plein.full ? 'ms-panel is-fullscreen' : 'ms-panel'}>
         <div className="t48-bar">
-          <button type="button" className="t48-score mm-niveau" onClick={() => setPalier(palier === null ? PALIERS.findIndex(p => partie.num <= p.a) : null)} aria-expanded={palier !== null} title="Choisir un niveau">
-            <span>Niveau</span><strong>{partie.num}</strong>
-          </button>
+          <div className="t48-score"><span>Niveau</span><strong>{partie.num}</strong></div>
           <div className="t48-score"><span>Trouvés</span><strong>{partie.trouves.length}<small>/{nv.mots.length}</small></strong></div>
           <button type="button" className="t48-score mm-niveau" onClick={() => setVoirBonus(v => !v)} aria-expanded={voirBonus} title="Voir les mots bonus">
             <span>Bonus</span><strong>{partie.bonus.length}</strong>
           </button>
         </div>
-
-        {palier !== null && (
-          <div className="mm-choix">
-            <div className="mm-paliers" role="group" aria-label="Longueur des mots">
-              {PALIERS.map((p, k) => (
-                <button key={p.nom} type="button" aria-pressed={palier === k} className={palier === k ? 'is-active' : ''} onClick={() => setPalier(k)}>
-                  {p.nom} <small>{Array.from({ length: p.a - p.de + 1 }, (_, j) => p.de + j).filter(fait).length}/{p.a - p.de + 1}</small>
-                </button>
-              ))}
-            </div>
-            <div className="mm-niveaux" role="group" aria-label="Niveaux">
-              {Array.from({ length: PALIERS[palier].a - PALIERS[palier].de + 1 }, (_, j) => PALIERS[palier].de + j).map(k => (
-                <button key={k} type="button" disabled={!ouvert(k)} className={`${k === partie.num ? 'is-current' : ''}${fait(k) ? ' is-fait' : ''}`} onClick={() => charger(k)} aria-label={`Niveau ${k}${fait(k) ? ', réussi' : ouvert(k) ? '' : ', verrouillé'}`}>
-                  {k}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
 
         {voirBonus && (
           <div className="mm-bonus-liste">
@@ -396,7 +377,7 @@ export default function Mots() {
                 <span>{nv.mots.length} mots trouvés{partie.bonus.length ? `, ${partie.bonus.length} bonus` : ''}{gain ? '. +1 indice' : ''}</span>
                 {partie.num < NIVEAUX.length
                   ? <button type="button" className="button button-primary" onClick={() => charger(partie.num + 1)}>Niveau suivant <ChevronRight size={16} /></button>
-                  : <span>Tu as fini les 100 niveaux !</span>}
+                  : <span>Tu as fini les {NIVEAUX.length} niveaux !</span>}
               </div>
             )}
           </div>
@@ -424,9 +405,11 @@ export default function Mots() {
         <span className="mini-label">Ta progression sur cet appareil</span>
         <ul>
           <li><span>Niveaux réussis</span><strong>{progres.fait.length} / {NIVEAUX.length}</strong></li>
+          <li><span>Sans indice</span><strong>{progres.parfaits.length} / {NIVEAUX.length}</strong></li>
           <li><span>Mots bonus</span><strong>{progres.bonus}</strong></li>
           <li><span>Indices</span><strong>{progres.indices}</strong></li>
         </ul>
+        <ProgressionPaliers etat={k => (progres.parfaits.includes(k) ? 'parfait' : progres.fait.includes(k) ? 'fait' : '')} />
       </div>
     </section>
   )

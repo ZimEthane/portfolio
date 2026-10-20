@@ -97,28 +97,36 @@ function resoudreLigne(clue: number[], connu: number[]): number[] | null {
 
 // Résout toute la grille par logique (sans deviner). true si tout est déterminé : solution unique.
 export function resolubleSansDeviner(lignes: number[][], colonnes: number[][]): boolean {
+  return passes(lignes, colonnes) !== null
+}
+
+// Nombre de tours (toutes les lignes puis toutes les colonnes) pour tout résoudre par logique, ou null.
+// Plus il en faut, plus la grille est difficile.
+export function passes(lignes: number[][], colonnes: number[][]): number | null {
   const h = lignes.length
   const w = colonnes.length
   const g = new Array(w * h).fill(-1)
   let change = true
+  let tours = 0
   while (change) {
+    tours++
     change = false
     for (let y = 0; y < h; y++) {
       const r = resoudreLigne(lignes[y], g.slice(y * w, y * w + w))
-      if (!r) return false
+      if (!r) return null
       r.forEach((v, x) => {
         if (v !== g[y * w + x]) { g[y * w + x] = v; change = true }
       })
     }
     for (let x = 0; x < w; x++) {
       const r = resoudreLigne(colonnes[x], Array.from({ length: h }, (_, y) => g[y * w + x]))
-      if (!r) return false
+      if (!r) return null
       r.forEach((v, y) => {
         if (v !== g[y * w + x]) { g[y * w + x] = v; change = true }
       })
     }
   }
-  return g.every(v => v !== -1)
+  return g.every(v => v !== -1) ? tours : null
 }
 
 // Grille aléatoire qui se résout par logique.

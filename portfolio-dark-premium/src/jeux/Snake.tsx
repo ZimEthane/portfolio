@@ -192,6 +192,8 @@ export default function Snake() {
 
   const jeu = useRef<SnakeState>(newSnake(n, true))
   const file = useRef<Dir[]>([]) // virages demandés, appliqués un par pas
+  // Le pas d'avant (pour corriger un virage demandé juste après un pas, sans attendre le suivant).
+  const precedent = useRef<{ s: SnakeState; calme: boolean } | null>(null)
   const taille = useRef(0)
   const fond = useRef<HTMLCanvasElement | null>(null)
   const mortRef = useRef(false)
@@ -238,6 +240,7 @@ export default function Snake() {
     // Nouvelle taille d'arène : le fond (points de la grille) change aussi.
     if (taille.current && (!fond.current || taille2 !== n)) fond.current = preparerFond(taille.current, taille2, window.devicePixelRatio || 1)
     file.current = []
+    precedent.current = null
     mortRef.current = false
     anim.current = { acc: 0, avant: jeu.current.body, mange: null }
     setScore(0)
@@ -253,6 +256,7 @@ export default function Snake() {
     const dir = file.current.shift() ?? jeu.current.dir
     const avant = jeu.current.body
     const { s, event } = step(jeu.current, dir)
+    precedent.current = { s: jeu.current, calme: event === null }
     jeu.current = s
     const vivant = event !== 'dead' && event !== 'full'
     anim.current.avant = vivant ? avant : s.body
@@ -322,10 +326,37 @@ export default function Snake() {
 
   const tourner = (d: Dir) => {
     if (statut === 'perdu') return
+    // Virage demandé au tout début d'un pas : on refait ce pas dans la nouvelle direction,
+    // pour que le serpent tourne tout de suite au lieu d'attendre le pas suivant.
+    const p = precedent.current
+    const progres = anim.current.acc / msRef.current
+    if (statutRef.current === 'joue' && !file.current.length && p?.calme && progres < 0.4 && d !== jeu.current.dir && d !== OPPOSE[p.s.dir]) {
+      jeu.current = p.s
+      file.current = [d]
+      pas()
+      return
+    }
     const derniere = file.current[file.current.length - 1] ?? jeu.current.dir
-    if (d !== derniere && d !== OPPOSE[derniere] && file.current.length < 3) file.current.push(d)
+    if (d !== derniere && d !== OPPOSE[derniere] && file.current.length < 2) file.current.push(d)
     if (statut !== 'joue') setStatut('joue')
   }
+
+  // Les flèches marchent même si le jeu n'a pas le focus (sans faire défiler la page pendant la partie).
+  const clavierRef = useRef<(e: globalThis.KeyboardEvent) => void>(() => {})
+  clavierRef.current = e => {
+    if (statutRef.current !== 'joue' || e.defaultPrevented) return
+    const cible = e.target as HTMLElement | null
+    if (cible && (cible.closest('input, textarea, select, [contenteditable]') || zoneRef.current?.contains(cible))) return
+    const d = KEYS[e.key] ?? KEYS[e.key.toLowerCase()]
+    if (!d) return
+    e.preventDefault()
+    tourner(d)
+  }
+  useEffect(() => {
+    const ecoute = (e: globalThis.KeyboardEvent) => clavierRef.current(e)
+    window.addEventListener('keydown', ecoute)
+    return () => window.removeEventListener('keydown', ecoute)
+  }, [])
 
   const basculerPause = () => {
     if (statut === 'joue') setStatut('pause')

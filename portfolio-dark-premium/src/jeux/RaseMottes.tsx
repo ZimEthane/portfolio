@@ -6,7 +6,7 @@ import Guide from './commun/Guide'
 import Outils from './commun/Outils'
 import { useRecords, useSonVibrations } from './commun/reglages'
 import { useFullscreen } from './commun/useFullscreen'
-import { ennemisProches, HAUTEUR, LARGEUR, LONGUEUR_ZONE, nbZones, nouvelEtat, pas, plafondEn, relief, solEn, zoneDe, ZONES } from './rase-mottes-logic'
+import { DUREE_BONUS, ennemisProches, HAUTEUR, LARGEUR, LONGUEUR_ZONE, nbZones, nouvelEtat, pas, plafondEn, relief, solEn, zoneDe, ZONES } from './rase-mottes-logic'
 import type { Commandes, Ennemi, Etat } from './rase-mottes-logic'
 import './rase-mottes.css'
 
@@ -271,6 +271,15 @@ function dessiner(ctx: CanvasRenderingContext2D, e: Etat) {
 
   const j = e.joueur
   if (e.statut !== 'mort' && e.statut !== 'fin' && !(j.invincible && Math.floor(e.t * 10) % 2)) dessinerVaisseau(ctx, j.x, j.y, e.t)
+  if (e.bonus.bouclier && e.statut === 'jeu') {
+    ctx.strokeStyle = `rgba(90, 216, 255, ${0.55 + Math.sin(e.t * 6) * 0.25})`
+    ctx.fillStyle = 'rgba(90, 216, 255, 0.12)'
+    ctx.lineWidth = 0.8
+    ctx.beginPath()
+    ctx.ellipse(j.x + 0.5, j.y, 8.5, 6, 0, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.stroke()
+  }
 
   // Jauge de carburant et progression des zones
   ctx.fillStyle = '#00000066'
@@ -285,6 +294,23 @@ function dessiner(ctx: CanvasRenderingContext2D, e: Etat) {
   ctx.font = 'bold 3px Manrope, sans-serif'
   ctx.textAlign = 'left'
   ctx.fillText('CARBURANT', 5, 14)
+  // Bonus en cours : une pastille par bonus, avec le temps qui reste.
+  const pastilles: [string, string, number][] = []
+  if (e.bonus.double) pastilles.push(['TIR ×2', '#ffd84d', e.bonus.double / DUREE_BONUS])
+  if (e.bonus.rapide) pastilles.push(['RAPIDE', '#ff9a5a', e.bonus.rapide / DUREE_BONUS])
+  if (e.bonus.bouclier) pastilles.push(['BOUCLIER', '#5ad8ff', 1])
+  pastilles.forEach(([nom, couleur, reste], k) => {
+    const x = 4 + k * 22
+    ctx.fillStyle = '#00000066'
+    ctx.beginPath()
+    ctx.roundRect(x, 17, 20, 6, 2)
+    ctx.fill()
+    ctx.fillStyle = couleur
+    ctx.fillRect(x + 1, 21.6, 18 * reste, 0.9)
+    ctx.font = 'bold 2.6px Manrope, sans-serif'
+    ctx.textAlign = 'center'
+    ctx.fillText(nom, x + 10, 20.6)
+  })
   const zc = zoneDe(e.camera + j.x)
   for (let k = 0; k < nbZones; k++) {
     ctx.fillStyle = k < zc ? ZONES[k].bord : k === zc ? '#ffffff' : '#ffffff30'
@@ -382,9 +408,15 @@ export default function RaseMottes() {
               else if (ev.type === 'base') playSound('win')
               else if (ev.type === 'zone') playSound('line', 1)
               else if (ev.type === 'fin') playSound('gameover')
+              else if (ev.type === 'fuite') playSound('error')
+              else if (ev.type === 'vie') playSound('win')
+              else if (ev.type === 'bonus') playSound('line', 2)
+              else if (ev.type === 'bouclier') playSound('flag')
             }
             if (vib && canVibrate()) {
               if (ev.type === 'mort') vibrate('boom')
+              else if (ev.type === 'fuite') vibrate('error')
+              else if (ev.type === 'bonus' || ev.type === 'bouclier') vibrate('success')
               else if (ev.type === 'plein') vibrate('tap')
               else if (ev.type === 'base') vibrate('win')
             }
@@ -468,11 +500,13 @@ export default function RaseMottes() {
         etapes={[
           { title: 'Vole au ras du sol', text: 'Le décor défile tout seul. Pilote avec les flèches (ou en glissant le doigt sur le jeu) sans toucher le sol, le plafond ni les ennemis.' },
           { title: 'Tire et bombarde', text: 'Espace pour tirer droit devant, B pour lâcher une bombe. Au doigt, le vaisseau tire tout seul ; le bouton Bombe est sous le jeu.' },
+          { title: 'Les caisses « ? »', text: 'Détruis-les pour un bonus : tir double, tir rapide, bouclier (il encaisse un choc à ta place), plein de carburant ou vie en plus.' },
+          { title: 'Ne laisse rien passer', text: 'Chaque fusée ou soucoupe qui sort de l’écran sans être détruite te coûte une vie. Tu gagnes une vie tous les 5 000 points (5 au plus).' },
           { title: 'Fais le plein', text: 'Le carburant baisse sans arrêt : détruis les réservoirs jaunes pour le remplir. Panne sèche = une vie perdue.' },
           { title: 'Six zones', text: 'Collines, soucoupes, grotte, comètes, cité, puis la base : détruis-la à la bombe pour repartir, encore plus vite.' },
         ]}
         astuces={[
-          'Les fusées décollent quand tu approches : tire-les au sol ou passe vite au-dessus.',
+          'Les fusées décollent quand tu approches : détruis-les au sol à la bombe, ou en vol avec ton tir.',
           'Les comètes ne se détruisent pas : il faut les éviter.',
           'P ou Échap pour mettre en pause.',
         ]}

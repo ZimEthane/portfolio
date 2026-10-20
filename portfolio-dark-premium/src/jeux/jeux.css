@@ -324,3 +324,27 @@ html.ms-lock .to-top { display: none; }
 }
 
 /* Badge « bientôt » sur les onglets des jeux encore en chantier. */
+
+/* ===== Niveaux : 5 paliers de 100 (composant commun) ===== */
+.ms-levels.niv-paliers { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.ms-levels.niv-paliers button.is-open { border-color: #a0c8ff; background: #8bb9fa1c; }
+.niv-grille { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 6px; padding: 12px; border-radius: 14px; border: 1px solid #ffffff10; background: #ffffff04; animation: niv-apparait .2s ease-out; }
+.niv-n { aspect-ratio: 1; min-width: 0; padding: 0; border-radius: 8px; border: 1px solid #ffffff10; background: #07080a; color: #8d95a6; font: 500 11px 'DM Mono', monospace; cursor: pointer; transition: border-color .15s; }
+.niv-n:hover { border-color: #8bb9fa80; }
+.niv-n.is-fait { color: #dce9ff; border-color: #8bb9fa50; background: #8bb9fa14; }
+.niv-n.is-parfait { color: #ffe9a8; border-color: #ffd36b70; background: #ffd36b1a; }
+.niv-n.is-current { outline: 2px solid #a0c8ff; outline-offset: 1px; }
+@keyframes niv-apparait { from { opacity: 0; transform: scale(.96); } }
+.ms .ms-records ul.niv-prog { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); margin-top: 10px; }
+.niv-jauge { display: block; height: 4px; margin-top: 4px; border-radius: 2px; background: #ffffff10; overflow: hidden; }
+.niv-jauge b { display: block; height: 100%; border-radius: 2px; background: #8bb9fa; }
+@media (max-width: 600px) {
+  .ms-levels.niv-paliers { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .ms-levels.niv-paliers button { grid-column: span 2; padding: 10px 11px; }
+  .ms-levels.niv-paliers button:nth-child(n + 4) { grid-column: span 3; }
+  .niv-grille { gap: 4px; padding: 8px; }
+  .ms .ms-records ul.niv-prog { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+  .ms .niv-prog li { grid-column: span 2; padding: 10px 11px; }
+  .ms .niv-prog li:nth-child(n + 4) { grid-column: span 3; }
+}
+@media (prefers-reduced-motion: reduce) { .niv-grille { animation: none; } }

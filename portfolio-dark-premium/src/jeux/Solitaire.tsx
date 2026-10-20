@@ -233,6 +233,7 @@ export default function Solitaire() {
   }, [glisse, jeu])
 
   const H = largeur * 1.4
+  const PILE_MAX = 3 // une colonne ne dépasse jamais 3 hauteurs de carte (les cartes se serrent)
   const enMain = (l: Lieu) => !!glisse && JSON.stringify(glisse.de) === JSON.stringify(l)
   const estIndice = (l: Lieu) => !!indice && indice.de !== 'pioche' && JSON.stringify(indice.de) === JSON.stringify(l)
   const duree = Math.max(0, Math.round(((etat.fin ?? maintenant) - etat.debut) / 1000))
@@ -319,12 +320,13 @@ export default function Solitaire() {
             ))}
           </div>
 
-          <div className="sl-colonnes">
+          {/* Hauteur fixe dès le début (la plus grande possible) : le tapis ne change plus de taille. */}
+          <div className="sl-colonnes" style={{ minHeight: H + H * PILE_MAX }}>
             {jeu.colonnes.map((col, i) => {
               // Écart entre les cartes : plus serré si la colonne est longue.
               const cachees = col.filter(c => !c.visible).length
               const visibles = col.length - cachees
-              const max = H * 3.6
+              const max = H * PILE_MAX
               let pasCache = H * 0.16
               let pasVisible = H * 0.27
               const total = cachees * pasCache + Math.max(0, visibles - 1) * pasVisible

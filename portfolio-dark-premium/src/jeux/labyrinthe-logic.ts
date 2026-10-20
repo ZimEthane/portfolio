@@ -1,8 +1,8 @@
 // Labyrinthe : le héros glisse tout droit jusqu'au prochain mur. Il faut atteindre la sortie
-// sans toucher les pics, et ramasser les points au passage.
+// sans toucher les pics, en le moins de coups possible.
 //
 // Un niveau s'écrit ligne par ligne :
-//   # mur   . sol vide   o point à ramasser   ^ pic   S départ   E sortie
+//   # mur   . sol vide   ^ pic   S départ   E sortie
 
 export type Dir = 'haut' | 'bas' | 'gauche' | 'droite'
 export const DELTA: Record<Dir, [number, number]> = { haut: [0, -1], bas: [0, 1], gauche: [-1, 0], droite: [1, 0] }
@@ -93,5 +93,3 @@ export function coupConseille(n: Niveau, x: number, y: number): Dir | null {
   }
   return mieux
 }
-
-export const etoiles = (coups: number, min: number) => (coups <= min ? 3 : coups <= min + 3 ? 2 : 1)

@@ -58,19 +58,19 @@ const games: GameInfo[] = [
   {
     id: 'nonogramme', name: 'Nonogramme', categorie: 'reflexion', couleur: '#8bb9fa', nouveau: true,
     court: 'Noircis les cases, découvre le dessin.',
-    description: 'Les nombres indiquent les groupes de cases noires de chaque ligne et colonne : noircis les bonnes cases pour faire apparaître un dessin. 32 images du 5 × 5 au 15 × 15, et des grilles aléatoires.',
+    description: 'Les nombres indiquent les groupes de cases noires de chaque ligne et colonne : noircis les bonnes cases pour faire apparaître un dessin. 500 grilles du 5 × 5 au 15 × 15, de débutant à expert.',
     component: lazy(() => import('./jeux/Nonogramme')),
   },
   {
     id: 'points', name: 'Relier les points', categorie: 'reflexion', couleur: '#ffd84d', nouveau: true,
     court: 'Relie les couleurs, remplis la grille.',
-    description: 'Relie chaque paire de points de la même couleur sans croiser les autres chemins, en remplissant toute la grille. 100 niveaux du 5 × 5 au 8 × 8, chacun avec une seule solution.',
+    description: 'Relie chaque paire de points de la même couleur sans croiser les autres chemins, en remplissant toute la grille. 500 niveaux du 5 × 5 au 9 × 9, chacun avec une seule solution.',
     component: lazy(() => import('./jeux/Points')),
   },
   {
     id: 'mots', name: 'Mots mélangés', categorie: 'reflexion', couleur: '#ff8a3d', nouveau: true,
     court: 'Relie les lettres, trouve tous les mots.',
-    description: 'Fais glisser ton doigt sur la roue de lettres pour écrire des mots et remplir la grille. 100 niveaux, de 4 à 7 lettres, et des mots bonus à dénicher dans un dictionnaire de 300 000 mots.',
+    description: 'Fais glisser ton doigt sur la roue de lettres pour écrire des mots et remplir la grille. 500 niveaux, de 4 à 8 lettres, et des mots bonus à dénicher dans un dictionnaire de 300 000 mots.',
     component: lazy(() => import('./jeux/Mots')),
   },
   {
@@ -94,19 +94,19 @@ const games: GameInfo[] = [
   {
     id: 'labyrinthe', name: 'Labyrinthe', categorie: 'arcade', couleur: '#c45cff', nouveau: true,
     court: 'Glisse jusqu’au mur, trouve la sortie.',
-    description: 'Le héros fonce tout droit jusqu’au prochain mur : trouve le bon chemin vers la sortie, évite les pics et ramasse les points. 60 niveaux à débloquer.',
+    description: 'Le héros fonce tout droit jusqu’au prochain mur : trouve le chemin vers la sortie en un minimum de coups, sans toucher les pics. 500 niveaux, de débutant à expert.',
     component: lazy(() => import('./jeux/Labyrinthe')),
   },
   {
     id: 'glouton', name: 'Glouton', categorie: 'arcade', couleur: '#a6e22e', nouveau: true,
     court: 'Mange toutes les graines, fuis les monstres.',
-    description: 'Mange toutes les graines du labyrinthe sans te faire attraper par les quatre monstres. Les super-graines les rendent peureux : à toi de les croquer !',
+    description: 'Mange toutes les graines du labyrinthe sans te faire attraper par les quatre monstres. Les super-graines les rendent peureux : à toi de les croquer ! Un nouveau labyrinthe à chaque niveau.',
     component: lazy(() => import('./jeux/Glouton')),
   },
   {
     id: 'minigolf', name: 'Mini-golf', categorie: 'arcade', couleur: '#4fd06a', nouveau: true,
-    court: '9 trous, le moins de coups possible.',
-    description: 'Tire en arrière comme un lance-pierre et vise le trou. 9 trous avec sable, eau, champignons, pente et moulin : fais le parcours en un minimum de coups.',
+    court: '500 trous, le moins de coups possible.',
+    description: 'Tire en arrière comme un lance-pierre et vise le trou. 500 trous en 5 paliers, avec sable, eau, champignons, pentes et moulins : fais chaque trou au par pour gagner l’étoile.',
     component: lazy(() => import('./jeux/Minigolf')),
   },
   {

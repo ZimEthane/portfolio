@@ -147,19 +147,31 @@ export default function PoseBlocs() {
   }
 
   // ----- Glisser une pièce du bas vers la grille -----
-  const placerFantome = (cx: number, cy: number, touch: boolean, f: Forme) => {
-    const el = fantomeRef.current
+  // La case visée est aussi gardée dans une référence : au moment de lâcher, on ne dépend pas d'un rendu en retard.
+  const cibleRef = useRef<{ x: number; y: number } | null>(null)
+  const viser = (cx: number, cy: number, touch: boolean, f: Forme) => {
     const gr = grilleRef.current?.getBoundingClientRect()
-    if (!el || !gr) return
+    if (!gr) return null
     const c = gr.width / N
     // Sur écran tactile, la pièce flotte au-dessus du doigt pour rester visible.
     const left = cx - (f.w * c) / 2
     const top = touch ? cy - f.h * c - c * 0.9 : cy - (f.h * c) / 2
-    el.style.transform = `translate(${left}px, ${top}px)`
-    const x = Math.round((left - gr.left) / c)
-    const y = Math.round((top - gr.top) / c)
-    const dedans = x > -f.w && y > -f.h && x < N && y < N
-    setCible(c0 => (dedans ? (c0 && c0.x === x && c0.y === y ? c0 : { x, y }) : null))
+    const el = fantomeRef.current
+    if (el) el.style.transform = `translate(${left}px, ${top}px)`
+    const fx = (left - gr.left) / c
+    const fy = (top - gr.top) / c
+    // Aimant : parmi les places autour de la pièce, la plus proche où elle rentre.
+    const proches: { x: number; y: number; d: number }[] = []
+    for (const x of new Set([Math.floor(fx), Math.ceil(fx), Math.round(fx)]))
+      for (const y of new Set([Math.floor(fy), Math.ceil(fy), Math.round(fy)])) proches.push({ x, y, d: Math.hypot(x - fx, y - fy) })
+    proches.sort((a, b) => a.d - b.d)
+    const libre = proches.find(k => k.d < 0.95 && peutPoser(partie.g, f, k.x, k.y))
+    const x = Math.round(fx)
+    const y = Math.round(fy)
+    const t = libre ? { x: libre.x, y: libre.y } : x > -f.w && y > -f.h && x < N && y < N ? { x, y } : null
+    cibleRef.current = t
+    setCible(c0 => (t && c0 && c0.x === t.x && c0.y === t.y ? c0 : t))
+    return t
   }
   const onPointerDown = (ev: PointerEvent, idx: number) => {
     const p = partie.pieces[idx]
@@ -179,9 +191,11 @@ export default function PoseBlocs() {
       setGlisse(true)
       if (sound) playSound('select')
     }
-    placerFantome(ev.clientX, ev.clientY, d.touch, FORMES[p.forme].f)
+    d.x0 = ev.clientX
+    d.y0 = ev.clientY
+    viser(ev.clientX, ev.clientY, d.touch, FORMES[p.forme].f)
   }
-  const onPointerUp = () => {
+  const onPointerUp = (ev: PointerEvent) => {
     const d = drag.current
     drag.current = null
     if (!d) return
@@ -192,9 +206,13 @@ export default function PoseBlocs() {
       if (sound) playSound('select')
       return
     }
-    if (cible && valide) placer(d.idx, cible.x, cible.y, false)
+    // On recalcule la case visée là où le doigt se lève.
+    const p = partie.pieces[d.idx]
+    const f = p ? FORMES[p.forme].f : null
+    const t = f ? viser(ev.clientX, ev.clientY, d.touch, f) : null
+    if (f && t && peutPoser(partie.g, f, t.x, t.y)) placer(d.idx, t.x, t.y, false)
     else {
-      if (cible && sound) playSound('error')
+      if (t && sound) playSound('error')
       lacher()
     }
   }
@@ -204,7 +222,7 @@ export default function PoseBlocs() {
     const d = drag.current
     if (!d) return
     const p = partie.pieces[d.idx]
-    if (p) placerFantome(d.x0, d.y0, d.touch, FORMES[p.forme].f)
+    if (p) viser(d.x0, d.y0, d.touch, FORMES[p.forme].f)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [glisse])
 
@@ -343,6 +361,7 @@ export default function PoseBlocs() {
                   onPointerMove={onPointerMove}
                   onPointerUp={onPointerUp}
                   onPointerCancel={() => { drag.current = null; lacher() }}
+                  onLostPointerCapture={() => { if (drag.current) { drag.current = null; lacher() } }}
                   onKeyDown={ev => (ev.key === 'Enter' || ev.key === ' ') && prise !== idx && (ev.preventDefault(), choisirAuClavier(idx))}
                 >
                   {p && f && !(glisse && prise === idx) && <DessinPiece f={f} couleur={p.couleur} taille={taillePlateau} />}

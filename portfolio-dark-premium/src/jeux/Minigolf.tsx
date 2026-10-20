@@ -1,27 +1,60 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { KeyboardEvent, PointerEvent } from 'react'
-import { ChevronRight, RotateCcw, Trophy } from 'lucide-react'
+import { ChevronRight, RotateCcw, Star } from 'lucide-react'
 import { canVibrate, playSound, vibrate } from './feedback'
 import Guide from './commun/Guide'
 import Outils from './commun/Outils'
-import { useRecords, useSonVibrations } from './commun/reglages'
+import { ChoixNiveaux, PALIERS, ProgressionPaliers } from './commun/Niveaux'
+import type { EtatNiveau } from './commun/Niveaux'
+import { loadJSON, saveJSON, useSonVibrations } from './commun/reglages'
 import { useFullscreen } from './commun/useFullscreen'
-import { avancer, pales, RAYON, RAYON_TROU, TROUS, VITESSE_MAX } from './minigolf-logic'
+import { avancer, pales, RAYON, RAYON_TROU, trouDuNiveau, VITESSE_MAX } from './minigolf-logic'
+import { NIVEAUX } from './minigolf-niveaux'
 import type { Balle, Trou } from './minigolf-logic'
 import './minigolf.css'
 
 const LW = 100
 const LH = 160
-type Statut = 'vise' | 'roule' | 'trou' | 'fin'
+type Statut = 'vise' | 'roule' | 'trou'
+const PROGRES_KEY = 'ez-minigolf-500' // { niveau: meilleur nombre de coups }
+const NIVEAU_KEY = 'ez-minigolf-500-niveau'
+type Progres = Record<number, number>
+
+// Le par de chaque palier, pour le choix des niveaux (« Par 2 à 3 »).
+const PARS = PALIERS.map(p => {
+  let a = 9
+  let b = 0
+  for (let n = p.de; n <= p.a; n++) {
+    const par = trouDuNiveau(NIVEAUX, n).par
+    a = Math.min(a, par)
+    b = Math.max(b, par)
+  }
+  return a === b ? `Par ${a}` : `Par ${a} à ${b}`
+})
+
+// Cadrage : un trou généré court est agrandi et centré (le parcours fait 100 × 160).
+function cadrage(t: Trou) {
+  if (!t.gazon?.length) return { z: 1, ox: 0, oy: 0 }
+  const x0 = Math.min(...t.gazon.map(c => c.x)) - 5
+  const y0 = Math.min(...t.gazon.map(c => c.y)) - 5
+  const x1 = Math.max(...t.gazon.map(c => c.x + c.w)) + 5
+  const y1 = Math.max(...t.gazon.map(c => c.y + c.h)) + 5
+  // Agrandi jusqu'à 1,6 fois, ou un peu réduit pour qu'un grand parcours garde sa marge.
+  const z = Math.min(1.6, LW / (x1 - x0), LH / (y1 - y0))
+  const ox = (x0 + x1) / 2 - LW / z / 2
+  const oy = (y0 + y1) / 2 - LH / z / 2
+  return { z, ox, oy }
+}
 
 function dessinerTrou(ctx: CanvasRenderingContext2D, t: Trou, temps: number) {
   // Autour du parcours : de l'herbe sombre, comme un jardin la nuit.
   ctx.fillStyle = '#122119'
-  ctx.fillRect(0, 0, LW, LH)
+  ctx.fillRect(-LW, -LH, LW * 3, LH * 3)
   // Gazon à bandes, limité au parcours.
   ctx.save()
   ctx.beginPath()
-  t.bord.forEach((p, k) => (k ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)))
+  if (t.gazon) for (const c of t.gazon) ctx.rect(c.x, c.y, c.w, c.h)
+  else t.bord.forEach((p, k) => (k ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)))
   ctx.closePath()
   ctx.clip()
   // Fond uni puis une bande sur deux : pas de fines lignes entre les bandes.
@@ -73,9 +106,18 @@ function dessinerTrou(ctx: CanvasRenderingContext2D, t: Trou, temps: number) {
   ctx.strokeStyle = '#c9a66b'
   ctx.lineWidth = 2.6
   ctx.beginPath()
-  t.bord.forEach((p, k) => (k ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)))
-  ctx.closePath()
+  if (t.murs) {
+    ctx.lineCap = 'round'
+    for (const [a, b] of t.murs) {
+      ctx.moveTo(a.x, a.y)
+      ctx.lineTo(b.x, b.y)
+    }
+  } else {
+    t.bord.forEach((p, k) => (k ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)))
+    ctx.closePath()
+  }
   ctx.stroke()
+  ctx.lineCap = 'butt'
   for (const o of t.obstacles) {
     ctx.fillStyle = '#8a6a3e'
     ctx.strokeStyle = '#c9a66b'
@@ -133,31 +175,41 @@ function dessinerTrou(ctx: CanvasRenderingContext2D, t: Trou, temps: number) {
 }
 
 export default function Minigolf() {
-  const [trou, setTrou] = useState(0)
-  const [coups, setCoups] = useState<number[]>(() => TROUS.map(() => 0))
+  const [num, setNum] = useState(() => {
+    const n = loadJSON<number>(NIVEAU_KEY, 1)
+    return n >= 1 && n <= NIVEAUX.length ? n : 1
+  })
+  const [progres, setProgres] = useState<Progres>(() => loadJSON<Progres>(PROGRES_KEY, {}))
+  const [coups, setCoups] = useState(0)
   const [statut, setStatut] = useState<Statut>('vise')
   const [message, setMessage] = useState<string | null>(null)
   const [visee, setVisee] = useState({ angle: -Math.PI / 2, force: 0.5 })
   const { sound, vibe, toggleSound, toggleVibe } = useSonVibrations()
-  const records = useRecords('ez-minigolf', 'lower')
   const panelRef = useRef<HTMLDivElement>(null)
   const zoneRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const plein = useFullscreen(panelRef)
-  const balle = useRef<Balle>({ ...TROUS[0].depart, vx: 0, vy: 0 })
-  const avantTir = useRef({ ...TROUS[0].depart })
+  const t = useMemo(() => trouDuNiveau(NIVEAUX, num), [num])
+  const trouRef = useRef(t)
+  trouRef.current = t
+  const vue = useMemo(() => cadrage(t), [t])
+  const vueRef = useRef(vue)
+  vueRef.current = vue
+  const balle = useRef<Balle>({ ...t.depart, vx: 0, vy: 0 })
+  const avantTir = useRef({ ...t.depart })
   const temps = useRef(0)
   const k = useRef(3)
   const statutRef = useRef(statut)
   statutRef.current = statut
-  const trouRef = useRef(trou)
-  trouRef.current = trou
   const viseeRef = useRef(visee)
   viseeRef.current = visee
   const tir = useRef<{ x: number; y: number; force: number; angle: number; actif: boolean } | null>(null)
   const reglages = useRef({ sound, vibe })
   reglages.current = { sound, vibe }
-  const [record, setRecord] = useState(false)
+  const coupsRef = useRef(0)
+  coupsRef.current = coups
+
+  useEffect(() => saveJSON(NIVEAU_KEY, num), [num])
 
   // Taille : le parcours (100 × 160) remplit la largeur de la zone (limitée en CSS).
   useEffect(() => {
@@ -179,29 +231,41 @@ export default function Minigolf() {
     return () => ro.disconnect()
   }, [plein.full])
 
-  const placer = (i: number) => {
-    const t = TROUS[i]
-    balle.current = { ...t.depart, vx: 0, vy: 0 }
-    avantTir.current = { ...t.depart }
-    setTrou(i)
+  const charger = (n: number) => {
+    const nt = trouDuNiveau(NIVEAUX, n)
+    balle.current = { ...nt.depart, vx: 0, vy: 0 }
+    avantTir.current = { ...nt.depart }
+    tir.current = null
+    setNum(n)
+    setCoups(0)
     setStatut('vise')
     setMessage(null)
+    setVisee({ angle: -Math.PI / 2, force: 0.5 })
   }
-  const recommencerParcours = () => {
-    setCoups(TROUS.map(() => 0))
-    setRecord(false)
-    placer(0)
-  }
+  const recommencer = () => charger(num)
 
   const tirer = (angle: number, force: number) => {
     if (statutRef.current !== 'vise' || force < 0.04) return
     avantTir.current = { x: balle.current.x, y: balle.current.y }
     balle.current = { ...balle.current, vx: Math.cos(angle) * force * VITESSE_MAX, vy: Math.sin(angle) * force * VITESSE_MAX }
-    setCoups(c => c.map((v, i) => (i === trouRef.current ? v + 1 : v)))
+    setCoups(c => c + 1)
     setStatut('roule')
     setMessage(null)
     if (reglages.current.sound) playSound('flip', 1)
   }
+
+  // Trou réussi : on garde le meilleur nombre de coups du niveau.
+  const reussir = () => {
+    const c = coupsRef.current
+    setProgres(p => {
+      if (p[num] !== undefined && p[num] <= c) return p
+      const nouveau = { ...p, [num]: c }
+      saveJSON(PROGRES_KEY, nouveau)
+      return nouveau
+    })
+  }
+  const reussirRef = useRef(reussir)
+  reussirRef.current = reussir
 
   // Boucle : physique et dessin.
   useEffect(() => {
@@ -212,7 +276,7 @@ export default function Minigolf() {
       const dt = Math.min(1 / 30, (now - last) / 1000)
       last = now
       temps.current += dt
-      const t = TROUS[trouRef.current]
+      const t = trouRef.current
       const st = statutRef.current
       if (st === 'roule' || (st === 'vise' && t.moulin)) {
         const r = avancer(t, balle.current, dt, temps.current)
@@ -226,13 +290,15 @@ export default function Minigolf() {
         if (st === 'vise' && Math.hypot(r.balle.vx, r.balle.vy) > 1.2) setStatut('roule')
         if (st === 'roule') {
           if (r.issue === 'dans le trou') {
+            statutRef.current = 'trou'
             setStatut('trou')
+            reussirRef.current()
             if (son) playSound('win')
             if (vib && canVibrate()) vibrate('win')
           } else if (r.issue === 'eau') {
             // Plouf : la balle revient où elle était, avec un coup de pénalité.
             balle.current = { ...avantTir.current, vx: 0, vy: 0 }
-            setCoups(c => c.map((v, i) => (i === trouRef.current ? v + 1 : v)))
+            setCoups(c => c + 1)
             setMessage('Plouf ! Un coup de pénalité.')
             setStatut('vise')
             if (son) playSound('boom')
@@ -247,20 +313,21 @@ export default function Minigolf() {
       const ctx = cv?.getContext('2d')
       if (!cv || !ctx) return
       const dpr = window.devicePixelRatio || 1
-      const s = k.current
-      ctx.setTransform(s * dpr, 0, 0, s * dpr, 0, 0)
-      const t = TROUS[trouRef.current]
+      const { z, ox, oy } = vueRef.current
+      const s = k.current * z * dpr
+      ctx.setTransform(s, 0, 0, s, -ox * s, -oy * s)
+      const t = trouRef.current
       dessinerTrou(ctx, t, temps.current)
       const b = balle.current
-      if (statutRef.current !== 'trou' && statutRef.current !== 'fin') {
+      if (statutRef.current !== 'trou') {
         // Visée : ligne pointillée dans la direction du tir, plus longue si le tir est fort.
         const tr = tir.current
         const v = tr?.actif ? tr : statutRef.current === 'vise' && document.activeElement === zoneRef.current ? { ...viseeRef.current, actif: true } : null
         if (v && statutRef.current === 'vise' && v.force > 0.04) {
-          const L = 8 + v.force * 42
+          const L = (8 + v.force * 42) / z
           ctx.strokeStyle = `hsl(${120 - v.force * 120} 90% 60%)`
-          ctx.lineWidth = 0.9
-          ctx.setLineDash([2, 2])
+          ctx.lineWidth = 0.9 / z
+          ctx.setLineDash([2 / z, 2 / z])
           ctx.beginPath()
           ctx.moveTo(b.x, b.y)
           ctx.lineTo(b.x + Math.cos(v.angle) * L, b.y + Math.sin(v.angle) * L)
@@ -281,23 +348,9 @@ export default function Minigolf() {
     return () => cancelAnimationFrame(raf)
   }, [])
 
-  // Après un trou : le suivant, ou la carte de score.
-  useEffect(() => {
-    if (statut !== 'trou') return
-    const tm = window.setTimeout(() => {
-      if (trou < TROUS.length - 1) placer(trou + 1)
-      else {
-        setStatut('fin')
-        const total = coups.reduce((a, b) => a + b, 0)
-        setRecord(records.submit('total', total))
-      }
-    }, 1400)
-    return () => window.clearTimeout(tm)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [statut])
-
   // ----- Tirer : on tire vers l'arrière (lance-pierre) -----
-  const versMonde = (ev: PointerEvent) => {
+  // Mesuré à l'écran (sans le zoom) : la même force pour le même geste, quel que soit le trou.
+  const versEcran = (ev: PointerEvent) => {
     const r = canvasRef.current!.getBoundingClientRect()
     return { x: ((ev.clientX - r.left) / r.width) * LW, y: ((ev.clientY - r.top) / r.height) * LH }
   }
@@ -305,13 +358,13 @@ export default function Minigolf() {
     zoneRef.current?.focus({ preventScroll: true })
     if (statutRef.current !== 'vise') return
     ;(ev.currentTarget as HTMLElement).setPointerCapture(ev.pointerId)
-    const p = versMonde(ev)
+    const p = versEcran(ev)
     tir.current = { x: p.x, y: p.y, force: 0, angle: 0, actif: true }
   }
   const onPointerMove = (ev: PointerEvent) => {
     const t = tir.current
     if (!t) return
-    const p = versMonde(ev)
+    const p = versEcran(ev)
     const dx = t.x - p.x
     const dy = t.y - p.y
     t.force = Math.min(1, Math.hypot(dx, dy) / 40)
@@ -323,7 +376,13 @@ export default function Minigolf() {
     if (t) tirer(t.angle, t.force)
   }
   const onKeyDown = (ev: KeyboardEvent) => {
-    if (statut === 'fin') return
+    if (statut === 'trou') {
+      if (ev.key === 'Enter' && num < NIVEAUX.length) {
+        ev.preventDefault()
+        charger(num + 1)
+      }
+      return
+    }
     const v = visee
     if (ev.key === 'ArrowLeft' || ev.key === 'ArrowRight') {
       ev.preventDefault()
@@ -337,12 +396,15 @@ export default function Minigolf() {
     }
   }
 
-  const t = TROUS[trou]
-  const total = coups.reduce((a, b) => a + b, 0)
-  const parJoue = TROUS.slice(0, statut === 'fin' ? TROUS.length : trou).reduce((a, x) => a + x.par, 0)
-  const ecart = coups.slice(0, statut === 'fin' ? TROUS.length : trou).reduce((a, b) => a + b, 0) - parJoue
-  const nomScore = (c: number, par: number) => (c === 1 ? 'Trou en un !' : c - par <= -2 ? 'Eagle !' : c - par === -1 ? 'Birdie !' : c === par ? 'Par' : c - par === 1 ? 'Bogey' : `+${c - par}`)
-  const parcoursPar = TROUS.reduce((a, x) => a + x.par, 0)
+  const etatNiveau = (n: number): EtatNiveau => {
+    const m = progres[n]
+    if (m === undefined) return ''
+    return m <= trouDuNiveau(NIVEAUX, n).par ? 'parfait' : 'fait'
+  }
+  const meilleur = progres[num]
+  const auPar = Object.keys(progres).filter(n => etatNiveau(Number(n)) === 'parfait').length
+  const nomScore = (c: number, par: number) => (c === 1 ? 'Trou en un !' : c - par <= -2 ? 'Eagle !' : c - par === -1 ? 'Birdie !' : c === par ? 'Par !' : c - par === 1 ? 'Bogey' : `+${c - par}`)
+  const reussi = statut === 'trou'
 
   return (
     <section className="ms minigolf" aria-label="Mini-golf">
@@ -350,8 +412,8 @@ export default function Minigolf() {
         etapes={[
           { title: 'Vise en tirant en arrière', text: 'Pose le doigt (ou clique) n’importe où, tire vers l’arrière comme un lance-pierre, puis lâche. Plus tu tires loin, plus le coup est fort.' },
           { title: 'Mets la balle dans le trou', text: 'Elle tombe si elle passe sur le trou assez doucement : trop vite, elle saute par-dessus.' },
-          { title: 'Les pièges', text: 'Le sable freine beaucoup, l’eau coûte un coup de pénalité, les champignons rouges renvoient fort, la pente pousse sur le côté et le moulin tourne.' },
-          { title: '9 trous', text: `Le parcours se joue en ${parcoursPar} coups (le « par »). Fais moins pour battre le parcours !` },
+          { title: 'Les pièges', text: 'Le sable freine beaucoup, l’eau coûte un coup de pénalité, les champignons rouges renvoient fort, la pente pousse la balle et le moulin tourne.' },
+          { title: '500 trous', text: 'Cinq paliers de 100 trous, du Débutant à l’Expert. Fais le trou en autant de coups que le « par », ou moins, pour gagner l’étoile.' },
         ]}
         astuces={[
           'Les bordures renvoient bien la balle : utilise-les pour les angles.',
@@ -359,24 +421,26 @@ export default function Minigolf() {
         ]}
       />
 
+      <ChoixNiveaux courant={num} etat={etatNiveau} onChoisir={charger} details={PARS} parfait="au par" />
+
       <div ref={panelRef} className={plein.full ? 'ms-panel is-fullscreen' : 'ms-panel'}>
         <div className="t48-bar">
-          <div className="t48-score"><span>Trou</span><strong>{Math.min(trou + 1, TROUS.length)}<small>/{TROUS.length}</small></strong></div>
+          <div className="t48-score"><span>Trou</span><strong>{num}</strong></div>
           <div className="t48-score"><span>Par</span><strong>{t.par}</strong></div>
-          <div className="t48-score"><span>Coups</span><strong>{coups[trou]}</strong></div>
-          <div className="t48-score"><span>Total</span><strong>{ecart === 0 ? '±0' : ecart > 0 ? `+${ecart}` : ecart}</strong></div>
+          <div className="t48-score"><span>Coups</span><strong>{coups}</strong></div>
+          <div className="t48-score" title="Ton meilleur score sur ce trou"><span>Meilleur</span><strong className="mg-meilleur">{meilleur ?? '—'}{meilleur !== undefined && meilleur <= t.par && <Star size={13} className="mg-etoile" aria-label="au par" />}</strong></div>
         </div>
 
         <Outils sound={sound} vibe={vibe} onSound={toggleSound} onVibe={toggleVibe} full={plein.full} onFull={plein.toggle} />
 
-        <p className="mg-nom">Trou {Math.min(trou + 1, TROUS.length)} : {t.nom}</p>
+        <p className="mg-nom">Trou {num} : {t.nom}</p>
 
         <div
           ref={zoneRef}
           className="mg-zone"
           tabIndex={0}
           role="application"
-          aria-label={`Mini-golf, trou ${trou + 1} « ${t.nom} », par ${t.par}, ${coups[trou]} coups. Flèches pour viser, Espace pour tirer.`}
+          aria-label={`Mini-golf, trou ${num} « ${t.nom} », par ${t.par}, ${coups} coups. Flèches pour viser, Espace pour tirer.`}
           onKeyDown={onKeyDown}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
@@ -384,26 +448,26 @@ export default function Minigolf() {
           onPointerCancel={() => (tir.current = null)}
         >
           <canvas ref={canvasRef} aria-hidden="true" />
-          {message && <span className="mg-message" key={message + coups[trou]}>{message}</span>}
-          {statut === 'trou' && <div className="mg-bravo" key={trou}><strong>{nomScore(coups[trou], t.par)}</strong><span>{coups[trou]} coup{coups[trou] > 1 ? 's' : ''}</span></div>}
-          {statut === 'fin' && (
-            <div className="mg-carte">
-              <strong>{record ? <><Trophy size={18} /> Nouveau record !</> : 'Parcours terminé'}</strong>
-              <table>
-                <thead><tr><th>Trou</th>{TROUS.map((_, i) => <th key={i}>{i + 1}</th>)}<th>Total</th></tr></thead>
-                <tbody>
-                  <tr><td>Par</td>{TROUS.map((x, i) => <td key={i}>{x.par}</td>)}<td>{parcoursPar}</td></tr>
-                  <tr className="mg-toi"><td>Toi</td>{coups.map((c, i) => <td key={i} className={c < TROUS[i].par ? 'is-moins' : c > TROUS[i].par ? 'is-plus' : ''}>{c}</td>)}<td>{total}</td></tr>
-                </tbody>
-              </table>
-              <button type="button" className="button button-primary" onPointerDown={ev => ev.stopPropagation()} onClick={recommencerParcours}><RotateCcw size={15} /> Rejouer</button>
+          {message && <span className="mg-message" key={message + coups}>{message}</span>}
+          {reussi && (
+            <div className="mg-fin" key={num}>
+              {coups <= t.par && <Star size={34} className="mg-grande-etoile" aria-hidden="true" />}
+              <strong>{nomScore(coups, t.par)}</strong>
+              <span>
+                Trou {num} réussi en {coups} coup{coups > 1 ? 's' : ''} (par {t.par}).
+                {coups > t.par ? ' Fais le par pour gagner l’étoile !' : ''}
+              </span>
+              <div>
+                <button type="button" className="button" onPointerDown={e => e.stopPropagation()} onClick={recommencer}><RotateCcw size={15} /> Rejouer</button>
+                {num < NIVEAUX.length && <button type="button" className="button button-primary" onPointerDown={e => e.stopPropagation()} onClick={() => charger(num + 1)}>Trou suivant <ChevronRight size={15} /></button>}
+              </div>
             </div>
           )}
         </div>
 
         <div className="sd-actions">
-          <button type="button" className="sd-action" onClick={() => placer(trou)} disabled={statut !== 'vise'}><RotateCcw size={16} /> Recommencer le trou</button>
-          <button type="button" className="sd-action" onClick={() => trou < TROUS.length - 1 && placer(trou + 1)} disabled={statut === 'fin' || trou >= TROUS.length - 1}><ChevronRight size={16} /> Passer</button>
+          <button type="button" className="sd-action" onClick={recommencer} disabled={statut === 'roule'}><RotateCcw size={16} /> Recommencer le trou</button>
+          <button type="button" className="sd-action" onClick={() => charger(num + 1)} disabled={num >= NIVEAUX.length}><ChevronRight size={16} /> Passer</button>
         </div>
 
         <div className="ms-message">
@@ -415,10 +479,12 @@ export default function Minigolf() {
       </div>
 
       <div className="ms-records">
-        <span className="mini-label">Sur cet appareil</span>
+        <span className="mini-label">Ta progression sur cet appareil</span>
         <ul>
-          <li><span>Meilleur parcours</span><strong>{records.records.total ?? '—'}</strong><small>par {parcoursPar}</small></li>
+          <li><span>Trous réussis</span><strong>{Object.keys(progres).length} / {NIVEAUX.length}</strong></li>
+          <li><span>Au par ou mieux</span><strong>{auPar}</strong></li>
         </ul>
+        <ProgressionPaliers etat={etatNiveau} />
       </div>
     </section>
   )

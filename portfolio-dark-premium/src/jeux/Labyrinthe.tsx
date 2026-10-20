@@ -1,32 +1,32 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, KeyboardEvent, PointerEvent } from 'react'
-import { ChevronRight, Lightbulb, Lock, RotateCcw, Star } from 'lucide-react'
+import { ChevronRight, Lightbulb, RotateCcw, Star } from 'lucide-react'
 import { canVibrate, playSound, vibrate } from './feedback'
 import Guide from './commun/Guide'
 import Outils from './commun/Outils'
 import { loadJSON, saveJSON, useSonVibrations } from './commun/reglages'
 import { useFullscreen } from './commun/useFullscreen'
-import { coupConseille, DELTA, depart, estMur, etoiles, glisser, lireNiveau } from './labyrinthe-logic'
+import { ChoixNiveaux, ProgressionPaliers } from './commun/Niveaux'
+import { coupConseille, DELTA, depart, estMur, glisser, lireNiveau } from './labyrinthe-logic'
 import type { Dir, Niveau } from './labyrinthe-logic'
 import { NIVEAUX } from './labyrinthe-niveaux'
 import './labyrinthe.css'
 
-const PROGRES_KEY = 'ez-labyrinthe' // { "1": { e: 3, p: true }, … } : étoiles et tous les points ramassés
-const NIVEAU_KEY = 'ez-labyrinthe-niveau'
+const PROGRES_KEY = 'ez-labyrinthe-500' // { "12": 7 } : le moins de coups pour chaque niveau réussi
+const NIVEAU_KEY = 'ez-labyrinthe-500-niveau'
 const KEYS: Record<string, Dir> = { ArrowUp: 'haut', ArrowDown: 'bas', ArrowLeft: 'gauche', ArrowRight: 'droite', z: 'haut', w: 'haut', s: 'bas', q: 'gauche', a: 'gauche', d: 'droite' }
 const VITESSE = 26 // cases par seconde
-type Progres = Record<string, { e: number; p: boolean }>
+type Progres = Record<string, number>
 
 interface Etat {
   x: number
   y: number
   coups: number
-  pris: Set<number> // points ramassés
   statut: 'joue' | 'mort' | 'gagne'
 }
-const nouvelEtat = (n: Niveau): Etat => ({ ...depart(n), coups: 0, pris: new Set(), statut: 'joue' })
+const nouvelEtat = (n: Niveau): Etat => ({ ...depart(n), coups: 0, statut: 'joue' })
 
-// Dessin du niveau : murs néon, points, pics, sortie, héros (avec sa traînée pendant une glissade).
+// Dessin du niveau : murs néon, pics, sortie, héros (avec sa traînée pendant une glissade).
 function dessiner(ctx: CanvasRenderingContext2D, n: Niveau, c: number, e: Etat, anim: { x: number; y: number; dir: Dir | null; trainee: { x: number; y: number }[] } | null, t: number, indice: Dir | null, mortT: number) {
   const W = n.w * c
   const H = n.h * c
@@ -67,11 +67,7 @@ function dessiner(ctx: CanvasRenderingContext2D, n: Niveau, c: number, e: Etat, 
     const ch = n.cases[i]
     const x = (i % n.w) * c
     const y = Math.floor(i / n.w) * c
-    if (ch === 'o' && !e.pris.has(i)) {
-      ctx.fillStyle = '#ffd84d'
-      const s = Math.max(2, c * 0.16)
-      ctx.fillRect(x + c / 2 - s / 2, y + c / 2 - s / 2, s, s)
-    } else if (ch === '^') {
+    if (ch === '^') {
       ctx.fillStyle = '#ff4d6d'
       ctx.shadowColor = '#ff4d6d'
       ctx.shadowBlur = c * 0.3
@@ -155,20 +151,13 @@ function dessiner(ctx: CanvasRenderingContext2D, n: Niveau, c: number, e: Etat, 
 
 export default function Labyrinthe() {
   const [progres, setProgres] = useState<Progres>(() => loadJSON<Progres>(PROGRES_KEY, {}))
-  const debloque = useMemo(() => {
-    let k = 1
-    while (k < NIVEAUX.length && progres[String(k)]) k++
-    return k // dernier niveau jouable
-  }, [progres])
   const [num, setNum] = useState(() => {
     const s = loadJSON<number>(NIVEAU_KEY, 0)
     return s >= 1 && s <= NIVEAUX.length ? s : 1
   })
   const n = useMemo(() => lireNiveau(NIVEAUX[num - 1]), [num])
-  const total = useMemo(() => [...n.cases].filter(ch => ch === 'o').length, [n])
   const [etat, setEtat] = useState<Etat>(() => nouvelEtat(lireNiveau(NIVEAUX[num - 1])))
   const [indice, setIndice] = useState<Dir | null>(null)
-  const [choix, setChoix] = useState(false)
   const { sound, vibe, toggleSound, toggleVibe } = useSonVibrations()
   const panelRef = useRef<HTMLDivElement>(null)
   const zoneRef = useRef<HTMLDivElement>(null)
@@ -196,7 +185,6 @@ export default function Labyrinthe() {
     anim.current = null
     file.current = null
     setIndice(null)
-    setChoix(false)
     zoneRef.current?.focus({ preventScroll: true })
   }, [])
   const recommencer = () => charger(num)
@@ -235,11 +223,9 @@ export default function Labyrinthe() {
       }, 750)
     } else if (issue === 'sortie') {
       setEtat({ ...e, statut: 'gagne' })
-      const et = etoiles(e.coups, n.min)
-      const tous = e.pris.size >= total
       setProgres(p => {
         const ancien = p[String(num)]
-        const nouveau = { ...p, [String(num)]: { e: Math.max(et, ancien?.e ?? 0), p: tous || !!ancien?.p } }
+        const nouveau = { ...p, [String(num)]: Math.min(e.coups, ancien ?? Infinity) }
         saveJSON(PROGRES_KEY, nouveau)
         return nouveau
       })
@@ -249,7 +235,7 @@ export default function Labyrinthe() {
       setEtat(e)
       if (vib && canVibrate()) vibrate('tap')
     }
-  }, [n, num, total])
+  }, [n, num])
 
   const bouger = useCallback((dir: Dir) => {
     const e = etatRef.current
@@ -271,29 +257,13 @@ export default function Labyrinthe() {
     let raf = 0
     const frame = (now: number) => {
       const a = anim.current
-      let e = etatRef.current
+      const e = etatRef.current
       if (a) {
         const p = Math.min(1, (now - a.t0) / a.duree)
         a.x = a.de.x + (a.vers.x - a.de.x) * p
         a.y = a.de.y + (a.vers.y - a.de.y) * p
         a.trainee.push({ x: a.x, y: a.y })
         if (a.trainee.length > 7) a.trainee.shift()
-        // Points ramassés au passage.
-        const fait = Math.floor(p * a.chemin.length)
-        let pris = e.pris
-        for (let k = 0; k < fait; k++) {
-          const i = a.chemin[k]
-          if (n.cases[i] === 'o' && !pris.has(i)) {
-            if (pris === e.pris) pris = new Set(pris)
-            pris.add(i)
-          }
-        }
-        if (pris !== e.pris) {
-          e = { ...e, pris }
-          etatRef.current = e
-          setEtat(e)
-          if (reglages.current.sound && fait % 3 === 0) playSound('reveal')
-        }
         if (p >= 1) {
           anim.current = null
           const fin = { ...e, x: a.vers.x, y: a.vers.y, coups: e.coups + 1 }
@@ -351,8 +321,13 @@ export default function Labyrinthe() {
 
   const meilleur = progres[String(num)]
   const gagne = etat.statut === 'gagne'
-  const nbEtoiles = gagne ? etoiles(etat.coups, n.min) : 0
-  const totalEtoiles = Object.values(progres).reduce((a, b) => a + b.e, 0)
+  const parfait = gagne && etat.coups <= n.min
+  const etatNiveau = (k: number) => {
+    const v = progres[String(k)]
+    if (v === undefined) return ''
+    return v <= lireNiveau(NIVEAUX[k - 1]).min ? 'parfait' : 'fait'
+  }
+  const nbParfaits = Object.keys(progres).filter(k => etatNiveau(Number(k)) === 'parfait').length
 
   return (
     <section className="ms labyrinthe" aria-label="Labyrinthe">
@@ -361,38 +336,24 @@ export default function Labyrinthe() {
           { title: 'Glisse jusqu’au mur', text: 'Glisse le doigt (ou appuie sur une flèche) : le héros fonce tout droit et ne s’arrête qu’en touchant un mur.' },
           { title: 'Trouve la sortie', text: 'Atteins le portail vert. Il faut souvent faire un détour pour s’arrêter au bon endroit.' },
           { title: 'Attention aux pics', text: 'Les pics rouges sont mortels : si le héros glisse dessus, le niveau recommence.' },
-          { title: 'Étoiles et points', text: `Trois étoiles si tu sors avec le moins de coups possible. Ramasse aussi tous les points jaunes pour décrocher la pièce du niveau. ${NIVEAUX.length} niveaux à débloquer.` },
+          { title: 'Le moins de coups', text: `Un coup = une glissade. Le minimum possible est affiché : sors en le faisant pour un niveau parfait (étoile). ${NIVEAUX.length} niveaux, de débutant à expert.` },
         ]}
         astuces={[
           'Avant de partir, regarde où chaque direction t’emmène : un mur au bon endroit fait tout.',
-          'Bloqué ? Le bouton « Indice » montre le bon coup.',
+          'Bloqué ? Le bouton « Indice » montre le bon coup (mais il ne compte pas pour toi).',
           'Au clavier : flèches ou Z Q S D, R pour recommencer.',
         ]}
       />
 
+      <ChoixNiveaux courant={num} etat={etatNiveau} onChoisir={charger} />
+
       <div ref={panelRef} className={plein.full ? 'ms-panel is-fullscreen' : 'ms-panel'}>
         <div className="t48-bar">
-          <button type="button" className="t48-score lb-niveau" onClick={() => setChoix(!choix)} aria-expanded={choix} title="Choisir un niveau"><span>Niveau</span><strong>{num}</strong></button>
-          <div className="t48-score"><span>Coups</span><strong>{etat.coups}<small> / {n.min}</small></strong></div>
-          <div className="t48-score"><span>Points</span><strong>{etat.pris.size}<small> / {total}</small></strong></div>
+          <div className="t48-score"><span>Niveau</span><strong>{num}</strong></div>
+          <div className="t48-score" title="Tes coups, et le minimum possible"><span>Coups</span><strong>{etat.coups}<small> / {n.min}</small></strong></div>
+          <div className="t48-score" title="Ton meilleur score sur ce niveau"><span>Meilleur</span><strong className="lb-meilleur">{meilleur ?? '—'}{meilleur !== undefined && meilleur <= n.min && <Star size={13} className="lb-etoile" aria-label="parfait" />}</strong></div>
           <button type="button" className="t48-btn" onClick={recommencer} aria-label="Recommencer"><RotateCcw size={16} /> <span className="t48-btn-texte">Recommencer</span></button>
         </div>
-
-        {choix && (
-          <div className="lb-niveaux" role="group" aria-label="Choisir un niveau">
-            {NIVEAUX.map((_, k) => {
-              const m = k + 1
-              const p = progres[String(m)]
-              const ouvert = m <= debloque
-              return (
-                <button key={m} type="button" disabled={!ouvert} className={`${m === num ? 'is-current' : ''}${p ? ' is-fait' : ''}`} onClick={() => charger(m)} aria-label={`Niveau ${m}${p ? `, ${p.e} étoile${p.e > 1 ? 's' : ''}` : ouvert ? '' : ', verrouillé'}`}>
-                  {ouvert ? m : <Lock size={12} />}
-                  {p && <small>{'★'.repeat(p.e)}{p.p ? ' ●' : ''}</small>}
-                </button>
-              )
-            })}
-          </div>
-        )}
 
         <Outils sound={sound} vibe={vibe} onSound={toggleSound} onVibe={toggleVibe} full={plein.full} onFull={plein.toggle}>
           <button type="button" className="ms-switch lb-indice" onClick={demanderIndice} disabled={etat.statut !== 'joue'}><Lightbulb size={15} /> Indice</button>
@@ -404,7 +365,7 @@ export default function Labyrinthe() {
           style={{ '--ratio': n.w / n.h } as CSSProperties}
           tabIndex={0}
           role="application"
-          aria-label={`Labyrinthe, niveau ${num}. Flèches pour glisser. ${etat.coups} coups, ${etat.pris.size} points sur ${total}.`}
+          aria-label={`Labyrinthe, niveau ${num}. Flèches pour glisser. ${etat.coups} coups, minimum ${n.min}.`}
           onKeyDown={onKeyDown}
           onPointerDown={onPointerDown}
           onPointerMove={ev => glisserDoigt(ev, false)}
@@ -414,11 +375,9 @@ export default function Labyrinthe() {
           <canvas ref={canvasRef} aria-hidden="true" />
           {gagne && (
             <div className="lb-fin">
-              <div className="lb-etoiles" aria-label={`${nbEtoiles} étoile${nbEtoiles > 1 ? 's' : ''}`}>
-                {[1, 2, 3].map(k => <Star key={k} size={30} className={k <= nbEtoiles ? 'is-on' : ''} style={{ animationDelay: `${k * 0.15}s` }} />)}
-              </div>
-              <strong>Niveau {num} réussi !</strong>
-              <span>{etat.coups} coups (minimum {n.min}) · {etat.pris.size}/{total} points{etat.pris.size >= total ? ' : tout ramassé !' : ''}</span>
+              {parfait && <Star size={34} className="lb-grande-etoile" aria-hidden="true" />}
+              <strong>{parfait ? 'Parfait !' : `Niveau ${num} réussi !`}</strong>
+              <span>{parfait ? `${etat.coups} coups : le minimum possible.` : `${etat.coups} coups. Le minimum est ${n.min} : tu peux faire mieux !`}</span>
               <div>
                 <button type="button" className="button" onPointerDown={e => e.stopPropagation()} onClick={recommencer}><RotateCcw size={15} /> Rejouer</button>
                 {num < NIVEAUX.length && <button type="button" className="button button-primary" onPointerDown={e => e.stopPropagation()} onClick={() => charger(num + 1)}>Niveau suivant <ChevronRight size={15} /></button>}
@@ -429,8 +388,8 @@ export default function Labyrinthe() {
 
         <div className="ms-message">
           <span className="ms-hint">
-            <span className="ms-hint-mouse">Flèches (ou Z Q S D) pour glisser · R pour recommencer{meilleur ? ` · ton meilleur : ${'★'.repeat(meilleur.e)}` : ''}</span>
-            <span className="ms-hint-touch">Glisse le doigt sur le labyrinthe{meilleur ? ` · ton meilleur : ${'★'.repeat(meilleur.e)}` : ''}</span>
+            <span className="ms-hint-mouse">Flèches (ou Z Q S D) pour glisser · R pour recommencer</span>
+            <span className="ms-hint-touch">Glisse le doigt sur le labyrinthe</span>
           </span>
         </div>
       </div>
@@ -439,9 +398,9 @@ export default function Labyrinthe() {
         <span className="mini-label">Ta progression sur cet appareil</span>
         <ul>
           <li><span>Niveaux réussis</span><strong>{Object.keys(progres).length} / {NIVEAUX.length}</strong></li>
-          <li><span>Étoiles</span><strong>{totalEtoiles} / {NIVEAUX.length * 3}</strong></li>
-          <li><span>Tous les points</span><strong>{Object.values(progres).filter(p => p.p).length}</strong></li>
+          <li><span>Niveaux parfaits</span><strong>{nbParfaits} / {NIVEAUX.length}</strong></li>
         </ul>
+        <ProgressionPaliers etat={etatNiveau} />
       </div>
     </section>
   )
