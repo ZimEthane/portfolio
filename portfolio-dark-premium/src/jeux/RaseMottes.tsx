@@ -382,9 +382,12 @@ export default function RaseMottes() {
               else if (ev.type === 'base') playSound('win')
               else if (ev.type === 'zone') playSound('line', 1)
               else if (ev.type === 'fin') playSound('gameover')
+              else if (ev.type === 'fuite') playSound('error')
+              else if (ev.type === 'vie') playSound('win')
             }
             if (vib && canVibrate()) {
               if (ev.type === 'mort') vibrate('boom')
+              else if (ev.type === 'fuite') vibrate('error')
               else if (ev.type === 'plein') vibrate('tap')
               else if (ev.type === 'base') vibrate('win')
             }
@@ -468,11 +471,12 @@ export default function RaseMottes() {
         etapes={[
           { title: 'Vole au ras du sol', text: 'Le décor défile tout seul. Pilote avec les flèches (ou en glissant le doigt sur le jeu) sans toucher le sol, le plafond ni les ennemis.' },
           { title: 'Tire et bombarde', text: 'Espace pour tirer droit devant, B pour lâcher une bombe. Au doigt, le vaisseau tire tout seul ; le bouton Bombe est sous le jeu.' },
+          { title: 'Ne laisse rien passer', text: 'Chaque fusée ou soucoupe qui sort de l’écran sans être détruite te coûte une vie. Tu gagnes une vie tous les 5 000 points (5 au plus).' },
           { title: 'Fais le plein', text: 'Le carburant baisse sans arrêt : détruis les réservoirs jaunes pour le remplir. Panne sèche = une vie perdue.' },
           { title: 'Six zones', text: 'Collines, soucoupes, grotte, comètes, cité, puis la base : détruis-la à la bombe pour repartir, encore plus vite.' },
         ]}
         astuces={[
-          'Les fusées décollent quand tu approches : tire-les au sol ou passe vite au-dessus.',
+          'Les fusées décollent quand tu approches : détruis-les au sol à la bombe, ou en vol avec ton tir.',
           'Les comètes ne se détruisent pas : il faut les éviter.',
           'P ou Échap pour mettre en pause.',
         ]}

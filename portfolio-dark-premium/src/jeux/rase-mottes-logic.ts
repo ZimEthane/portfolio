@@ -48,6 +48,8 @@ export interface Etat {
   cadence: number // délai avant le prochain tir
   message: { texte: string; t: number } | null
   graine: number
+  prochaineVie: number // score à atteindre pour gagner une vie
+
 }
 
 export const nbZones = ZONES.length
@@ -134,7 +136,7 @@ export function genererZone(k: number, graine: number): Relief {
     if (occupe(x)) continue
     if (r < 0.1) poser('reservoir', x)
     else if (r < 0.18) poser('mystere', x)
-    else if (z !== 1 && z !== 3) poser('fusee', x)
+    else if (z !== 1 && z !== 3 && !(z === 0 && rnd() < 0.35)) poser('fusee', x) // un peu moins de fusées pour commencer
   }
   if (z === 1) for (let x = 200; x < LONGUEUR_ZONE - 100; x += 40 + rnd() * 30) ennemis.push(ennemi('soucoupe', x0 + x, 25 + rnd() * 35, rnd))
   if (z === 3) for (let x = 220; x < LONGUEUR_ZONE - 60; x += 45 + rnd() * 35) ennemis.push(ennemi('comete', x0 + x + 160, 12 + rnd() * 50, rnd))
@@ -150,7 +152,7 @@ export function genererZone(k: number, graine: number): Relief {
 export function nouvelEtat(graine = 1): Etat {
   return {
     t: 0, camera: 0, vitesse: 26, boucle: 0, joueur: { x: 28, y: 40, invincible: 0 }, tirs: [], bombes: [], explosions: [],
-    carburant: 100, score: 0, vies: 3, statut: 'pret', mortDepuis: 0, reliefs: new Map(), cadence: 0, message: null, graine,
+    carburant: 100, score: 0, vies: 3, statut: 'pret', mortDepuis: 0, reliefs: new Map(), cadence: 0, message: null, graine, prochaineVie: VIE_TOUS_LES,
   }
 }
 
@@ -193,7 +195,9 @@ export function ennemisProches(e: Etat): Ennemi[] {
 }
 
 export interface Commandes { dx: number; dy: number; tir: boolean; bombe: boolean } // dx, dy : de -1 à 1
-export interface Evenement { type: 'tir' | 'bombe' | 'explosion' | 'plein' | 'mort' | 'base' | 'zone' | 'fin'; force?: number }
+export interface Evenement { type: 'tir' | 'bombe' | 'explosion' | 'plein' | 'mort' | 'base' | 'zone' | 'fin' | 'fuite' | 'vie'; force?: number }
+export const VIE_TOUS_LES = 5000 // une vie en plus tous les 5 000 points
+export const VIES_MAX = 5
 
 const POINTS: Record<TypeEnnemi, number> = { fusee: 50, reservoir: 150, mystere: 100, soucoupe: 100, comete: 0, base: 1000 }
 const COULEUR: Record<TypeEnnemi, string> = { fusee: '#ff6b6b', reservoir: '#ffd84d', mystere: '#c58cff', soucoupe: '#5ad8ff', comete: '#ff9a5a', base: '#ffd84d' }
@@ -262,6 +266,14 @@ export function pas(e: Etat, c: Commandes, dt: number): Evenement[] {
     if (n.type === 'fusee' && n.vol) pts = 80
     if (n.type === 'mystere') pts = [100, 200, 300][Math.floor(Math.random() * 3)]
     e.score += pts
+    if (e.score >= e.prochaineVie) {
+      e.prochaineVie += VIE_TOUS_LES
+      if (e.vies < VIES_MAX) {
+        e.vies++
+        e.message = { texte: 'Une vie en plus !', t: e.t }
+        ev.push({ type: 'vie' })
+      }
+    }
     if (n.type === 'reservoir') {
       e.carburant = Math.min(100, e.carburant + 28)
       ev.push({ type: 'plein' })
@@ -332,7 +344,6 @@ export function pas(e: Etat, c: Commandes, dt: number): Evenement[] {
       if (n.vol) {
         n.vy = Math.max(-42, n.vy - 30 * dt)
         n.y += n.vy * dt
-        if (n.y < -10) n.mort = true
       }
     } else if (n.type === 'soucoupe') {
       n.phase += dt * 2.4
@@ -340,6 +351,19 @@ export function pas(e: Etat, c: Commandes, dt: number): Evenement[] {
       n.y += Math.cos(n.phase) * 22 * dt
     } else if (n.type === 'comete') {
       if (n.x - e.camera < LARGEUR + 30) n.x -= (55 + e.boucle * 8) * dt
+    }
+    // Une fusée ou une soucoupe qui sort de l'écran sans être détruite : elle t'a échappé.
+    if ((n.type === 'fusee' || n.type === 'soucoupe') && (n.x < e.camera - 8 || n.y < -10)) {
+      n.mort = true
+      if (e.statut !== 'jeu') continue
+      e.vies--
+      e.message = { texte: n.type === 'fusee' ? 'Une fusée t’a échappé ! −1 vie' : 'Une soucoupe t’a échappé ! −1 vie', t: e.t }
+      ev.push({ type: 'fuite' })
+      if (e.vies <= 0) {
+        e.statut = 'fin'
+        ev.push({ type: 'fin' })
+        return ev
+      }
     }
   }
 
