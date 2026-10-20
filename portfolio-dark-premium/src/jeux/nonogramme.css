@@ -1,13 +1,4 @@
 /* ===== Nonogramme ===== */
-.ms-levels.ng-tailles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.ng-images { display: grid; grid-template-columns: repeat(auto-fill, minmax(74px, 1fr)); gap: 8px; }
-.ng-images button { display: grid; justify-items: center; align-content: center; gap: 6px; min-height: 78px; padding: 8px 4px; border-radius: 11px; border: 1px solid #ffffff10; background: #ffffff04; color: #9aa3b5; cursor: pointer; transition: border-color .15s; }
-.ng-images button:hover { border-color: #8bb9fa60; }
-.ng-images button.is-current { border-color: #8bb9fa; background: #8bb9fa14; }
-.ng-images button.is-fait { color: #dce6f7; }
-.ng-images small { font-size: 10.5px; font-weight: 600; line-height: 1.2; text-align: center; }
-.ng-q { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 8px; background: #ffffff08; font: 700 18px 'DM Mono', monospace; color: #6b7384; }
-.ng-alea { color: #aacdff !important; }
 .ng-mini { display: grid; gap: 0; padding: 3px; border-radius: 4px; background: #f3f6fb; }
 .ng-mini i { background: transparent; }
 .ng-mini i.is-on { background: #2a3d5c; }
@@ -68,7 +59,6 @@
 
 @media (max-width: 600px) {
   .nonogramme .ms-records ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .ng-images { grid-template-columns: repeat(auto-fill, minmax(62px, 1fr)); gap: 6px; }
   .ng-plateau { padding: 6px 6px 8px 4px; border-radius: 12px; }
 }
 @media (prefers-reduced-motion: reduce) {

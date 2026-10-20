@@ -6,6 +6,7 @@ import Guide from './commun/Guide'
 import Outils from './commun/Outils'
 import { loadJSON, saveJSON, useSonVibrations } from './commun/reglages'
 import { useFullscreen } from './commun/useFullscreen'
+import { ChoixNiveaux, ProgressionPaliers } from './commun/Niveaux'
 import { bilan, complet, lireNiveau, resoudre, voisins } from './points-logic'
 import type { Chemins, Niveau } from './points-logic'
 import { NIVEAUX } from './points-niveaux'
@@ -15,10 +16,11 @@ const COULEURS: Record<string, string> = {
   A: '#ff4d4d', B: '#3d7bff', C: '#4fd06a', D: '#ffd84d', E: '#ff9a3d', F: '#4dd8e8',
   G: '#ff5fd1', H: '#a77bff', I: '#c98a5a', J: '#e8edf5', K: '#9be04d', L: '#2fbfa0',
 }
-const PROGRES_KEY = 'ez-points' // { "12": 7 } : moins de coups pour réussir le niveau
-const NIVEAU_KEY = 'ez-points-niveau'
-const PAR_PALIER = 25
-const PALIERS = ['5 × 5', '6 × 6', '7 × 7', '8 × 8']
+const PROGRES_KEY = 'ez-points-500' // { "12": 7 } : moins de coups pour réussir le niveau
+const NIVEAU_KEY = 'ez-points-500-niveau'
+const TAILLES = ['5 × 5', '6 × 6', '7 × 7', '8 × 8', '8 × 8 et 9 × 9']
+// Nombre de couleurs de chaque niveau (un niveau est parfait en autant de coups).
+const NB_COULEURS = NIVEAUX.map(c => Object.keys(lireNiveau(c).points).length)
 
 interface Partie {
   chemins: Chemins
@@ -43,7 +45,6 @@ export default function Points() {
   const couleurs = useMemo(() => Object.keys(nv.points), [nv])
   const [partie, setPartie] = useState<Partie>(vide)
   const [actif, setActif] = useState<{ c: string; cell: number } | null>(null)
-  const [palier, setPalier] = useState<number | null>(null)
   const { sound, vibe, toggleSound, toggleVibe } = useSonVibrations()
   const panelRef = useRef<HTMLDivElement>(null)
   const svgRef = useRef<SVGSVGElement>(null)
@@ -61,7 +62,6 @@ export default function Points() {
     setNum(Math.max(1, Math.min(NIVEAUX.length, k)))
     setPartie(vide())
     setActif(null)
-    setPalier(null)
     solution.current = null
   }
 
@@ -172,14 +172,16 @@ export default function Points() {
   useEffect(() => {
     if (!gagne || vu.current === `${num}`) return
     vu.current = `${num}`
+    // Avec un indice, le niveau compte comme réussi mais pas parfait.
+    const score = partie.indices > 0 ? Math.max(partie.coups, NB_COULEURS[num - 1] + 1) : partie.coups
     setProgres(p => {
-      const np = { ...p, [String(num)]: Math.min(partie.coups, p[String(num)] ?? Infinity) }
+      const np = { ...p, [String(num)]: Math.min(score, p[String(num)] ?? Infinity) }
       saveJSON(PROGRES_KEY, np)
       return np
     })
     if (sound) playSound('win')
     if (vibe && canVibrate()) vibrate('win')
-  }, [gagne, num, partie.coups, sound, vibe])
+  }, [gagne, num, partie.coups, partie.indices, sound, vibe])
   useEffect(() => {
     vu.current = ''
   }, [num])
@@ -228,7 +230,10 @@ export default function Points() {
     else if ((ev.key === 'z' || ev.key === 'Z') && (ev.ctrlKey || ev.metaKey)) annuler()
   }
 
-  const fait = (k: number) => progres[String(k)] !== undefined
+  const etatNiveau = (k: number) => {
+    const v = progres[String(k)]
+    return v === undefined ? '' : v <= NB_COULEURS[k - 1] ? 'parfait' : 'fait'
+  }
   const parfait = gagne && partie.coups <= couleurs.length && partie.indices === 0
 
   return (
@@ -238,7 +243,7 @@ export default function Points() {
           { title: 'Relie les paires', text: 'Pose le doigt (ou la souris) sur un point et glisse jusqu’au point de la même couleur. Les chemins vont tout droit ou tournent, jamais en diagonale.' },
           { title: 'Sans croiser', text: 'Deux chemins ne peuvent pas se croiser. Si tu passes sur un autre chemin, il est coupé : il faudra le refaire.' },
           { title: 'Remplis tout', text: 'Le niveau est réussi quand toutes les paires sont reliées et que toutes les cases sont remplies. Chaque niveau n’a qu’une seule solution.' },
-          { title: 'En peu de coups', text: 'Un coup = tracer une couleur. Réussis avec autant de coups que de couleurs (sans indice) pour un niveau parfait. 100 niveaux, du 5 × 5 au 8 × 8.' },
+          { title: 'En peu de coups', text: `Un coup = tracer une couleur. Réussis avec autant de coups que de couleurs (sans indice) pour un niveau parfait. ${NIVEAUX.length} niveaux, du 5 × 5 au 9 × 9.` },
         ]}
         astuces={[
           'Commence par les points dans les coins et le long des bords : ils ont peu de chemins possibles.',
@@ -247,38 +252,15 @@ export default function Points() {
         ]}
       />
 
+      <ChoixNiveaux courant={num} etat={etatNiveau} onChoisir={charger} details={TAILLES} />
+
       <div ref={panelRef} className={plein.full ? 'ms-panel is-fullscreen' : 'ms-panel'}>
         <div className="t48-bar">
-          <button type="button" className="t48-score pt-niveau" onClick={() => setPalier(palier === null ? Math.floor((num - 1) / PAR_PALIER) : null)} aria-expanded={palier !== null} title="Choisir un niveau">
-            <span>Niveau</span><strong>{num}</strong>
-          </button>
+          <div className="t48-score"><span>Niveau</span><strong>{num}</strong></div>
           <div className="t48-score"><span>Reliés</span><strong>{b.relies}<small>/{b.total}</small></strong></div>
           <div className="t48-score"><span>Rempli</span><strong>{Math.round(b.rempli * 100)}<small>%</small></strong></div>
           <div className="t48-score"><span>Coups</span><strong>{partie.coups}</strong></div>
         </div>
-
-        {palier !== null && (
-          <div className="pt-choix">
-            <div className="pt-paliers" role="group" aria-label="Taille de grille">
-              {PALIERS.map((nom, k) => (
-                <button key={nom} type="button" aria-pressed={palier === k} className={palier === k ? 'is-active' : ''} onClick={() => setPalier(k)}>
-                  {nom} <small>{Array.from({ length: PAR_PALIER }, (_, j) => k * PAR_PALIER + j + 1).filter(fait).length}/{PAR_PALIER}</small>
-                </button>
-              ))}
-            </div>
-            <div className="pt-niveaux" role="group" aria-label="Niveaux">
-              {Array.from({ length: PAR_PALIER }, (_, j) => palier * PAR_PALIER + j + 1).filter(k => k <= NIVEAUX.length).map(k => {
-                const nb = Object.keys(lireNiveau(NIVEAUX[k - 1]).points).length
-                const p = progres[String(k)]
-                return (
-                  <button key={k} type="button" className={`${k === num ? 'is-current' : ''}${p !== undefined ? (p <= nb ? ' is-parfait' : ' is-fait') : ''}`} onClick={() => charger(k)} aria-label={`Niveau ${k}${p !== undefined ? (p <= nb ? ', parfait' : ', réussi') : ''}`}>
-                    {k}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        )}
 
         <Outils sound={sound} vibe={vibe} onSound={toggleSound} onVibe={toggleVibe} full={plein.full} onFull={plein.toggle} />
 
@@ -361,8 +343,9 @@ export default function Points() {
         <span className="mini-label">Ta progression sur cet appareil</span>
         <ul>
           <li><span>Niveaux réussis</span><strong>{Object.keys(progres).length} / {NIVEAUX.length}</strong></li>
-          <li><span>Parfaits</span><strong>{Object.entries(progres).filter(([k, v]) => v <= Object.keys(lireNiveau(NIVEAUX[Number(k) - 1]).points).length).length}</strong></li>
+          <li><span>Parfaits</span><strong>{Object.keys(progres).filter(k => etatNiveau(Number(k)) === 'parfait').length} / {NIVEAUX.length}</strong></li>
         </ul>
+        <ProgressionPaliers etat={etatNiveau} />
       </div>
     </section>
   )

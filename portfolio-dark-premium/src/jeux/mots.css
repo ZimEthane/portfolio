@@ -43,19 +43,7 @@
 .mm-fin .button { border: 0; cursor: pointer; }
 
 .mm-pastille { display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: #ffd36b; color: #2a2148; font-size: 11px; font-weight: 800; }
-button.mm-niveau { cursor: pointer; color: inherit; font: inherit; transition: border-color .2s; }
-button.mm-niveau:hover, button.mm-niveau[aria-expanded='true'] { border-color: #8f86ff90; }
 
-.mm-choix { display: grid; gap: 8px; width: 100%; max-width: 520px; padding: 10px; border-radius: 14px; border: 1px solid #ffffff10; background: #ffffff04; }
-.mm-paliers { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
-.mm-paliers button { padding: 7px 4px; border-radius: 9px; border: 1px solid #ffffff12; background: #07080a; color: #cfd8ea; font: 600 12px Manrope, sans-serif; cursor: pointer; }
-.mm-paliers button small { display: block; font: 10px 'DM Mono', monospace; color: #8d95a6; }
-.mm-paliers button.is-active { border-color: #8f86ff90; background: #8f86ff16; }
-.mm-niveaux { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 5px; }
-.mm-niveaux button { aspect-ratio: 1; min-width: 0; padding: 0; border-radius: 7px; border: 1px solid #ffffff10; background: #07080a; color: #9aa3b5; font: 500 11px 'DM Mono', monospace; cursor: pointer; }
-.mm-niveaux button:disabled { opacity: .35; cursor: not-allowed; }
-.mm-niveaux button.is-fait { color: #ffe0c8; border-color: #ff8a3d60; background: #ff8a3d18; }
-.mm-niveaux button.is-current { outline: 2px solid #a0c8ff; outline-offset: 1px; }
 
 .mm-bonus-liste { display: grid; gap: 4px; width: 100%; max-width: 520px; padding: 10px 12px; border-radius: 14px; border: 1px solid #ffd36b30; background: #ffd36b0a; }
 .mm-bonus-liste strong { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #ffe08f; }
@@ -66,7 +54,6 @@ button.mm-niveau:hover, button.mm-niveau[aria-expanded='true'] { border-color: #
   .mm-jeu { padding: 14px 8px 12px; }
   .mm-grille { gap: 6px 10px; }
   .mm-mot span { width: calc(var(--b) * .88); height: calc(var(--b) * .88); }
-  .mm-niveaux { gap: 4px; }
   .mots .ms-records ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (prefers-reduced-motion: reduce) {

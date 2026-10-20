@@ -64,7 +64,7 @@ const games: GameInfo[] = [
   {
     id: 'points', name: 'Relier les points', categorie: 'reflexion', couleur: '#ffd84d', nouveau: true,
     court: 'Relie les couleurs, remplis la grille.',
-    description: 'Relie chaque paire de points de la même couleur sans croiser les autres chemins, en remplissant toute la grille. 100 niveaux du 5 × 5 au 8 × 8, chacun avec une seule solution.',
+    description: 'Relie chaque paire de points de la même couleur sans croiser les autres chemins, en remplissant toute la grille. 500 niveaux du 5 × 5 au 9 × 9, chacun avec une seule solution.',
     component: lazy(() => import('./jeux/Points')),
   },
   {
