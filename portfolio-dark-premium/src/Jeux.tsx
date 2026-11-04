@@ -74,6 +74,12 @@ const games: GameInfo[] = [
     component: lazy(() => import('./jeux/Mots')),
   },
   {
+    id: 'echo', name: 'Écho', categorie: 'reflexion', couleur: '#4ee0c8', nouveau: true,
+    court: 'Regarde la suite de couleurs, rejoue-la.',
+    description: 'Les couleurs s’allument une par une, chacune avec sa note : rejoue la suite dans le même ordre. À chaque tour réussi, une couleur s’ajoute et le rythme accélère. Trois niveaux, dont un à six couleurs.',
+    component: lazy(() => import('./jeux/Echo')),
+  },
+  {
     id: 'snake', name: 'Snake', categorie: 'arcade', couleur: '#7bd6aa',
     court: 'Mange, grandis, ne te mords pas la queue.',
     description: 'Guide le serpent vers la nourriture sans foncer dans un mur ni te mordre la queue : plus il mange, plus il grandit.',

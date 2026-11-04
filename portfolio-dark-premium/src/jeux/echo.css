@@ -1,0 +1,71 @@
+/* ===== Écho ===== */
+.ms-levels.echo-niveaux { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+/* Zone de jeu : le plateau rond garde la même taille quelle que soit la phase. */
+.echo-zone {
+  display: block; width: min(100%, 370px); margin-inline: auto;
+  user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.is-fullscreen .echo-zone { width: min(100%, calc(100svh - 300px), 620px); min-width: 240px; }
+.echo-zone.is-erreur { animation: ms-shake .4s ease-out; }
+
+.echo-plateau { display: block; width: 100%; height: auto; overflow: visible; }
+.echo-corps { fill: #07080a; stroke: #ffffff14; stroke-width: 1; }
+
+/* Touches : couleur sombre au repos, vive quand elles s'allument. */
+.echo-pad {
+  fill: var(--sombre); stroke: #07080a; stroke-width: 5; stroke-linejoin: round;
+  transform-box: view-box; transform-origin: 50% 50%;
+  transition: fill .08s ease-out, transform .12s ease-out;
+  outline: none; -webkit-tap-highlight-color: transparent;
+}
+.echo-plateau.is-actif .echo-pad { cursor: pointer; }
+.echo-plateau.is-actif .echo-pad:hover { fill: color-mix(in srgb, var(--sombre) 78%, var(--vif)); }
+.echo-pad.is-allume, .echo-plateau.is-actif .echo-pad.is-allume { fill: var(--vif); transition-duration: .03s; }
+.echo-pad.is-presse { transform: scale(.982); }
+.echo-pad:focus-visible { stroke: #a0c8ff; stroke-width: 3; }
+.echo-pad.is-attendu { animation: echo-clignote .3s ease-in-out 3; }
+.echo-mini .echo-pad.is-attendu { animation-duration: 1.2s; animation-iteration-count: infinite; }
+@keyframes echo-clignote { 0%, 100% { fill: var(--sombre); } 50% { fill: var(--vif); } }
+
+/* Numéros des touches : seulement avec une souris (le clavier est alors à portée). */
+.echo-touche { display: none; font: 600 11px 'DM Mono', monospace; fill: #ffffff59; pointer-events: none; }
+@media (hover: hover) and (pointer: fine) { .echo-touche { display: inline; } }
+
+/* Centre : numéro du tour, ou bouton Jouer. */
+.echo-centre { fill: #0d1014; stroke: #ffffff18; stroke-width: 1.5; transition: stroke .2s; }
+.echo-hub { outline: none; }
+.echo-hub.is-bouton { cursor: pointer; }
+.echo-hub.is-bouton:hover .echo-centre, .echo-hub.is-bouton:focus-visible .echo-centre { stroke: #8bb9fa; }
+.echo-hub.is-bouton .echo-centre { animation: echo-respire 2.4s ease-in-out infinite; }
+@keyframes echo-respire { 50% { stroke: #8bb9fa90; } }
+.echo-num { font: 600 27px 'DM Mono', monospace; fill: #f2f5fa; letter-spacing: -.04em; }
+.echo-sous { font: 700 8px Manrope, sans-serif; letter-spacing: .16em; text-transform: uppercase; fill: #8d95a6; }
+.echo-play { fill: #a0c8ff; stroke: #a0c8ff; stroke-width: 3; stroke-linejoin: round; }
+
+/* Essais restants (niveau Facile). */
+.echo-vies strong { display: flex; align-items: center; justify-content: center; gap: 3px; min-height: 28px; }
+.echo-vies svg { color: #ff7b7b; opacity: .35; }
+.echo-vies svg.is-plein { fill: currentColor; opacity: 1; }
+
+.echo .ms-message .button { display: inline-flex; align-items: center; gap: 7px; }
+.echo .ms-step p kbd { display: inline-block; min-width: 18px; padding: 1px 5px; border-radius: 5px; border: 1px solid #ffffff1c; background: #ffffff08; font: 500 10px 'DM Mono', monospace; color: #dce6f7; text-align: center; }
+
+/* Illustrations du guide. */
+.echo-plateau.echo-mini { width: 132px; pointer-events: none; }
+.echo-suite-mini { display: flex; align-items: center; gap: 7px; }
+.echo-suite-mini i { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--c); box-shadow: 0 0 12px color-mix(in srgb, var(--c) 45%, transparent); }
+.echo-suite-mini i.is-nouvelle { background: none; border: 2px dashed var(--c); box-shadow: none; color: var(--c); font: 700 13px Manrope, sans-serif; font-style: normal; animation: echo-apparait 1.6s ease-in-out infinite; }
+@keyframes echo-apparait { 50% { background: color-mix(in srgb, var(--c) 30%, transparent); } }
+
+@media (max-width: 600px) {
+  .echo-zone { width: min(100%, 420px); }
+  .ms-levels.echo-niveaux { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ms-levels.echo-niveaux button { padding: 10px 11px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .echo-zone.is-erreur, .echo-hub.is-bouton .echo-centre, .echo-suite-mini i.is-nouvelle { animation: none; }
+  .echo-pad.is-attendu { animation: none; fill: color-mix(in srgb, var(--sombre) 40%, var(--vif)); }
+  .echo-pad { transition: none; }
+}
