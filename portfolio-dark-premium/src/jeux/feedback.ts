@@ -110,6 +110,14 @@ export function playSound(kind: Sound, level = 1) {
   }
 }
 
+// Note tenue d'une touche de couleur (jeu Écho) : un son rond, avec une harmonique douce.
+export function playNote(freq: number, dur = 0.3) {
+  const a = audio()
+  if (!a) return
+  tone(a, freq, 0, dur, 'triangle', 0.17)
+  tone(a, freq * 2, 0, dur * 0.8, 'sine', 0.035)
+}
+
 // Durées de vibration (ms) pour Android.
 const patterns = {
   reveal: 12,

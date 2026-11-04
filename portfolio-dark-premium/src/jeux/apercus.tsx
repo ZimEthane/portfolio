@@ -387,7 +387,36 @@ function RaseMottes() {
   )
 }
 
+function Echo() {
+  // Quatre quarts d'anneau autour d'un centre ; le vert est allumé.
+  const arc = (a0: number, a1: number, R: number, r: number) => {
+    const p = (a: number, rr: number) => `${(80 + rr * Math.sin((a * Math.PI) / 180)).toFixed(1)} ${(50 - rr * Math.cos((a * Math.PI) / 180)).toFixed(1)}`
+    return `M${p(a0, R)}A${R} ${R} 0 0 1 ${p(a1, R)}L${p(a1, r)}A${r} ${r} 0 0 0 ${p(a0, r)}Z`
+  }
+  const touches = [
+    { a: -90, f: '#4ef08a' },
+    { a: 0, f: '#6a1d24' },
+    { a: 90, f: '#1b3c6e' },
+    { a: 180, f: '#665210' },
+  ]
+  return (
+    <Svg fond="#10141a">
+      <defs>
+        <filter id="ap-echo-lueur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="5" /></filter>
+      </defs>
+      <circle cx="80" cy="50" r="44" fill="#07080a" stroke="#ffffff14" />
+      {touches.map(t => <path key={t.a} d={arc(t.a, t.a + 90, 42, 18)} fill={t.f} stroke="#07080a" strokeWidth="2.5" strokeLinejoin="round" />)}
+      <path d={arc(-90, 0, 42, 18)} fill="#4ef08a" opacity=".7" filter="url(#ap-echo-lueur)" />
+      <circle cx="80" cy="50" r="14.5" fill="#0d1014" stroke="#ffffff1c" />
+      <text x="80" y="55" textAnchor="middle" fontSize="13" fontWeight="700" fill="#f2f5fa">7</text>
+      {['#4ef08a', '#ff5c5c', '#5aa8ff'].map((c, k) => <circle key={c} cx={140} cy={36 + k * 14} r="4" fill={c} opacity={1 - k * 0.25} />)}
+      {['#ffd84d', '#4ef08a', '#ff5c5c'].map((c, k) => <circle key={c} cx={20} cy={36 + k * 14} r="4" fill={c} opacity={0.5 + k * 0.25} />)}
+    </Svg>
+  )
+}
+
 export const APERCUS: Record<string, () => ReactNode> = {
+  echo: Echo,
   demineur: Demineur,
   '2048': Jeu2048,
   sudoku: Sudoku,
