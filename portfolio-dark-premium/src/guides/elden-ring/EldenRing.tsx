@@ -1,12 +1,15 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, KeyboardEvent, MouseEvent } from 'react'
-import { ArrowLeft, ArrowRight, BookOpen, Check, Download, LayoutGrid } from 'lucide-react'
+import { ArrowLeft, ArrowRight, BookOpen, Check, Download, LayoutGrid, Map as IconeCarte } from 'lucide-react'
 import { animateScrollTo, scrollToId } from '../../scroll'
 import { lienPage, lienSection, livre } from './livre'
 import type { Livre, PageLivre, SectionLivre, Titre } from './livre'
 import Fiche from './Fiche'
+import { ecrireCoches, lireCoches } from './coches'
 import './livre.css'
 import './elden-ring.css'
+
+const Carte = lazy(() => import('./carte/Carte'))
 
 const deuxChiffres = (n: number) => String(n).padStart(2, '0')
 
@@ -168,15 +171,6 @@ function useActif(ids: string[]) {
   return actif
 }
 
-// ----- Cases cochées : enregistrées dans le navigateur du visiteur -----
-const CLE_COCHES = 'guides:elden-ring:coches'
-function lireCoches(): Set<string> {
-  try { return new Set(JSON.parse(localStorage.getItem(CLE_COCHES) ?? '[]') as string[]) } catch { return new Set() }
-}
-function ecrireCoches(coches: Set<string>) {
-  try { localStorage.setItem(CLE_COCHES, JSON.stringify([...coches])) } catch { /* stockage indisponible : les cases restent cochées jusqu'au rechargement */ }
-}
-
 // Compteur « 12 / 63 » à côté du titre d'une liste (attribut lu par le CSS).
 function compter(titre: Element | null | undefined, groupe: Element | null | undefined) {
   if (!(titre instanceof HTMLElement) || !groupe) return
@@ -335,8 +329,9 @@ function VueSection({ livre: l, section, pages, page }: { livre: Livre; section:
 
 export default function EldenRing({ chemin }: { chemin: string }) {
   const l = useMemo(livre, [])
-  const vue = lireChemin(l, chemin)
-  const cle = vue ? `${vue.section.slug}/${vue.page?.slug ?? ''}` : ''
+  const surCarte = chemin === 'carte' || chemin.startsWith('carte/')
+  const vue = surCarte ? null : lireChemin(l, chemin)
+  const cle = surCarte ? 'carte' : vue ? `${vue.section.slug}/${vue.page?.slug ?? ''}` : ''
   const ancre = vue?.ancre ?? ''
   const precedente = useRef<string | null>(null)
 
@@ -352,6 +347,24 @@ export default function EldenRing({ chemin }: { chemin: string }) {
     } else if (memePage) animateScrollTo(0)
     else window.scrollTo({ top: 0, behavior: 'instant' })
   }, [cle, ancre])
+
+  if (surCarte) {
+    return (
+      <main className="er er-sur-carte">
+        <div className="er-barre">
+          <a className="er-retour" href="#guides/elden-ring"><ArrowLeft size={15} /> Sommaire du guide</a>
+          <span className="er-fil">Elden Ring <i>/</i> Carte interactive</span>
+        </div>
+        <Suspense fallback={<div className="erc-attente">Chargement de la carte…</div>}>
+          <Carte livre={l} chemin={chemin} />
+        </Suspense>
+        <footer className="er-pied">
+          <span>Elden Ring — Carte interactive · Positions extraites du jeu (jeu de base)</span>
+          <span>{l.couverture.mention}</span>
+        </footer>
+      </main>
+    )
+  }
 
   return (
     <main className={vue ? 'er er-dans-section' : 'er'}>
@@ -369,10 +382,16 @@ export default function EldenRing({ chemin }: { chemin: string }) {
         : (
           <div className="er-accueil">
             <Couverture livre={l} />
-            <a className="er-pdf" href={PDF} download={NOM_PDF}>
-              <Download size={18} />
-              <span><strong>Télécharger le guide en PDF</strong><small>Version imprimable · 118 pages · 15 Mo</small></span>
-            </a>
+            <div className="er-acces">
+              <a className="er-pdf" href="#guides/elden-ring/carte">
+                <IconeCarte size={18} />
+                <span><strong>Carte interactive</strong><small>Grâces, boss, donjons, objets · plus de 3 000 repères</small></span>
+              </a>
+              <a className="er-pdf" href={PDF} download={NOM_PDF}>
+                <Download size={18} />
+                <span><strong>Télécharger le guide en PDF</strong><small>Version imprimable · 118 pages · 15 Mo</small></span>
+              </a>
+            </div>
             <Sommaire livre={l} />
           </div>
         )}

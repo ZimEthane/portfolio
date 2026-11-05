@@ -25,7 +25,7 @@ export const guides: GuideInfo[] = [
     categorie: 'Jeu vidéo',
     couleur: '#d9c08a',
     nouveau: true,
-    avancement: 'Guide complet · 7 sections',
+    avancement: 'Guide complet · 7 sections · carte interactive',
     onglets: ['#2c6355', '#57407f', '#96712a', '#2d5079', '#8a4b2a', '#8f2a24', '#4d6b80'],
     component: lazy(() => import('./elden-ring/EldenRing')),
   },

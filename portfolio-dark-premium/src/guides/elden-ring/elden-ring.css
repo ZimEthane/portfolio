@@ -319,3 +319,8 @@ html:has(.er-fiche[open]) { overflow: hidden; }
   .er-livre .pinlist, .er-livre .didx { columns: 1; }
   .er-livre .fgrid { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* Carte interactive : la page prend toute la largeur (voir carte/carte.css) */
+.er-sur-carte .er-barre { width: min(1500px, calc(100% - 32px)); }
+.er-sur-carte .er-pied { width: min(1500px, calc(100% - 32px)); }
+.erc-attente { padding: 120px 0; text-align: center; color: var(--gris); }
