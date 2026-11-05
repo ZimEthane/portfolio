@@ -2,8 +2,9 @@ import { lazy, Suspense, useEffect, useState } from 'react'
 import { ArrowDownRight, ArrowRight, ArrowUp, ArrowUpRight, Code2, ExternalLink, Github, Linkedin, Mail, Menu, X } from 'lucide-react'
 import ContactForm from './ContactForm'
 import Veille from './Veille'
-// Jeux et Tutos sont chargés seulement quand on les ouvre : l'accueil reste léger.
+// Jeux, Guides et Tutos sont chargés seulement quand on les ouvre : l'accueil reste léger.
 const Jeux = lazy(() => import('./Jeux'))
+const Guides = lazy(() => import('./Guides'))
 const Tutos = lazy(() => import('./Tutos'))
 import { scrollToId, scrollToTop } from './scroll'
 import { btsOptions, CONTACT_EMAIL, GITHUB_URL, LINKEDIN_URL, projects, skills, timeline, toolGroups } from './data'
@@ -14,15 +15,15 @@ const GRID_URL = '/pdf/BTS_SIO_-_Annexe_8-1_-_Tableau_de_synthe_se_-_Epreuve_E4-
 // Page Tutos : prête mais pas encore publiée. Passer à true pour l'afficher (menu + adresse #tutos).
 const TUTOS_EN_LIGNE = false
 
-const navItems = [['À propos', '#apropos'], ['Projets', '#projets'], ['Compétences', '#competences'], ['Parcours', '#parcours'], ['Veille', '#veille'], ['Jeux', '#jeux'], ...(TUTOS_EN_LIGNE ? [['Tutos', '#tutos']] : [])]
+const navItems = [['À propos', '#apropos'], ['Projets', '#projets'], ['Compétences', '#competences'], ['Parcours', '#parcours'], ['Veille', '#veille'], ['Jeux', '#jeux'], ['Guides', '#guides'], ...(TUTOS_EN_LIGNE ? [['Tutos', '#tutos']] : [])]
 
 // Pages à part entière (le reste du hash sert à défiler dans l'accueil).
-// Elles acceptent une sous-adresse : "#jeux/2048", "#tutos/lacets".
-const SUBPAGES = ['#veille', '#jeux', '#tutos']
+// Elles acceptent une sous-adresse : "#jeux/2048", "#guides/elden-ring/bases", "#tutos/lacets".
+const SUBPAGES = ['#veille', '#jeux', '#guides', '#tutos']
 const isUnder = (hash: string, page: string) => hash === page || hash.startsWith(page + '/')
 const isSubpage = (hash: string) => SUBPAGES.some(p => isUnder(hash, p))
 
-// Routage minimal par hash : "#veille", "#jeux" et "#tutos" affichent leur page, tout le reste affiche l'accueil.
+// Routage minimal par hash : "#veille", "#jeux", "#guides" et "#tutos" affichent leur page, tout le reste affiche l'accueil.
 function useHash() {
   const [hash, setHash] = useState(() => window.location.hash)
   useEffect(() => {
@@ -33,7 +34,7 @@ function useHash() {
   return hash
 }
 
-// Pendant le chargement d'une page (Jeux, Tutos) : une page vide de la même hauteur.
+// Pendant le chargement d'une page (Jeux, Guides, Tutos) : une page vide de la même hauteur.
 const Chargement = () => <main className="section-wrap page-chargement" aria-busy="true" />
 
 // Bouton flottant en bas à droite : apparaît après un peu de défilement et ramène tout en haut.
@@ -58,7 +59,7 @@ function ScrollTopButton() {
 function App() {
   const [menuOpen, setMenuOpen] = useState(false)
   const hash = useHash()
-  const page = hash === '#veille' ? 'veille' : isUnder(hash, '#jeux') ? 'jeux' : TUTOS_EN_LIGNE && isUnder(hash, '#tutos') ? 'tutos' : 'home'
+  const page = hash === '#veille' ? 'veille' : isUnder(hash, '#jeux') ? 'jeux' : isUnder(hash, '#guides') ? 'guides' : TUTOS_EN_LIGNE && isUnder(hash, '#tutos') ? 'tutos' : 'home'
   const closeMenu = () => setMenuOpen(false)
 
   // Clic sur un lien d'ancre de l'accueil (menu, boutons) : défilement doux au lieu du saut brusque.
@@ -80,7 +81,8 @@ function App() {
 
   useEffect(() => {
     if (page !== 'home') {
-      window.scrollTo({ top: 0 })
+      // Les guides gèrent eux-mêmes leur défilement (ancres vers un titre de la page).
+      if (page !== 'guides') window.scrollTo({ top: 0 })
       return
     }
     const id = hash.slice(1)
@@ -99,7 +101,7 @@ function App() {
       </nav>
     </header>
 
-    {page === 'veille' ? <Veille /> : page === 'jeux' ? <Suspense fallback={<Chargement />}><Jeux hash={hash} /></Suspense> : page === 'tutos' ? <Suspense fallback={<Chargement />}><Tutos hash={hash} /></Suspense> : <main>
+    {page === 'veille' ? <Veille /> : page === 'jeux' ? <Suspense fallback={<Chargement />}><Jeux hash={hash} /></Suspense> : page === 'guides' ? <Suspense fallback={<Chargement />}><Guides hash={hash} /></Suspense> : page === 'tutos' ? <Suspense fallback={<Chargement />}><Tutos hash={hash} /></Suspense> : <main>
       <section className="hero section-wrap" id="accueil">
         <div className="hero-copy">
           <div className="eyebrow"><span className="status-dot" /> PORTFOLIO · 2026</div>
