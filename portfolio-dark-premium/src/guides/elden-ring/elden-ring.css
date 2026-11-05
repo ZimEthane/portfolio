@@ -39,6 +39,15 @@
 .er-couv-pied { margin-top: 58px; font: 400 11px 'Cinzel Variable', Cinzel, serif; letter-spacing: .4em; text-transform: uppercase; color: #d9c08a; }
 .er-couv-mention { margin-top: 12px; font: 400 10px 'Cinzel Variable', Cinzel, serif; letter-spacing: .05em; color: #d9c08abf; }
 
+/* Lien de téléchargement du PDF, sous la couverture */
+.er-pdf { display: flex; align-items: center; gap: 14px; width: fit-content; max-width: 100%; margin: 26px auto 0; padding: 12px 20px; border: 1px solid #c9ad73; border-radius: 10px; background: var(--carte); color: var(--texte); box-shadow: 0 8px 20px #2a231b14; transition: border-color .2s, transform .2s; }
+.er-pdf:hover { border-color: var(--or); transform: translateY(-2px); }
+.er-pdf svg { flex: none; color: var(--or); }
+.er-pdf strong { display: block; font: 600 15px 'Cinzel Variable', Cinzel, serif; letter-spacing: .03em; }
+.er-pdf small { display: block; font-size: 12.5px; color: var(--gris); }
+.er-pied a { text-decoration: underline; text-underline-offset: 2px; }
+.er-pied a:hover { color: var(--fort); }
+
 /* ----- Sommaire ----- */
 .er-sommaire-page { max-width: 880px; margin: 0 auto; padding: 64px 0 10px; }
 .er-titre-orne { margin: 0; text-align: center; font: 600 clamp(28px, 3.6vw, 36px) 'Cinzel Variable', Cinzel, serif; letter-spacing: .04em; color: var(--texte); }

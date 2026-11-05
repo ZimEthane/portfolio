@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, KeyboardEvent, MouseEvent } from 'react'
-import { ArrowLeft, ArrowRight, BookOpen, Check, LayoutGrid } from 'lucide-react'
+import { ArrowLeft, ArrowRight, BookOpen, Check, Download, LayoutGrid } from 'lucide-react'
 import { animateScrollTo, scrollToId } from '../../scroll'
 import { lienPage, lienSection, livre } from './livre'
 import type { Livre, PageLivre, SectionLivre, Titre } from './livre'
@@ -9,6 +9,10 @@ import './livre.css'
 import './elden-ring.css'
 
 const deuxChiffres = (n: number) => String(n).padStart(2, '0')
+
+// Le guide complet en PDF (la version imprimable), pour ceux qui veulent le garder ou l'imprimer.
+const PDF = `${import.meta.env.BASE_URL}guides/elden-ring/Elden-Ring-Edition-Ultime.pdf`
+const NOM_PDF = 'Elden-Ring-Edition-Ultime.pdf'
 
 // ----- Couverture (page 1 du guide) -----
 function Couverture({ livre: { couverture: c } }: { livre: Livre }) {
@@ -362,10 +366,19 @@ export default function EldenRing({ chemin }: { chemin: string }) {
       </div>
       {vue
         ? <VueSection livre={l} section={vue.section} pages={vue.pages} page={vue.page} />
-        : <div className="er-accueil"><Couverture livre={l} /><Sommaire livre={l} /></div>}
+        : (
+          <div className="er-accueil">
+            <Couverture livre={l} />
+            <a className="er-pdf" href={PDF} download={NOM_PDF}>
+              <Download size={18} />
+              <span><strong>Télécharger le guide en PDF</strong><small>Version imprimable · 118 pages · 15 Mo</small></span>
+            </a>
+            <Sommaire livre={l} />
+          </div>
+        )}
       <Onglets livre={l} actuelle={vue?.section} />
       <footer className="er-pied">
-        <span>Elden Ring — Édition ultime · Jeu de base, mise à jour 1.17</span>
+        <span>Elden Ring — Édition ultime · Jeu de base, mise à jour 1.17 · <a href={PDF} download={NOM_PDF}>Version PDF</a></span>
         <span>{l.couverture.mention}</span>
       </footer>
     </main>
