@@ -155,6 +155,30 @@
 .er-livre svg.realmap, .er-livre .fig img { max-width: 100%; }
 .er-livre .minimap a.maplink:hover { text-decoration: underline; }
 
+/* Cases à cocher (checklists, index des donjons, objets légendaires) */
+.er-livre .er-cochable { cursor: pointer; transition: opacity .15s; }
+.er-livre .er-cochable:hover .box { border-color: #5a4318; background: #fbf6ec; }
+.er-livre .box[role="checkbox"] { position: relative; cursor: pointer; transition: background .15s, border-color .15s; }
+.er-livre .box[role="checkbox"]:focus-visible { outline: 2px solid var(--sc, #96712a); outline-offset: 2px; }
+.er-livre .er-cochable .box[aria-checked="true"] { background: #2c6355; border-color: #2c6355; } /* plus fort que .er-livre li.check .box, etc. */
+.er-livre .box[aria-checked="true"]::after { content: ''; position: absolute; left: 32%; top: 10%; width: 32%; height: 58%; border: solid #f4ede0; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+/* Ligne cochée : texte barré et pâli, la case reste bien visible */
+.er-livre li.is-coche { color: #2a231b80; text-decoration: line-through; text-decoration-color: #8a7d68; }
+.er-livre li.is-coche > :not(.box) { opacity: .5; }
+.er-livre tr.is-coche td:not(.cb) { opacity: .5; text-decoration: line-through; text-decoration-color: #8a7d68; }
+.er-livre h3.clmap[data-compte]::after, .er-livre .didx h5[data-compte]::after { content: attr(data-compte); margin-left: 8px; padding: 1px 7px; border-radius: 999px; background: #e2d7c2; font: 600 11px 'Inter Variable', Inter, sans-serif; letter-spacing: 0; color: #5d554a; vertical-align: 2px; }
+.er-livre .didx h5[data-compte]::after { font-size: 9.5px; padding: 0 5px; }
+
+/* Barre de progression en haut des pages qui ont des cases */
+.er-progression { position: sticky; top: 10px; z-index: 4; display: flex; align-items: center; gap: 14px; margin: 22px 0 6px; padding: 10px 14px; border: 1px solid var(--bord); border-radius: 8px; background: color-mix(in srgb, var(--carte) 94%, transparent); box-shadow: 0 8px 22px #2a231b1f; backdrop-filter: blur(6px); font-size: 13.5px; }
+.er-prog-texte { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; color: var(--gris-fonce); }
+.er-prog-texte svg { color: #2c6355; }
+.er-prog-barre { flex: 1; height: 8px; min-width: 60px; border-radius: 999px; background: #ddd1b9; overflow: hidden; }
+.er-prog-barre i { display: block; height: 100%; border-radius: inherit; background: #2c6355; transition: width .25s; }
+.er-progression button { flex: none; padding: 5px 11px; border: 1px solid var(--bord); border-radius: 999px; background: none; font: 600 12px 'Inter Variable', Inter, sans-serif; color: var(--gris-fonce); cursor: pointer; }
+.er-progression button:hover { border-color: var(--gris); color: var(--fort); }
+.er-progression button.is-confirmer { border-color: #9a2b2b; background: #ecd5cb; color: #9a2b2b; }
+
 /* Écrans moyens */
 @media (max-width: 1000px) {
   .er-livre .clgrid { columns: 2; }
@@ -189,6 +213,7 @@
   .er-livre .qrbox a.qr svg { width: 90px; height: 90px; }
   .er-livre .tier td:nth-child(2) { width: auto; }
   .er-livre .clb li { flex-wrap: wrap; }
+  .er-progression { gap: 10px; padding: 8px 10px; font-size: 12.5px; }
   /* Schémas en SVG (carte des régions, boucle du jeu, frise) : trop petits une fois rétrécis, ils défilent sur le côté */
   .er-livre .fig:has(> svg.regionmap, > svg.loop, > svg.timeline) { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .er-livre .fig > svg.regionmap:not(.mini), .er-livre .fig > svg.timeline { min-width: 680px; }

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { CSSProperties } from 'react'
-import { ArrowLeft, ArrowRight, BookOpen, LayoutGrid } from 'lucide-react'
+import type { CSSProperties, KeyboardEvent, MouseEvent } from 'react'
+import { ArrowLeft, ArrowRight, BookOpen, Check, LayoutGrid } from 'lucide-react'
 import { animateScrollTo, scrollToId } from '../../scroll'
 import { lienPage, lienSection, livre } from './livre'
 import type { Livre, PageLivre, SectionLivre, Titre } from './livre'
@@ -163,13 +163,100 @@ function useActif(ids: string[]) {
   return actif
 }
 
-// Le contenu d'origine du guide, tel quel (voir livre.ts).
+// ----- Cases cochées : enregistrées dans le navigateur du visiteur -----
+const CLE_COCHES = 'guides:elden-ring:coches'
+function lireCoches(): Set<string> {
+  try { return new Set(JSON.parse(localStorage.getItem(CLE_COCHES) ?? '[]') as string[]) } catch { return new Set() }
+}
+function ecrireCoches(coches: Set<string>) {
+  try { localStorage.setItem(CLE_COCHES, JSON.stringify([...coches])) } catch { /* stockage indisponible : les cases restent cochées jusqu'au rechargement */ }
+}
+
+// Compteur « 12 / 63 » à côté du titre d'une liste (attribut lu par le CSS).
+function compter(titre: Element | null | undefined, groupe: Element | null | undefined) {
+  if (!(titre instanceof HTMLElement) || !groupe) return
+  const cases = groupe.querySelectorAll('[data-coche]')
+  if (!cases.length) return
+  titre.dataset.compte = `${groupe.querySelectorAll('[data-coche][aria-checked="true"]').length} / ${cases.length}`
+}
+
+// Le contenu d'origine du guide, tel quel (voir livre.ts), avec ses cases à cocher.
 function Contenu({ section, pages }: { section: SectionLivre; pages: PageLivre[] }) {
   const html = useMemo(() => pages.map(p => p.html).join(''), [pages])
+  const racine = useRef<HTMLDivElement>(null)
+  const [coches, setCoches] = useState(lireCoches)
+  const [compte, setCompte] = useState({ faits: 0, total: 0 })
+  const [confirmer, setConfirmer] = useState(false)
+
+  // Reporte l'état des cases sur le contenu affiché et met les compteurs à jour.
+  useEffect(() => {
+    const el = racine.current
+    if (!el) return
+    const cases = Array.from(el.querySelectorAll<HTMLElement>('[data-coche]'))
+    let faits = 0
+    for (const c of cases) {
+      const oui = coches.has(c.dataset.coche!)
+      c.setAttribute('aria-checked', String(oui))
+      c.closest('.er-cochable')?.classList.toggle('is-coche', oui)
+      if (oui) faits++
+    }
+    el.querySelectorAll('h3.clmap').forEach(h => compter(h, h.nextElementSibling)) // checklist 100 %, par carte
+    el.querySelectorAll('.didx-g').forEach(g => compter(g.querySelector('h5'), g)) // index des donjons, par région
+    setCompte({ faits, total: cases.length })
+  }, [coches, html])
+
+  useEffect(() => {
+    if (!confirmer) return
+    const t = setTimeout(() => setConfirmer(false), 4000)
+    return () => clearTimeout(t)
+  }, [confirmer])
+
+  const changer = (cles: string[], cocher: boolean) => setCoches(avant => {
+    const suite = new Set(avant)
+    cles.forEach(k => cocher ? suite.add(k) : suite.delete(k))
+    ecrireCoches(suite)
+    return suite
+  })
+  const basculer = (c: HTMLElement) => changer([c.dataset.coche!], c.getAttribute('aria-checked') !== 'true')
+
+  // Un clic n'importe où sur la ligne coche la case (sauf sur un lien, ou si on sélectionne du texte).
+  const onClick = (e: MouseEvent) => {
+    const cible = e.target as HTMLElement
+    if (cible.closest('a, button') || window.getSelection()?.toString()) return
+    const c = cible.closest('.er-cochable')?.querySelector<HTMLElement>('[data-coche]')
+    if (c) basculer(c)
+  }
+  const onKeyDown = (e: KeyboardEvent) => {
+    const c = (e.target as HTMLElement).closest<HTMLElement>('[data-coche]')
+    if (c && (e.key === ' ' || e.key === 'Enter')) {
+      e.preventDefault()
+      basculer(c)
+    }
+  }
+  const toutDecocher = () => {
+    if (!confirmer) return setConfirmer(true)
+    const cles = Array.from(racine.current?.querySelectorAll<HTMLElement>('[data-coche]') ?? [], c => c.dataset.coche!)
+    changer(cles, false)
+    setConfirmer(false)
+  }
+
   return (
-    <div className="er-livre">
-      <div className={`sec ${section.cle}`} dangerouslySetInnerHTML={{ __html: html }} />
-    </div>
+    <>
+      {compte.total > 0 && (
+        <div className="er-progression">
+          <span className="er-prog-texte" aria-live="polite"><Check size={15} /><span><b>{compte.faits}</b> / {compte.total} cochés</span></span>
+          <span className="er-prog-barre" aria-hidden="true"><i style={{ width: `${(compte.faits / compte.total) * 100}%` }} /></span>
+          {compte.faits > 0 && (
+            <button type="button" className={confirmer ? 'is-confirmer' : undefined} onClick={toutDecocher} title="Décoche toutes les cases de cette page">
+              {confirmer ? 'Sûr ? Clique encore' : 'Tout décocher'}
+            </button>
+          )}
+        </div>
+      )}
+      <div className="er-livre" ref={racine} onClick={onClick} onKeyDown={onKeyDown}>
+        <div className={`sec ${section.cle}`} dangerouslySetInnerHTML={{ __html: html }} />
+      </div>
+    </>
   )
 }
 

@@ -44,6 +44,13 @@ export const slugifier = (texte: string) => texte
 
 const texte = (el: Element | null | undefined) => (el?.textContent ?? '').replace(/\s+/g, ' ').trim()
 
+// Empreinte courte d'un texte (djb2), pour les clés des cases à cocher.
+const hacher = (t: string) => {
+  let h = 5381
+  for (let k = 0; k < t.length; k++) h = ((h << 5) + h + t.charCodeAt(k)) | 0
+  return (h >>> 0).toString(36)
+}
+
 export function lienSection(s: SectionLivre) {
   return `${RACINE}/${s.slug}`
 }
@@ -174,6 +181,39 @@ function lire(): Livre {
       if (i !== -1) p.noeuds[i] = cadre
     }
   }
+
+  // ----- Cases à cocher (checklists, index des donjons, objets légendaires) -----
+  // Dans le guide imprimable, ce sont de simples carrés. Ici chacune devient une vraie case, avec une clé
+  // tirée de son texte et de sa liste : la progression enregistrée survit à une mise à jour du guide.
+  const titreSeul = (el: Element) => {
+    const copie = el.cloneNode(true) as Element
+    copie.querySelectorAll('span, small').forEach(e => e.remove()) // « carte au chapitre 1 · 63 objets »
+    return texte(copie)
+  }
+  brutes.forEach((s, i) => {
+    const vues = new Map<string, number>()
+    let titre = ''
+    for (const p of s.pages) for (const racine of p.noeuds) {
+      if (!(racine instanceof Element)) continue
+      const parcours = doc.createTreeWalker(racine, NodeFilter.SHOW_ELEMENT)
+      for (let n: Node | null = racine; n; n = parcours.nextNode()) {
+        const el = n as Element
+        if (/^H[1-3]$/.test(el.tagName)) titre = titreSeul(el)
+        if (!el.matches('span.box')) continue
+        const ligne = el.closest('li, tr')
+        if (!ligne) continue
+        const base = [sections[i].slug, titre, texte(el.closest('.clb')?.querySelector('.clh')), texte(ligne)].join('|')
+        const fois = (vues.get(base) ?? 0) + 1
+        vues.set(base, fois)
+        el.setAttribute('data-coche', hacher(`${base}|${fois}`))
+        el.setAttribute('role', 'checkbox')
+        el.setAttribute('aria-checked', 'false')
+        el.setAttribute('tabindex', '0')
+        el.setAttribute('aria-label', texte(ligne).slice(0, 120))
+        ligne.classList.add('er-cochable')
+      }
+    }
+  })
 
   brutes.forEach((s, i) => s.pages.forEach((p, j) => {
     sections[i].pages[j].html = p.noeuds.map(n => n instanceof Element ? n.outerHTML : n.textContent ?? '').join('')
