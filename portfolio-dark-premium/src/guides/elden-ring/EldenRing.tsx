@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, KeyboardEvent, MouseEvent } from 'react'
 import { ArrowLeft, ArrowRight, BookOpen, Check, LayoutGrid } from 'lucide-react'
 import { animateScrollTo, scrollToId } from '../../scroll'
 import { lienPage, lienSection, livre } from './livre'
 import type { Livre, PageLivre, SectionLivre, Titre } from './livre'
+import FicheDonjon from './FicheDonjon'
 import './livre.css'
 import './elden-ring.css'
 
@@ -181,8 +182,11 @@ function compter(titre: Element | null | undefined, groupe: Element | null | und
 }
 
 // Le contenu d'origine du guide, tel quel (voir livre.ts), avec ses cases à cocher.
-function Contenu({ section, pages }: { section: SectionLivre; pages: PageLivre[] }) {
+function Contenu({ livre: l, section, pages }: { livre: Livre; section: SectionLivre; pages: PageLivre[] }) {
   const html = useMemo(() => pages.map(p => p.html).join(''), [pages])
+  const [ouvert, setOuvert] = useState<string | null>(null) // donjon dont la fiche détaillée est ouverte
+  const donjon = ouvert ? l.donjons.find(d => d.id === ouvert) : undefined
+  const fermer = useCallback(() => setOuvert(null), [])
   const racine = useRef<HTMLDivElement>(null)
   const [coches, setCoches] = useState(lireCoches)
   const [compte, setCompte] = useState({ faits: 0, total: 0 })
@@ -219,10 +223,14 @@ function Contenu({ section, pages }: { section: SectionLivre; pages: PageLivre[]
   })
   const basculer = (c: HTMLElement) => changer([c.dataset.coche!], c.getAttribute('aria-checked') !== 'true')
 
-  // Un clic n'importe où sur la ligne coche la case (sauf sur un lien, ou si on sélectionne du texte).
+  // Un clic sur une carte de donjon ouvre sa fiche ; un clic sur une ligne de checklist coche sa case
+  // (sauf sur un lien, ou si on sélectionne du texte).
   const onClick = (e: MouseEvent) => {
     const cible = e.target as HTMLElement
-    if (cible.closest('a, button') || window.getSelection()?.toString()) return
+    if (cible.closest('a') || window.getSelection()?.toString()) return
+    const carte = cible.closest<HTMLElement>('article.dcard[id]')
+    if (carte) return setOuvert(carte.id)
+    if (cible.closest('button')) return
     const c = cible.closest('.er-cochable')?.querySelector<HTMLElement>('[data-coche]')
     if (c) basculer(c)
   }
@@ -256,6 +264,17 @@ function Contenu({ section, pages }: { section: SectionLivre; pages: PageLivre[]
       <div className="er-livre" ref={racine} onClick={onClick} onKeyDown={onKeyDown}>
         <div className={`sec ${section.cle}`} dangerouslySetInnerHTML={{ __html: html }} />
       </div>
+      {donjon && (
+        <FicheDonjon
+          key={donjon.id}
+          livre={l}
+          donjon={donjon}
+          fait={!!donjon.cleFait && coches.has(donjon.cleFait)}
+          onFait={() => donjon.cleFait && changer([donjon.cleFait], !coches.has(donjon.cleFait))}
+          onChanger={setOuvert}
+          onFermer={fermer}
+        />
+      )}
     </>
   )
 }
@@ -299,7 +318,7 @@ function VueSection({ livre: l, section, pages, page }: { livre: Livre; section:
           <Navigation livre={l} section={section} affichees={pages} actif={actif} onChoix={() => setMenuOuvert(false)} />
         </details>
         {!page && <Intercalaire section={section} />}
-        {pages.length > 0 && <Contenu section={section} pages={pages} />}
+        {pages.length > 0 && <Contenu livre={l} section={section} pages={pages} />}
         <nav className="er-suite" aria-label="Pages voisines">
           {avant ? <a href={avant.lien}><ArrowLeft size={15} /><span><small>{avant.quoi}</small>{avant.nom}</span></a> : <span />}
           <a href="#guides/elden-ring" className="er-suite-sommaire"><LayoutGrid size={15} /> Sommaire</a>

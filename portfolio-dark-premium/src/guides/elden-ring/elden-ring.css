@@ -179,6 +179,61 @@
 .er-progression button:hover { border-color: var(--gris); color: var(--fort); }
 .er-progression button.is-confirmer { border-color: #9a2b2b; background: #ecd5cb; color: #9a2b2b; }
 
+/* Cartes de donjon : elles s'ouvrent en fiche détaillée */
+.er-livre .dcard[id] { cursor: pointer; transition: border-color .15s, box-shadow .15s, transform .15s; }
+.er-livre .dcard[id]:hover { border-color: #b89f73; box-shadow: 0 8px 20px #2a231b1f; transform: translateY(-1px); }
+.er-livre .er-dcard-plus { display: block; clear: both; margin: 6px 0 0 auto; padding: 0; border: 0; background: none; font: 700 12px 'Inter Variable', Inter, sans-serif; color: var(--sc); cursor: pointer; }
+.er-livre .er-dcard-plus:hover { text-decoration: underline; text-underline-offset: 3px; }
+.er-livre .er-dcard-plus:focus-visible { outline: 2px solid var(--sc); outline-offset: 2px; border-radius: 3px; }
+
+/* Fiche détaillée d'un donjon (fenêtre) */
+html:has(.er-fiche[open]) { overflow: hidden; }
+.er-fiche { width: min(880px, calc(100% - 32px)); max-height: calc(100dvh - 48px); padding: 0; border: 0; border-radius: 10px; background: #ebe2cf; color: #2a231b; box-shadow: 0 30px 80px #000a; font: 400 15px/1.58 'Inter Variable', Inter, system-ui, sans-serif; overscroll-behavior: contain; }
+.er-fiche::backdrop { background: #0e0c0acc; backdrop-filter: blur(3px); }
+.er-fiche :is(h2, h3, strong) { color: inherit; }
+.er-fiche-feuille { border-top: 6px solid var(--sc); }
+.er-fiche-tete { position: sticky; top: 0; z-index: 2; display: flex; align-items: flex-start; gap: 14px; padding: 18px 22px 14px; border-bottom: 1px solid #d3c4a6; background: #ebe2cf; }
+.er-fiche-num { flex: none; margin-top: 4px; padding: 2px 8px; border-radius: 4px; background: var(--sc); font: 700 13px 'Cinzel Variable', Cinzel, serif; color: #f8f2e6; }
+.er-fiche-tete > div { flex: 1; min-width: 0; }
+.er-fiche-tete h2 { margin: 0; font: 700 clamp(20px, 3vw, 26px)/1.2 'Cinzel Variable', Cinzel, serif; letter-spacing: .02em; }
+.er-fiche-tete p { margin: 4px 0 0; font-size: 13.5px; color: #6b604f; }
+.er-fiche-fermer { flex: none; display: grid; place-items: center; width: 36px; height: 36px; border: 1px solid #d3c4a6; border-radius: 50%; background: #f4ede0; color: #2a231b; cursor: pointer; }
+.er-fiche-fermer:hover { border-color: #8a7d68; }
+.er-fiche-corps { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 24px; padding: 20px 22px; }
+.er-fiche-carte { margin: 0; }
+.er-fiche-vignette { position: relative; display: block; aspect-ratio: 1; border: 1px solid #a8916a; border-radius: 6px; overflow: hidden; background: #d9ccb2; }
+.er-fiche-vignette img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.er-fiche-vignette .dpin { position: absolute; left: 50%; top: 50%; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; margin: -20px 0 0 -20px; border: 3px solid #fff; border-radius: 50%; background: var(--sc); box-shadow: 0 0 10px #0009; }
+.er-fiche-vignette .dpin .ico { width: 20px; height: 20px; }
+.er-fiche-carte figcaption { margin-top: 8px; font-size: 12.5px; font-style: italic; line-height: 1.45; color: #6f6455; }
+.er-fiche-infos { min-width: 0; }
+.er-fiche-infos .er-livre { font-size: 14.5px; }
+.er-fiche-infos .er-livre .dboss { margin-bottom: 8px; }
+.er-fiche-infos .er-livre .ditems li { margin-bottom: 4px; }
+.er-fiche-fait { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 14px; padding: 8px 14px; border: 1px solid #c9b07a; border-radius: 999px; background: #f4ede0; font: 600 13px 'Inter Variable', Inter, sans-serif; color: #5d554a; cursor: pointer; }
+.er-fiche-fait:hover { border-color: #2c6355; color: #2c6355; }
+.er-fiche-fait.is-fait { border-color: #2c6355; background: #2c6355; color: #f4ede0; }
+.er-fiche-liens { list-style: none; margin: 16px 0 0; padding: 14px 0 0; border-top: 1px solid #d3c4a6; display: grid; gap: 8px; }
+.er-fiche-liens a { display: inline-flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 600; color: #6b4f19; }
+.er-fiche-liens a:hover { color: #1f1912; text-decoration: underline; text-underline-offset: 3px; }
+.er-fiche-liens svg { flex: none; color: #96712a; }
+.er-fiche-boss { padding: 4px 22px 18px; }
+.er-fiche-boss h3 { margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid #c9ad73; font: 600 18px 'Cinzel Variable', Cinzel, serif; }
+.er-fiche-boss .er-livre .bcard { width: 100%; margin-bottom: 12px; font-size: 13px; }
+.er-fiche-suite { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 14px 22px 18px; border-top: 1px solid #d3c4a6; }
+.er-fiche-suite button { display: inline-flex; align-items: center; gap: 10px; justify-self: start; padding: 0; border: 0; background: none; text-align: left; font: 600 13.5px 'Inter Variable', Inter, sans-serif; color: #2a231b; cursor: pointer; }
+.er-fiche-suite button:hover { color: var(--sc); }
+.er-fiche-suite small { display: block; font: 700 11px 'Cinzel Variable', Cinzel, serif; color: #8a8073; }
+.er-fiche-suite .er-fiche-suivant { justify-self: end; text-align: right; }
+@media (max-width: 720px) {
+  .er-fiche { width: 100%; max-width: none; max-height: 100dvh; height: 100dvh; margin: 0; border-radius: 0; }
+  .er-fiche-tete { padding: 14px 16px 12px; }
+  .er-fiche-corps { grid-template-columns: minmax(0, 1fr); gap: 16px; padding: 16px; }
+  .er-fiche-carte { width: min(300px, 100%); margin: 0 auto; }
+  .er-fiche-boss { padding: 4px 16px 16px; }
+  .er-fiche-suite { padding: 12px 16px 18px; }
+}
+
 /* Écrans moyens */
 @media (max-width: 1000px) {
   .er-livre .clgrid { columns: 2; }

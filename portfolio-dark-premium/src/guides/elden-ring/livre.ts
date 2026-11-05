@@ -25,12 +25,28 @@ export interface SectionLivre {
   parPage: boolean // beaucoup de pages (Progression) : une adresse par page plutôt que tout d'un coup
 }
 
+// Fiche détaillée d'un donjon (fenêtre qui s'ouvre au clic sur sa carte).
+export interface Donjon {
+  id: string // d05
+  numero: string // D·05
+  nom: string
+  infos: string // Grotte · Nécrolimbe · ch. 1 · niv. 10–25
+  carte: string // vignette de l'entrée, en grand
+  repere: string // pastille posée au centre de la vignette (HTML d'origine)
+  contenu: string // boss, note, objets (HTML d'origine)
+  boss: string[] // fiches du bestiaire liées : b006…
+  chapitre?: number
+  cleFait?: string // case de l'index des donjons, pour cocher « fait » depuis la fiche
+}
+
 export interface Couverture { badge: string; surtitre: string; titre: string; sousTitre: string; themes: string[]; pied: string; mention: string }
 
 export interface Livre {
   couverture: Couverture
   sections: SectionLivre[]
   aVenir: string
+  donjons: Donjon[]
+  fiches: Map<string, string> // HTML d'une fiche de donjon (d05) ou de boss (b006), par identifiant
 }
 
 const RACINE = '#guides/elden-ring'
@@ -169,6 +185,15 @@ function lire(): Livre {
   for (const el of tous('[style*="mm"]')) {
     el.setAttribute('style', el.getAttribute('style')!.replace(/(\d*\.?\d+)mm/g, (_, n) => `${Math.round(parseFloat(n) * PX_PAR_MM)}px`))
   }
+  // Chaque carte de donjon ouvre sa fiche détaillée (voir FicheDonjon.tsx).
+  for (const carte of tous('article.dcard[id]')) {
+    const bouton = doc.createElement('button')
+    bouton.type = 'button'
+    bouton.className = 'er-dcard-plus'
+    bouton.dataset.donjon = carte.id
+    bouton.textContent = 'Voir le détail ›'
+    carte.appendChild(bouton)
+  }
   // Les tableaux défilent sur le côté s'ils ne tiennent pas sur un petit écran.
   for (const table of tous('table')) {
     const cadre = doc.createElement('div')
@@ -219,6 +244,33 @@ function lire(): Livre {
     sections[i].pages[j].html = p.noeuds.map(n => n instanceof Element ? n.outerHTML : n.textContent ?? '').join('')
   }))
 
+  // ----- Fiches des donjons et des boss, pour la fenêtre de détail -----
+  const fiches = new Map<string, string>()
+  for (const el of tous('article.dcard[id], article.bcard[id]')) fiches.set(el.id, el.outerHTML)
+  const cleDe = new Map<string, string>() // d05 → clé de sa case dans l'index des donjons
+  for (const li of tous('.didx li')) {
+    const id = li.querySelector('a')?.getAttribute('href')?.split('/').pop()
+    const cle = li.querySelector<HTMLElement>('[data-coche]')?.dataset.coche
+    if (id && cle) cleDe.set(id, cle)
+  }
+  const donjons: Donjon[] = tous('article.dcard[id]').map(carte => {
+    const infos = texte(carte.querySelector('.dmeta'))
+    const chapitre = infos.match(/ch\.\s*(\d+)/)
+    const morceaux = ['.dboss', '.dnote', '.ditems', '.dmore'].flatMap(sel => Array.from(carte.querySelectorAll(`:scope > ${sel}`), e => e.outerHTML))
+    return {
+      id: carte.id,
+      numero: texte(carte.querySelector('.dnum')),
+      nom: texte(carte.querySelector('h3')),
+      infos,
+      carte: carte.querySelector('.dmap img')?.getAttribute('src')?.replace('/donjons/', '/donjons/grand/') ?? '',
+      repere: carte.querySelector('.dpin')?.outerHTML ?? '',
+      contenu: morceaux.join(''),
+      boss: Array.from(carte.querySelectorAll('.dboss a[href]'), a => a.getAttribute('href')!.split('/').pop()!).filter(id => fiches.has(id)),
+      chapitre: chapitre ? parseInt(chapitre[1], 10) : undefined,
+      cleFait: cleDe.get(carte.id),
+    }
+  })
+
   // ----- Couverture et sommaire -----
   const couv = doc.querySelector('section.cover')
   const pied = couv?.querySelector('.foot')
@@ -233,7 +285,7 @@ function lire(): Livre {
     mention,
   }
 
-  return { couverture, sections, aVenir: texte(doc.querySelector('.toc2 .soon')) }
+  return { couverture, sections, aVenir: texte(doc.querySelector('.toc2 .soon')), donjons, fiches }
 }
 
 let cache: Livre | null = null
