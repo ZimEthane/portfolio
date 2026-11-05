@@ -61,7 +61,7 @@ Il rassemble mes projets de formation, mes compétences, mon parcours, ma veille
 | 🎓 **Parcours** | Frise des stages, de la formation, des certifications, et présentation du BTS SIO (SLAM et SISR) |
 | 📰 **Page de veille** | Veille technologique sur Visual Studio Code : nouveautés, sources, avantages et limites, comparaison avec NetBeans |
 | 🎮 **Page Jeux** | 21 jeux jouables à la souris, au clavier et au doigt, présentés sur une page de garde avec un aperçu de chacun : Démineur, 2048, Sudoku, Puissance 4 (contre une IA ou à deux), Memory des technos, Snake, Blocs, Ninja (course sans fin à travers 8 mondes, avec 9 médailles à gagner), Glissières, Pose-blocs, Labyrinthe, Nonogramme, Relier les points, Solitaire (pioche par 1 ou par 3), Mahjong (3 dispositions, toujours une solution), Glouton (10 labyrinthes et des monstres), Mini-golf, Mots mélangés, Écho (rejouer une suite de couleurs qui s’allonge à chaque tour, 3 niveaux dont un à 6 couleurs), Joute de lettres (jeu de lettres sur plateau contre l'ordinateur, 3 niveaux) et Rase-mottes (jeu de tir à défilement, 6 zones, avec des bonus). Les jeux à niveaux (Glissières, Labyrinthe, Nonogramme, Relier les points, Mots mélangés, Mini-golf) ont chacun 500 niveaux en 5 paliers, de débutant à expert, générés par ordinateur puis vérifiés par un solveur (pour le mini-golf, un robot joue chaque trou et en fixe le par). Dictionnaire français de 311 000 mots pour les jeux de lettres. Guide « Comment jouer ? », records, sons, vibrations, plein écran sur téléphone, une adresse par jeu (`#jeux/2048`), et chaque jeu n’est chargé que quand on l’ouvre |
-| 📖 **Page Guides** | Des guides complets, rangés dans le bon ordre. Le premier : **Elden Ring, le guide de A à Z**, avec le look de sa version PDF (papier parchemin, titres en Cinzel, une couleur par section et ses onglets sur le bord droit). Couverture, sommaire cliquable, sommaire de côté qui suit la lecture, une adresse par section et par partie (`#guides/elden-ring/bases/les-8-statistiques`). En ligne : les bases et les classes (fiches des 12 classes, tier lists) ; les autres sections arrivent au fur et à mesure |
+| 📖 **Page Guides** | Des guides complets, rangés dans le bon ordre. Le premier : **Elden Ring, le guide de A à Z**, en entier : les bases, les classes, les 15 chapitres de la progression avec leurs cartes, toutes les quêtes, 67 fiches de donjons, 112 fiches de boss et le 100 %. Même look que sa version PDF (papier parchemin, titres en Cinzel, une couleur par section et ses onglets sur le bord droit). Couverture, sommaire cliquable, sommaire de côté qui suit la lecture, une adresse par section, par chapitre et par partie (`#guides/elden-ring/progression/chapitre-5`), renvois cliquables vers les fiches (D·15, B·029), adapté au téléphone |
 | 📚 **Page Tutos** *(en préparation, pas encore en ligne)* | Tutos pas à pas illustrés, pour petits et grands : faire ses lacets, résoudre le cube 3×3, choisir les composants de son PC. S'active avec `TUTOS_EN_LIGNE` dans `App.tsx` |
 | ✉️ **Formulaire de contact** | Envoi par e-mail depuis le site, avec protection anti-robots et solution de secours |
 | ♿ **Accessibilité** | Libellés pour les lecteurs d'écran, navigation au clavier, contrastes vérifiés |
@@ -119,6 +119,13 @@ Presque tout le texte du site se trouve dans un seul fichier : **`src/data.ts`**
 | Le contenu de la page de veille | `veille` |
 | La structure de la page d'accueil | `src/App.tsx` |
 | Les couleurs et le style | `src/styles.css` (variables en haut du fichier) |
+| Le guide Elden Ring | `src/guides/elden-ring/guide.html` (voir ci-dessous) |
+
+**Le guide Elden Ring** vient tel quel de sa version web (`guide.html`), le site le découpe tout seul en sections et en chapitres. Pour le mettre à jour, remplace `src/guides/elden-ring/guide.html` par la nouvelle version, et ses images dans `public/guides/elden-ring/img/` (au format `.webp`, avec les mêmes noms). Si la mise en page du guide change aussi, régénère son CSS :
+
+```bash
+node scripts/convertir-css-guide.mjs chemin/vers/css/style.css src/guides/elden-ring/livre.css
+```
 
 **Mon CV et mes documents** sont dans `public/pdf/`. Pour mettre à jour le CV, remplace `public/pdf/CV_Zimmermann_Ethane_2026.pdf` en gardant le même nom. **Les images** (photo, logos, icônes) sont dans `public/img/`.
 
@@ -166,6 +173,7 @@ portfolio/
     ├── public/
     │   ├── img/                  Photo, logos, icônes, certifications
     │   ├── pdf/                  CV, rapports de stage, documentations
+    │   ├── guides/               Images des guides (cartes et donjons d'Elden Ring)
     │   └── site_web_sport_extreme/   Mini-site du projet Sport Extrême
     ├── src/
     │   ├── App.tsx               Page d'accueil, menu, pied de page
@@ -175,7 +183,8 @@ portfolio/
     │   │   └── commun/           Outils partagés : réglages, plein écran, vibrations, guide
     │   ├── Guides.tsx            Page Guides (liste des guides, puis un guide par adresse)
     │   ├── guides/               Un dossier par guide
-    │   │   └── elden-ring/       Plan, mise en page, sections et données du guide Elden Ring
+    │   │   └── elden-ring/       Guide Elden Ring : guide.html (le guide d'origine), livre.ts (découpage),
+    │   │                         livre.css (sa mise en page), EldenRing.tsx (couverture, sommaire, navigation)
     │   ├── Tutos.tsx             Page Tutos (liste et lecteur pas à pas)
     │   ├── tutos/                Liste des tutos et contenu de chacun
     │   ├── Chantier.tsx          Écran « en chantier » (pelleteuse animée)
@@ -184,6 +193,7 @@ portfolio/
     │   ├── data.ts               Contenu : projets, compétences, parcours, veille
     │   ├── styles.css            Styles du site
     │   └── main.tsx              Point d'entrée
+    ├── scripts/                  convertir-css-guide.mjs : adapte le CSS d'un guide imprimable au site
     ├── index.html
     ├── package.json
     └── vite.config.ts
@@ -194,7 +204,7 @@ portfolio/
 - Dictionnaire des jeux de lettres : [an-array-of-french-words](https://github.com/words/an-array-of-french-words) (licence MIT), mis en majuscules sans accents.
 - Mots courants de Mots mélangés : [most-common-words-by-language](https://github.com/oprogramador/most-common-words-by-language) (licence MIT, d'après FrequencyWords de Hermit Dave).
 - Tous les jeux, leurs dessins et leurs niveaux sont faits pour ce site ; les noms et les personnages sont originaux.
-- Guide Elden Ring : guide de fan, non officiel. Elden Ring est une marque de FromSoftware / Bandai Namco.
+- Guide Elden Ring : guide de fan, non officiel. Elden Ring est une marque de FromSoftware / Bandai Namco. Fonds de carte : captures du jeu, © FromSoftware / Bandai Namco.
 - Polices du guide : [Cinzel](https://fonts.google.com/specimen/Cinzel), [EB Garamond](https://fonts.google.com/specimen/EB+Garamond) et [Inter](https://fonts.google.com/specimen/Inter), sous licence SIL Open Font License, via Fontsource.
 
 ## Contact

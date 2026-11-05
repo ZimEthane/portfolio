@@ -9,6 +9,8 @@ export interface GuideInfo {
   categorie: string
   couleur: string // couleur d'accent de la carte
   nouveau?: boolean
+  avancement?: string // petite ligne en bas de la carte
+  onglets?: string[] // couleurs des sections, pour la couverture miniature
   // Le guide reçoit la suite de l'adresse : "bases/les-8-statistiques" pour #guides/elden-ring/bases/les-8-statistiques
   component: ComponentType<{ chemin: string }>
 }
@@ -23,6 +25,8 @@ export const guides: GuideInfo[] = [
     categorie: 'Jeu vidéo',
     couleur: '#d9c08a',
     nouveau: true,
+    avancement: 'Guide complet · 7 sections',
+    onglets: ['#2c6355', '#57407f', '#96712a', '#2d5079', '#8a4b2a', '#8f2a24', '#4d6b80'],
     component: lazy(() => import('./elden-ring/EldenRing')),
   },
 ]

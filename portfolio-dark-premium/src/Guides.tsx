@@ -3,7 +3,6 @@ import type { CSSProperties } from 'react'
 import { ArrowLeft, ArrowRight } from 'lucide-react'
 import { guides } from './guides/liste'
 import type { GuideInfo } from './guides/liste'
-import { SECTIONS } from './guides/elden-ring/plan'
 // Polices du guide Elden Ring, hébergées avec le site : rien à charger chez Google, le guide marche même si un bloqueur coupe les polices externes.
 import '@fontsource-variable/cinzel'
 import '@fontsource-variable/inter'
@@ -18,28 +17,27 @@ function lire(hash: string) {
 }
 
 // Petite couverture dessinée en CSS pour la carte Elden Ring (reprend la couverture du PDF).
-function CouvertureEldenRing() {
+function CouvertureEldenRing({ onglets }: { onglets: string[] }) {
   return (
     <span className="gd-couv-er" aria-hidden="true">
       <span className="gd-couv-cadre" />
       <span className="gd-couv-badge">Édition ultime</span>
       <span className="gd-couv-titre">Elden Ring</span>
       <span className="gd-couv-sous">Le guide de A à Z</span>
-      <span className="gd-couv-onglets">{SECTIONS.map(s => <i key={s.id} style={{ background: s.couleur }} />)}</span>
+      <span className="gd-couv-onglets">{onglets.map(c => <i key={c} style={{ background: c }} />)}</span>
     </span>
   )
 }
 
 function Carte({ g }: { g: GuideInfo }) {
-  const pretes = g.id === 'elden-ring' ? SECTIONS.filter(s => s.prete).length : 0
   return (
     <a className="gd-carte" href={`#guides/${g.id}`} style={{ '--c': g.couleur } as CSSProperties}>
-      <span className="gd-apercu">{g.id === 'elden-ring' && <CouvertureEldenRing />}</span>
+      <span className="gd-apercu">{g.id === 'elden-ring' && <CouvertureEldenRing onglets={g.onglets ?? []} />}</span>
       <span className="gd-texte">
         <span className="gd-cat">{g.categorie}</span>
         <strong>{g.titre}{g.nouveau && <em>Nouveau</em>}</strong>
         <span>{g.resume}</span>
-        {g.id === 'elden-ring' && <span className="gd-avancement">{pretes} sections sur {SECTIONS.length} en ligne <ArrowRight size={14} /></span>}
+        {g.avancement && <span className="gd-avancement">{g.avancement} <ArrowRight size={14} /></span>}
       </span>
     </a>
   )

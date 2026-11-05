@@ -1,63 +1,48 @@
-import { useEffect, useRef, useState } from 'react'
-import type { ComponentType, CSSProperties } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import type { CSSProperties } from 'react'
 import { ArrowLeft, ArrowRight, BookOpen, LayoutGrid } from 'lucide-react'
-import Chantier from '../../Chantier'
 import { animateScrollTo, scrollToId } from '../../scroll'
-import { A_VENIR, SECTIONS, lienPage, lienSection } from './plan'
-import type { SectionGuide } from './plan'
-import Bases from './sections/Bases'
-import Classes from './sections/Classes'
+import { lienPage, lienSection, livre } from './livre'
+import type { Livre, PageLivre, SectionLivre, Titre } from './livre'
+import './livre.css'
 import './elden-ring.css'
 
-// Contenu converti de chaque section. Les autres affichent l'écran « en chantier ».
-const CONTENU: Record<string, ComponentType<{ section: SectionGuide }>> = {
-  bases: Bases,
-  classes: Classes,
-}
-
-const MENTION = 'Guide de fan, non officiel — Elden Ring est une marque de FromSoftware / Bandai Namco'
 const deuxChiffres = (n: number) => String(n).padStart(2, '0')
 
-// ----- Couverture (page 1 du PDF) -----
-function Couverture() {
+// ----- Couverture (page 1 du guide) -----
+function Couverture({ livre: { couverture: c } }: { livre: Livre }) {
   return (
     <header className="er-couverture">
       <div className="er-couv-cadre">
-        <span className="er-couv-badge">Édition ultime</span>
-        <span className="er-couv-sur">Guide complet · Gratuit</span>
-        <h1>Elden Ring</h1>
-        <p className="er-couv-sous">Le guide de A à Z</p>
+        <span className="er-couv-badge">{c.badge}</span>
+        <span className="er-couv-sur">{c.surtitre}</span>
+        <h1>{c.titre}</h1>
+        <p className="er-couv-sous">{c.sousTitre}</p>
         <span className="er-couv-filet" aria-hidden="true"><i /></span>
-        <ul className="er-couv-liste">
-          <li>Les bases · Classes et tier lists · La progression zone par zone</li>
-          <li>Toutes les quêtes, dans le bon ordre, sans rien rater</li>
-          <li>67 donjons et 166 combats de boss en fiches</li>
-          <li>Le 100 % : trophées, objets légendaires, cartes des objets</li>
-        </ul>
-        <span className="er-couv-pied">Jeu de base · Novembre 2026</span>
-        <span className="er-couv-mention">{MENTION}</span>
+        <ul className="er-couv-liste">{c.themes.map(t => <li key={t}>{t}</li>)}</ul>
+        <span className="er-couv-pied">{c.pied}</span>
+        <span className="er-couv-mention">{c.mention}</span>
       </div>
     </header>
   )
 }
 
-// ----- Sommaire (page 2 du PDF) -----
-function Sommaire() {
+// ----- Sommaire (page 2 du guide) -----
+function Sommaire({ livre: l }: { livre: Livre }) {
   return (
     <section className="er-sommaire-page" aria-labelledby="er-sommaire-titre">
       <h2 id="er-sommaire-titre" className="er-titre-orne">Sommaire</h2>
       <span className="er-orne" aria-hidden="true"><i /></span>
       <ol className="er-sommaire-liste">
-        {SECTIONS.map(s => (
-          <li key={s.id} style={{ '--sec': s.couleur } as CSSProperties}>
+        {l.sections.map(s => (
+          <li key={s.slug} style={{ '--sec': s.couleur } as CSSProperties}>
             <a className="er-sommaire-bandeau" href={lienSection(s)}>
               <span className="er-sommaire-num">{s.numero}</span>
               <span className="er-sommaire-nom">{s.titre}</span>
-              {!s.prete && <span className="er-bientot">Bientôt</span>}
             </a>
             <ul className={s.pages.length > 6 ? 'er-sommaire-pages is-colonnes' : 'er-sommaire-pages'}>
               {s.pages.map(p => (
-                <li key={p.id}>
+                <li key={p.slug}>
                   <a href={lienPage(s, p)}><span className="er-sommaire-sur">{p.surtitre}</span><span>{p.titre}</span></a>
                 </li>
               ))}
@@ -65,25 +50,25 @@ function Sommaire() {
           </li>
         ))}
       </ol>
-      <p className="er-a-venir">À venir dans les prochaines parties : {A_VENIR}</p>
-      <p className="er-sommaire-note">Tout est cliquable. Les sections marquées « Bientôt » arrivent dans les prochaines mises à jour du site.</p>
+      {l.aVenir && <p className="er-a-venir">{l.aVenir}</p>}
+      <p className="er-sommaire-note">Tout est cliquable : sommaire, renvois D·00 vers les donjons et B·000 vers les boss.</p>
     </section>
   )
 }
 
-// ----- Intercalaire de section (pages de couleur du PDF : 01, Section 1, Les bases…) -----
-function Intercalaire({ section }: { section: SectionGuide }) {
+// ----- Intercalaire de section (pages de couleur : 03, Section 3, Progression…) -----
+function Intercalaire({ section }: { section: SectionLivre }) {
   return (
     <header className="er-intercalaire">
       <div className="er-inter-cadre">
         <span className="er-inter-numero" aria-hidden="true">{deuxChiffres(section.numero)}</span>
         <span className="er-inter-sur">Section {section.numero}</span>
-        <h1>{section.titre}</h1>
+        <p className="er-inter-titre">{section.titre}</p>
         <span className="er-inter-filet" aria-hidden="true" />
-        <p>{section.intro}</p>
-        <ul>
+        <p className="er-inter-intro">{section.intro}</p>
+        <ul className={section.pages.length > 6 ? 'is-colonnes' : undefined}>
           {section.pages.map(p => (
-            <li key={p.id}><a href={lienPage(section, p)}><span>{p.surtitre}</span>{p.titre}</a></li>
+            <li key={p.slug}><a href={lienPage(section, p)}><span>{p.surtitre}</span>{p.titre}</a></li>
           ))}
         </ul>
       </div>
@@ -91,38 +76,41 @@ function Intercalaire({ section }: { section: SectionGuide }) {
   )
 }
 
-// ----- Sommaire de gauche : sections, et pour la section ouverte ses pages et leurs parties -----
-interface Titre { id: string; titre: string }
-interface PageLue extends Titre { parties: Titre[] }
-
-function Navigation({ section, pages, actif, onChoix }: { section: SectionGuide | null; pages: PageLue[]; actif: string; onChoix?: () => void }) {
+// ----- Sommaire de gauche : sections, pages de la section ouverte, parties des pages affichées -----
+function Navigation({ livre: l, section, affichees, actif, onChoix }: {
+  livre: Livre; section: SectionLivre; affichees: PageLivre[]; actif: string; onChoix?: () => void
+}) {
   return (
     <nav className="er-nav" aria-label="Sommaire du guide">
       <a className="er-nav-guide" href="#guides/elden-ring" onClick={onChoix}><BookOpen size={15} /> Elden Ring · sommaire</a>
       <ol>
-        {SECTIONS.map(s => {
-          const ouverte = s.id === section?.id
+        {l.sections.map(s => {
+          const ouverte = s === section
           return (
-            <li key={s.id} className={ouverte ? 'is-ouverte' : undefined} style={{ '--sec': s.couleur } as CSSProperties}>
-              <a className="er-nav-section" href={lienSection(s)} aria-current={ouverte ? 'page' : undefined} onClick={onChoix}>
+            <li key={s.slug} className={ouverte ? 'is-ouverte' : undefined} style={{ '--sec': s.couleur } as CSSProperties}>
+              <a className="er-nav-section" href={lienSection(s)} aria-current={ouverte && !s.parPage ? 'page' : undefined} onClick={onChoix}>
                 <span className="er-nav-num">{s.numero}</span>
                 <span>{s.titre}</span>
-                {!s.prete && <span className="er-bientot">Bientôt</span>}
               </a>
-              {ouverte && pages.length > 0 && (
+              {ouverte && (
                 <ul className="er-nav-pages">
-                  {pages.map(p => (
-                    <li key={p.id}>
-                      <a href={`${lienSection(s)}/${p.id}`} className={actif === p.id ? 'is-actif' : undefined} onClick={onChoix}>{p.titre}</a>
-                      {p.parties.length > 0 && (
-                        <ul>
-                          {p.parties.map(t => (
-                            <li key={t.id}><a href={`${lienSection(s)}/${t.id}`} className={actif === t.id ? 'is-actif' : undefined} onClick={onChoix}>{t.titre}</a></li>
-                          ))}
-                        </ul>
-                      )}
-                    </li>
-                  ))}
+                  {s.pages.map(p => {
+                    const visible = affichees.includes(p)
+                    return (
+                      <li key={p.slug}>
+                        <a href={lienPage(s, p)} className={actif === p.slug || (s.parPage && visible) ? 'is-actif' : undefined} aria-current={s.parPage && visible ? 'page' : undefined} onClick={onChoix}>
+                          {s.parPage && /^chapitre/i.test(p.surtitre) && <small>{p.surtitre.replace(/^Chapitre\s+/i, 'Ch. ')}</small>}{p.titre}
+                        </a>
+                        {visible && p.parties.length > 0 && (
+                          <ul>
+                            {p.parties.map(t => (
+                              <li key={t.id}><a href={lienPage(s, p, t.id)} className={actif === t.id ? 'is-actif' : undefined} onClick={onChoix}>{t.titre}</a></li>
+                            ))}
+                          </ul>
+                        )}
+                      </li>
+                    )
+                  })}
                 </ul>
               )}
             </li>
@@ -134,11 +122,11 @@ function Navigation({ section, pages, actif, onChoix }: { section: SectionGuide 
 }
 
 // ----- Onglets de couleur sur le bord droit, comme dans le PDF -----
-function Onglets({ actuelle }: { actuelle?: string }) {
+function Onglets({ livre: l, actuelle }: { livre: Livre; actuelle?: SectionLivre }) {
   return (
     <nav className="er-onglets" aria-label="Sections du guide">
-      {SECTIONS.map(s => (
-        <a key={s.id} href={lienSection(s)} style={{ '--sec': s.couleur } as CSSProperties} className={s.id === actuelle ? 'is-actuel' : undefined} aria-current={s.id === actuelle ? 'page' : undefined} title={s.titre}>
+      {l.sections.map(s => (
+        <a key={s.slug} href={lienSection(s)} style={{ '--sec': s.couleur } as CSSProperties} className={s === actuelle ? 'is-actuel' : undefined} aria-current={s === actuelle ? 'page' : undefined} title={s.titre}>
           {s.nom}
         </a>
       ))}
@@ -146,25 +134,11 @@ function Onglets({ actuelle }: { actuelle?: string }) {
   )
 }
 
-// Lit les pages et leurs titres de partie dans le contenu affiché, pour le sommaire de gauche.
-function useTitres(cle: string) {
-  const [pages, setPages] = useState<PageLue[]>([])
-  useEffect(() => {
-    const articles = Array.from(document.querySelectorAll<HTMLElement>('.er-contenu .er-page'))
-    setPages(articles.map(a => ({
-      id: a.id,
-      titre: a.dataset.titre ?? '',
-      parties: Array.from(a.querySelectorAll<HTMLElement>('h3[id]')).map(h => ({ id: h.id, titre: h.textContent ?? '' })),
-    })))
-  }, [cle])
-  return pages
-}
-
 // Titre (page ou partie) en cours de lecture : le dernier passé sous le haut de l'écran.
-function useActif(pages: PageLue[]) {
+function useActif(ids: string[]) {
   const [actif, setActif] = useState('')
+  const cle = ids.join('|')
   useEffect(() => {
-    const ids = pages.flatMap(p => [p.id, ...p.parties.map(t => t.id)])
     if (!ids.length) return
     let frame = 0
     const calcul = () => {
@@ -185,40 +159,64 @@ function useActif(pages: PageLue[]) {
     calcul()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => { window.removeEventListener('scroll', onScroll); cancelAnimationFrame(frame) }
-  }, [pages])
+  }, [cle])
   return actif
 }
 
-function VueSection({ section, ancre }: { section: SectionGuide; ancre: string }) {
-  const Contenu = CONTENU[section.id]
-  const pages = useTitres(section.id)
-  const actif = useActif(pages)
+// Le contenu d'origine du guide, tel quel (voir livre.ts).
+function Contenu({ section, pages }: { section: SectionLivre; pages: PageLivre[] }) {
+  const html = useMemo(() => pages.map(p => p.html).join(''), [pages])
+  return (
+    <div className="er-livre">
+      <div className={`sec ${section.cle}`} dangerouslySetInnerHTML={{ __html: html }} />
+    </div>
+  )
+}
+
+// Ce que l'adresse demande : la section, les pages à afficher et l'ancre éventuelle.
+function lireChemin(l: Livre, chemin: string) {
+  const [idSection = '', a = '', b = ''] = chemin.split('/')
+  const section = l.sections.find(s => s.slug === idSection)
+  if (!section) return null
+  if (!section.parPage) return { section, pages: section.pages, page: undefined, ancre: a }
+  const page = section.pages.find(p => p.slug === a)
+    // Ancre sans page (vieux lien) : on cherche la page qui la contient.
+    ?? (a ? section.pages.find(p => p.parties.some(t => t.id === a) || p.html.includes(`id="${a}"`)) : undefined)
+  if (!page) return { section, pages: [], page: undefined, ancre: '' }
+  return { section, pages: [page], page, ancre: page.slug === a ? b : a }
+}
+
+function VueSection({ livre: l, section, pages, page }: { livre: Livre; section: SectionLivre; pages: PageLivre[]; page?: PageLivre }) {
+  const ids = useMemo(() => pages.flatMap(p => [p.slug, ...p.parties.map((t: Titre) => t.id)]), [pages])
+  const actif = useActif(ids)
   const [menuOuvert, setMenuOuvert] = useState(false)
-  const i = SECTIONS.indexOf(section)
-  const prec = SECTIONS[i - 1]
-  const suiv = SECTIONS[i + 1]
-  useEffect(() => setMenuOuvert(false), [section.id, ancre])
+  useEffect(() => setMenuOuvert(false), [section, page])
+
+  // Bas de page : chapitre précédent / suivant dans une section page par page, sinon section précédente / suivante.
+  const i = l.sections.indexOf(section)
+  const j = page ? section.pages.indexOf(page) : -1
+  const avant = page ? (j > 0 ? { lien: lienPage(section, section.pages[j - 1]), nom: section.pages[j - 1].titre, quoi: 'Chapitre précédent' } : { lien: lienSection(section), nom: section.titre, quoi: 'Retour à la section' })
+    : l.sections[i - 1] && { lien: lienSection(l.sections[i - 1]), nom: l.sections[i - 1].titre, quoi: 'Section précédente' }
+  const apres = page && j < section.pages.length - 1 ? { lien: lienPage(section, section.pages[j + 1]), nom: section.pages[j + 1].titre, quoi: 'Chapitre suivant' }
+    : section.parPage && !page ? { lien: lienPage(section, section.pages[0]), nom: section.pages[0].titre, quoi: 'Commencer' }
+      : l.sections[i + 1] && { lien: lienSection(l.sections[i + 1]), nom: l.sections[i + 1].titre, quoi: 'Section suivante' }
 
   return (
     <div className="er-mise" style={{ '--sec': section.couleur } as CSSProperties}>
       <aside className="er-cote">
-        <Navigation section={section} pages={pages} actif={actif} />
+        <Navigation livre={l} section={section} affichees={pages} actif={actif} />
       </aside>
       <div className="er-contenu">
         <details className="er-nav-mobile" open={menuOuvert} onToggle={e => setMenuOuvert((e.target as HTMLDetailsElement).open)}>
           <summary><BookOpen size={15} /> Sommaire du guide</summary>
-          <Navigation section={section} pages={pages} actif={actif} onChoix={() => setMenuOuvert(false)} />
+          <Navigation livre={l} section={section} affichees={pages} actif={actif} onChoix={() => setMenuOuvert(false)} />
         </details>
-        <Intercalaire section={section} />
-        {Contenu
-          ? <Contenu section={section} />
-          : <div className="er-chantier">
-              <Chantier titre={`${section.titre} : bientôt en ligne`} texte="Cette partie du guide est en cours de mise en page à partir du PDF. Elle arrive dans une prochaine mise à jour du site." />
-            </div>}
-        <nav className="er-suite" aria-label="Sections voisines">
-          {prec ? <a href={lienSection(prec)}><ArrowLeft size={15} /><span><small>Section précédente</small>{prec.titre}</span></a> : <span />}
+        {!page && <Intercalaire section={section} />}
+        {pages.length > 0 && <Contenu section={section} pages={pages} />}
+        <nav className="er-suite" aria-label="Pages voisines">
+          {avant ? <a href={avant.lien}><ArrowLeft size={15} /><span><small>{avant.quoi}</small>{avant.nom}</span></a> : <span />}
           <a href="#guides/elden-ring" className="er-suite-sommaire"><LayoutGrid size={15} /> Sommaire</a>
-          {suiv ? <a href={lienSection(suiv)} className="er-suite-suivant"><span><small>Section suivante</small>{suiv.titre}</span><ArrowRight size={15} /></a> : <span />}
+          {apres ? <a href={apres.lien} className="er-suite-suivant"><span><small>{apres.quoi}</small>{apres.nom}</span><ArrowRight size={15} /></a> : <span />}
         </nav>
       </div>
     </div>
@@ -226,37 +224,43 @@ function VueSection({ section, ancre }: { section: SectionGuide; ancre: string }
 }
 
 export default function EldenRing({ chemin }: { chemin: string }) {
-  const [idSection = '', ancre = ''] = chemin.split('/')
-  const section = SECTIONS.find(s => s.id === idSection) ?? null
+  const l = useMemo(livre, [])
+  const vue = lireChemin(l, chemin)
+  const cle = vue ? `${vue.section.slug}/${vue.page?.slug ?? ''}` : ''
+  const ancre = vue?.ancre ?? ''
   const precedente = useRef<string | null>(null)
 
-  // Changement de section : on repart en haut (ou directement sur le titre demandé).
-  // Même section : défilement doux jusqu'au titre demandé.
+  // Nouvelle page : on repart en haut (ou directement sur le titre demandé).
+  // Même page : défilement doux jusqu'au titre demandé.
   useEffect(() => {
-    const cle = section?.id ?? ''
-    const memeSection = precedente.current === cle
+    const memePage = precedente.current === cle
     precedente.current = cle
     const cible = ancre ? document.getElementById(ancre) : null
     if (cible) {
-      if (memeSection) scrollToId(ancre)
+      if (memePage) scrollToId(ancre)
       else window.scrollTo({ top: cible.getBoundingClientRect().top + window.scrollY - 100, behavior: 'instant' }) // même marge que scrollToId
-    } else if (memeSection) animateScrollTo(0)
+    } else if (memePage) animateScrollTo(0)
     else window.scrollTo({ top: 0, behavior: 'instant' })
-  }, [section, ancre])
+  }, [cle, ancre])
 
   return (
-    <main className={section ? 'er er-dans-section' : 'er'}>
+    <main className={vue ? 'er er-dans-section' : 'er'}>
       <div className="er-barre">
-        <a className="er-retour" href={section ? '#guides/elden-ring' : '#guides'}><ArrowLeft size={15} /> {section ? 'Sommaire du guide' : 'Tous les guides'}</a>
-        {section && <span className="er-fil">Elden Ring <i>/</i> {section.titre}</span>}
+        <a className="er-retour" href={vue ? '#guides/elden-ring' : '#guides'}><ArrowLeft size={15} /> {vue ? 'Sommaire du guide' : 'Tous les guides'}</a>
+        {vue && (
+          <span className="er-fil">
+            Elden Ring <i>/</i> {vue.page ? <a href={lienSection(vue.section)}>{vue.section.titre}</a> : vue.section.titre}
+            {vue.page && <><i>/</i> {vue.page.surtitre}</>}
+          </span>
+        )}
       </div>
-      {section
-        ? <VueSection section={section} ancre={ancre} />
-        : <div className="er-accueil"><Couverture /><Sommaire /></div>}
-      <Onglets actuelle={section?.id} />
+      {vue
+        ? <VueSection livre={l} section={vue.section} pages={vue.pages} page={vue.page} />
+        : <div className="er-accueil"><Couverture livre={l} /><Sommaire livre={l} /></div>}
+      <Onglets livre={l} actuelle={vue?.section} />
       <footer className="er-pied">
         <span>Elden Ring — Édition ultime · Jeu de base, mise à jour 1.17</span>
-        <span>{MENTION}</span>
+        <span>{l.couverture.mention}</span>
       </footer>
     </main>
   )
