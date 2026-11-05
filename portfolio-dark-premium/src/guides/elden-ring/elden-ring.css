@@ -179,14 +179,23 @@
 .er-progression button:hover { border-color: var(--gris); color: var(--fort); }
 .er-progression button.is-confirmer { border-color: #9a2b2b; background: #ecd5cb; color: #9a2b2b; }
 
-/* Cartes de donjon : elles s'ouvrent en fiche détaillée */
-.er-livre .dcard[id] { cursor: pointer; transition: border-color .15s, box-shadow .15s, transform .15s; }
-.er-livre .dcard[id]:hover { border-color: #b89f73; box-shadow: 0 8px 20px #2a231b1f; transform: translateY(-1px); }
+/* Cartes de donjon et de boss : elles s'ouvrent en fiche détaillée */
+.er-livre :is(.dcard, .bcard)[id] { cursor: pointer; transition: border-color .15s, box-shadow .15s, transform .15s, opacity .15s; }
+.er-livre :is(.dcard, .bcard)[id]:hover { border-color: #b89f73; box-shadow: 0 8px 20px #2a231b1f; transform: translateY(-1px); }
 .er-livre .er-dcard-plus { display: block; clear: both; margin: 6px 0 0 auto; padding: 0; border: 0; background: none; font: 700 12px 'Inter Variable', Inter, sans-serif; color: var(--sc); cursor: pointer; }
 .er-livre .er-dcard-plus:hover { text-decoration: underline; text-underline-offset: 3px; }
 .er-livre .er-dcard-plus:focus-visible { outline: 2px solid var(--sc); outline-offset: 2px; border-radius: 3px; }
 
-/* Fiche détaillée d'un donjon (fenêtre) */
+/* Case « Battu » dans l'en-tête des cartes du bestiaire */
+.er-livre .er-battu { display: inline-flex; align-items: center; gap: 5px; margin-left: auto; padding: 2px 8px 2px 5px; border: 1px solid #d6c6a3; border-radius: 999px; background: #fbf6ec; font: 600 11px 'Inter Variable', Inter, sans-serif; color: #6d6458; cursor: pointer; }
+.er-livre .er-battu:hover { border-color: #2c6355; color: #2c6355; }
+.er-livre .er-battu .box { display: inline-block; flex: none; width: 13px; height: 13px; border: 1.2px solid #96712a; border-radius: 3px; background: #f4ede0; }
+.er-livre .bcard .er-battu .box[aria-checked="true"] { background: #2c6355; border-color: #2c6355; }
+.er-livre .bcard.is-coche .er-battu { border-color: #2c6355; background: #d7dfcf; color: #24524a; }
+.er-livre .bcard.is-coche > :not(header) { opacity: .5; }
+.er-livre .bcard.is-coche h3 { text-decoration: line-through; text-decoration-color: #8a7d68; }
+
+/* Fiche détaillée d'un donjon ou d'un boss (fenêtre) */
 html:has(.er-fiche[open]) { overflow: hidden; }
 .er-fiche { width: min(880px, calc(100% - 32px)); max-height: calc(100dvh - 48px); padding: 0; border: 0; border-radius: 10px; background: #ebe2cf; color: #2a231b; box-shadow: 0 30px 80px #000a; font: 400 15px/1.58 'Inter Variable', Inter, system-ui, sans-serif; overscroll-behavior: contain; }
 .er-fiche::backdrop { background: #0e0c0acc; backdrop-filter: blur(3px); }
@@ -219,7 +228,29 @@ html:has(.er-fiche[open]) { overflow: hidden; }
 .er-fiche-liens svg { flex: none; color: #96712a; }
 .er-fiche-boss { padding: 4px 22px 18px; }
 .er-fiche-boss h3 { margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid #c9ad73; font: 600 18px 'Cinzel Variable', Cinzel, serif; }
-.er-fiche-boss .er-livre .bcard { width: 100%; margin-bottom: 12px; font-size: 13px; }
+.er-fiche-boss .er-livre .bcard { width: 100%; margin-bottom: 6px; font-size: 13px; cursor: auto; }
+.er-fiche-boss .er-livre .bcard:hover { transform: none; box-shadow: none; }
+.er-fiche-boss-carte { margin-bottom: 14px; }
+.er-fiche-ouvrir { display: block; margin-left: auto; padding: 0; border: 0; background: none; font: 700 12.5px 'Inter Variable', Inter, sans-serif; color: #8f2a24; cursor: pointer; }
+.er-fiche-ouvrir:hover { text-decoration: underline; text-underline-offset: 3px; }
+.er-fiche-etiquette { display: inline-block; margin-left: 8px; padding: 1px 7px; border-radius: 3px; background: var(--sc); font: 700 10px/1.6 'Inter Variable', Inter, sans-serif; letter-spacing: .07em; text-transform: uppercase; color: #fff; vertical-align: 1px; }
+/* mêmes couleurs que les étiquettes du bestiaire */
+.er-fiche-etiquette.is-req { background: #8f2a24; } .er-fiche-etiquette.is-shard { background: #57407f; }
+.er-fiche-etiquette.is-main { background: #9c7a2b; } .er-fiche-etiquette.is-gaol { background: #5a5248; }
+.er-fiche-corps.is-seul { grid-template-columns: minmax(0, 1fr); }
+.er-fiche-bcard .er-livre { font-size: 13.5px; line-height: 1.5; }
+.er-fiche-bcard .er-livre .benc { font-size: 13px; }
+.er-fiche-bcard .er-livre .bloot { font-size: 13px; }
+.er-fiche-lieux h3 { margin: 0 0 10px; font: 600 15px 'Cinzel Variable', Cinzel, serif; }
+.er-fiche-lieux ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.er-fiche-lieux button { display: flex; align-items: center; gap: 12px; width: 100%; padding: 8px; border: 1px solid #d3c4a6; border-radius: 8px; background: #f4ede0; text-align: left; font: 600 14px/1.3 'Inter Variable', Inter, sans-serif; color: #2a231b; cursor: pointer; transition: border-color .15s; }
+.er-fiche-lieux button:hover { border-color: #8a4b2a; }
+.er-fiche-lieux small { display: block; font: 700 11px 'Cinzel Variable', Cinzel, serif; color: #8a4b2a; }
+.er-fiche-lieux em { display: block; margin-top: 3px; font-size: 12px; font-style: normal; color: #8a4b2a; }
+.er-fiche-mini { position: relative; flex: none; width: 76px; height: 76px; border: 1px solid #a8916a; border-radius: 5px; overflow: hidden; }
+.er-fiche-mini img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.er-fiche-mini .dpin { position: absolute; left: 50%; top: 50%; display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; margin: -11px 0 0 -11px; border: 2px solid #fff; border-radius: 50%; background: #8a4b2a; box-shadow: 0 0 6px #0009; }
+.er-fiche-mini .dpin .ico { width: 11px; height: 11px; }
 .er-fiche-suite { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 14px 22px 18px; border-top: 1px solid #d3c4a6; }
 .er-fiche-suite button { display: inline-flex; align-items: center; gap: 10px; justify-self: start; padding: 0; border: 0; background: none; text-align: left; font: 600 13.5px 'Inter Variable', Inter, sans-serif; color: #2a231b; cursor: pointer; }
 .er-fiche-suite button:hover { color: var(--sc); }
