@@ -61,6 +61,7 @@ Il rassemble mes projets de formation, mes compétences, mon parcours, ma veille
 | 🎓 **Parcours** | Frise des stages, de la formation, des certifications, et présentation du BTS SIO (SLAM et SISR) |
 | 📰 **Page de veille** | Veille technologique sur Visual Studio Code : nouveautés, sources, avantages et limites, comparaison avec NetBeans |
 | 🎮 **Page Jeux** | 21 jeux jouables à la souris, au clavier et au doigt, présentés sur une page de garde avec un aperçu de chacun : Démineur, 2048, Sudoku, Puissance 4 (contre une IA ou à deux), Memory des technos, Snake, Blocs, Ninja (course sans fin à travers 8 mondes, avec 9 médailles à gagner), Glissières, Pose-blocs, Labyrinthe, Nonogramme, Relier les points, Solitaire (pioche par 1 ou par 3), Mahjong (3 dispositions, toujours une solution), Glouton (10 labyrinthes et des monstres), Mini-golf, Mots mélangés, Écho (rejouer une suite de couleurs qui s’allonge à chaque tour, 3 niveaux dont un à 6 couleurs), Joute de lettres (jeu de lettres sur plateau contre l'ordinateur, 3 niveaux) et Rase-mottes (jeu de tir à défilement, 6 zones, avec des bonus). Les jeux à niveaux (Glissières, Labyrinthe, Nonogramme, Relier les points, Mots mélangés, Mini-golf) ont chacun 500 niveaux en 5 paliers, de débutant à expert, générés par ordinateur puis vérifiés par un solveur (pour le mini-golf, un robot joue chaque trou et en fixe le par). Dictionnaire français de 311 000 mots pour les jeux de lettres. Guide « Comment jouer ? », records, sons, vibrations, plein écran sur téléphone, une adresse par jeu (`#jeux/2048`), et chaque jeu n’est chargé que quand on l’ouvre |
+| 📖 **Page Guides** | Des guides complets, rangés dans le bon ordre. Le premier : **Elden Ring, le guide de A à Z**, avec le look de sa version PDF (papier parchemin, titres en Cinzel, une couleur par section et ses onglets sur le bord droit). Couverture, sommaire cliquable, sommaire de côté qui suit la lecture, une adresse par section et par partie (`#guides/elden-ring/bases/les-8-statistiques`). En ligne : les bases et les classes (fiches des 12 classes, tier lists) ; les autres sections arrivent au fur et à mesure |
 | 📚 **Page Tutos** *(en préparation, pas encore en ligne)* | Tutos pas à pas illustrés, pour petits et grands : faire ses lacets, résoudre le cube 3×3, choisir les composants de son PC. S'active avec `TUTOS_EN_LIGNE` dans `App.tsx` |
 | ✉️ **Formulaire de contact** | Envoi par e-mail depuis le site, avec protection anti-robots et solution de secours |
 | ♿ **Accessibilité** | Libellés pour les lecteurs d'écran, navigation au clavier, contrastes vérifiés |
@@ -72,9 +73,10 @@ Il rassemble mes projets de formation, mes compétences, mon parcours, ma veille
 - **[Vite 6](https://vite.dev/)** pour le développement et la compilation
 - **[Lucide](https://lucide.dev/)** pour les icônes
 - **[EmailJS](https://www.emailjs.com/)** pour l'envoi du formulaire de contact
+- **[Fontsource](https://fontsource.org/)** pour les polices du guide Elden Ring (Cinzel, EB Garamond, Inter), hébergées avec le site
 - **CSS** écrit à la main, sans framework
 
-Le site n'utilise pas de bibliothèque de routage : la page de veille s'affiche grâce à l'ancre `#veille`, et le reste du site tient sur une seule page.
+Le site n'utilise pas de bibliothèque de routage : les pages Veille, Jeux et Guides s'affichent grâce à leur ancre (`#veille`, `#jeux`, `#guides`), et le reste du site tient sur une seule page.
 
 ## Démarrer en local
 
@@ -171,6 +173,9 @@ portfolio/
     │   ├── Jeux.tsx              Page Jeux (page de garde, puis un jeu par adresse)
     │   ├── jeux/                 Un fichier de logique et un composant par jeu
     │   │   └── commun/           Outils partagés : réglages, plein écran, vibrations, guide
+    │   ├── Guides.tsx            Page Guides (liste des guides, puis un guide par adresse)
+    │   ├── guides/               Un dossier par guide
+    │   │   └── elden-ring/       Plan, mise en page, sections et données du guide Elden Ring
     │   ├── Tutos.tsx             Page Tutos (liste et lecteur pas à pas)
     │   ├── tutos/                Liste des tutos et contenu de chacun
     │   ├── Chantier.tsx          Écran « en chantier » (pelleteuse animée)
@@ -189,6 +194,8 @@ portfolio/
 - Dictionnaire des jeux de lettres : [an-array-of-french-words](https://github.com/words/an-array-of-french-words) (licence MIT), mis en majuscules sans accents.
 - Mots courants de Mots mélangés : [most-common-words-by-language](https://github.com/oprogramador/most-common-words-by-language) (licence MIT, d'après FrequencyWords de Hermit Dave).
 - Tous les jeux, leurs dessins et leurs niveaux sont faits pour ce site ; les noms et les personnages sont originaux.
+- Guide Elden Ring : guide de fan, non officiel. Elden Ring est une marque de FromSoftware / Bandai Namco.
+- Polices du guide : [Cinzel](https://fonts.google.com/specimen/Cinzel), [EB Garamond](https://fonts.google.com/specimen/EB+Garamond) et [Inter](https://fonts.google.com/specimen/Inter), sous licence SIL Open Font License, via Fontsource.
 
 ## Contact
 
