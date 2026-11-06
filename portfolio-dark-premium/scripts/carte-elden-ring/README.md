@@ -38,3 +38,13 @@ Les cartes (`erdb map`) sont à l'échelle 1 pixel = 1 mètre. Le calage des deu
    (Les tuiles ne sont à refaire que si les images de carte changent.)
 
 Limites actuelles : le jeu de base seulement (les fichiers de l'extension ne sont pas reconnus par UXM), et 6 boss du bestiaire sans repère.
+
+## Guides de quêtes
+
+`quetes_detaillees.py` contient les guides écrits à la main (une étape = titre, région, niveau, texte, carte, « à reconnaître », astuce, alerte). Les positions viennent des données : `N("Millicent", "Église de la putréfaction")` choisit le personnage dont le site de grâce le plus proche contient ce texte, `Li()` un lieu, `G()` un site de grâce, `OM()` un objet. `o("Nom anglais")` crée un lien vers l'encyclopédie et affiche l'illustration de l'objet sous l'étape.
+
+```
+python scripts/carte-elden-ring/extraire_quetes.py   # après extraire_carte.py et extraire_objets.py
+```
+
+Les illustrations d'en-tête (`public/guides/elden-ring/img/ambiance/`) sont des écrans de chargement du jeu (extraits par `extraire_tout.py`).

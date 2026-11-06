@@ -12,7 +12,8 @@ import config
 JEU = os.path.join(config.JEU, "map", "mapstudio") + "/"
 ERDB = config.ERDB + "/"
 GUIDE = config.GUIDE
-SORTIE = sys.argv[1] if len(sys.argv) > 1 else os.path.join(config.DOSSIER, "carte.json")
+ARGS = [a for a in sys.argv[1:] if not a.startswith("--")]
+SORTIE = ARGS[0] if ARGS else os.path.join(config.DOSSIER, "carte.json")
 
 # Calage des deux images (1 pixel = 1 mètre), voir les essais de superposition des grâces.
 CALAGE = {0: (7083, 16514), 1: (7595, 14978)}  # couche → (X0, Z0) ; px = X - X0, py = Z0 - Z
@@ -31,6 +32,7 @@ LIEUX = textes.fmg("PlaceName")
 PNJ_NOMS = textes.fmg("NpcName")
 PNJ_EN = textes.fmg("NpcName", "engus")
 LIEUX_EN = textes.fmg("PlaceName", "engus")
+PNJ_EN_PAR_FR = {}
 FMG_CAT = {1: "GoodsName", 2: "WeaponName", 3: "ProtectorName", 4: "AccessoryName", 5: "GemName"}
 
 def nom_objet(cat, iid):
@@ -221,7 +223,7 @@ for gid, r in GRACES.items():
     px, py = pixel(c, g[1], g[3])
     if not dans_image(c, px, py):
         continue
-    marqueurs.append({"id": f"g{gid}", "c": "graces", "n": n, "s": c, "x": px, "y": py})
+    marqueurs.append({"id": f"g{gid}", "c": "graces", "n": n, "en": LIEUX_EN.get(r["textId1"]), "s": c, "x": px, "y": py})
     graces_couche[c].append((px, py, n))
 
 def grace_proche(c, px, py):
@@ -344,6 +346,7 @@ for nom_msb, aire, partie, pos, npc_id, talk in ENNEMIS:
                 px, py = pixel(c, g[1], g[2])
                 if dans_image(c, px, py):
                     pnj_places[PNJ_NOMS[r["nameId"]]].append((c, px, py))
+                    PNJ_EN_PAR_FR[PNJ_NOMS[r["nameId"]]] = PNJ_EN.get(r["nameId"], "")
         continue
     g = global_msb(nom_msb, *pos)
     if not g or g[0] != 60:
@@ -356,6 +359,12 @@ for nom_msb, aire, partie, pos, npc_id, talk in ENNEMIS:
         boss_places[cle].append((c, px, py, npc_id, nom_msb))
     else:
         autres_boss[LIGNES.get(npc_id, "?")].append((c, px, py, npc_id))
+
+# « Malformed Stars » sert aux deux Astel : celui du souterrain est Astel, Naturalborn of the Void.
+_etoiles, _ne = norme("Astel, Stars of Darkness"), norme("Astel, Naturalborn of the Void")
+if _etoiles in boss_places and _ne in boss_guide:
+    boss_places[_ne] += [p for p in boss_places[_etoiles] if p[0] == 1]
+    boss_places[_etoiles] = [p for p in boss_places[_etoiles] if p[0] == 0]
 
 def regrouper(lieux, rayon=60):
     """Un seul point par emplacement (le même boss est souvent posé plusieurs fois)."""
@@ -389,7 +398,7 @@ for carte in soupe.select("article.bcard[id]"):
 
 for nom, places in pnj_places.items():
     for k, (c, px, py) in enumerate(regrouper(places, 40)):
-        marqueurs.append({"id": f"n{norme(nom).replace(' ', '-')}-{k}", "c": "pnj", "n": nom, "s": c, "x": px, "y": py})
+        marqueurs.append({"id": f"n{norme(nom).replace(' ', '-')}-{k}", "c": "pnj", "n": nom, "en": PNJ_EN_PAR_FR.get(nom), "s": c, "x": px, "y": py})
 
 # Objets lâchés une seule fois par un ennemi précis (lot « map » de l'ennemi, avec drapeau d'obtention).
 nb_butins = 0

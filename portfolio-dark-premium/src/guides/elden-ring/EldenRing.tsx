@@ -1,6 +1,6 @@
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, KeyboardEvent, MouseEvent } from 'react'
-import { ArrowLeft, ArrowRight, BookOpen, Check, Download, Gem, LayoutGrid, Map as IconeCarte } from 'lucide-react'
+import { ArrowLeft, ArrowRight, BookOpen, Check, Download, Gem, LayoutGrid, Map as IconeCarte, ScrollText } from 'lucide-react'
 import { animateScrollTo, scrollToId } from '../../scroll'
 import { lienPage, lienSection, livre } from './livre'
 import type { Livre, PageLivre, SectionLivre, Titre } from './livre'
@@ -11,6 +11,7 @@ import './elden-ring.css'
 
 const Carte = lazy(() => import('./carte/Carte'))
 const Objets = lazy(() => import('./objets/Objets'))
+const Quetes = lazy(() => import('./quetes/Quetes'))
 
 const deuxChiffres = (n: number) => String(n).padStart(2, '0')
 
@@ -317,6 +318,12 @@ function VueSection({ livre: l, section, pages, page }: { livre: Livre; section:
           <Navigation livre={l} section={section} affichees={pages} actif={actif} onChoix={() => setMenuOuvert(false)} />
         </details>
         {!page && <Intercalaire section={section} />}
+        {section.slug === 'quetes' && (
+          <a className="er-pdf er-vers-quetes" href="#guides/elden-ring/quetes">
+            <ScrollText size={18} />
+            <span><strong>Guides de quêtes pas à pas</strong><small>Chaque quête étape par étape, avec une carte annotée à chaque étape</small></span>
+          </a>
+        )}
         {pages.length > 0 && <Contenu livre={l} section={section} pages={pages} />}
         <nav className="er-suite" aria-label="Pages voisines">
           {avant ? <a href={avant.lien}><ArrowLeft size={15} /><span><small>{avant.quoi}</small>{avant.nom}</span></a> : <span />}
@@ -332,8 +339,9 @@ export default function EldenRing({ chemin }: { chemin: string }) {
   const l = useMemo(livre, [])
   const surCarte = chemin === 'carte' || chemin.startsWith('carte/')
   const surObjets = /^objets(\/|\?|$)/.test(chemin)
-  const vue = surCarte || surObjets ? null : lireChemin(l, chemin)
-  const cle = surCarte ? 'carte' : surObjets ? chemin : vue ? `${vue.section.slug}/${vue.page?.slug ?? ''}` : ''
+  const surQuetes = /^quetes(\/|$)/.test(chemin)
+  const vue = surCarte || surObjets || surQuetes ? null : lireChemin(l, chemin)
+  const cle = surCarte ? 'carte' : surObjets || surQuetes ? chemin : vue ? `${vue.section.slug}/${vue.page?.slug ?? ''}` : ''
   const ancre = vue?.ancre ?? ''
   const precedente = useRef<string | null>(null)
 
@@ -349,6 +357,24 @@ export default function EldenRing({ chemin }: { chemin: string }) {
     } else if (memePage) animateScrollTo(0)
     else window.scrollTo({ top: 0, behavior: 'instant' })
   }, [cle, ancre])
+
+  if (surQuetes) {
+    return (
+      <main className="er er-sur-quetes">
+        <div className="er-barre">
+          <a className="er-retour" href="#guides/elden-ring"><ArrowLeft size={15} /> Sommaire du guide</a>
+          <span className="er-fil">Elden Ring <i>/</i> <a href="#guides/elden-ring/quetes">Guides de quêtes</a></span>
+        </div>
+        <Suspense fallback={<div className="erc-attente">Chargement des quêtes…</div>}>
+          <Quetes chemin={chemin} />
+        </Suspense>
+        <footer className="er-pied">
+          <span>Elden Ring — Guides de quêtes · Positions extraites du jeu (jeu de base)</span>
+          <span>{l.couverture.mention}</span>
+        </footer>
+      </main>
+    )
+  }
 
   if (surObjets) {
     return (
@@ -410,6 +436,10 @@ export default function EldenRing({ chemin }: { chemin: string }) {
               <a className="er-pdf" href="#guides/elden-ring/objets">
                 <Gem size={18} />
                 <span><strong>Encyclopédie des objets</strong><small>2 101 objets · statistiques, où les trouver</small></span>
+              </a>
+              <a className="er-pdf" href="#guides/elden-ring/quetes">
+                <ScrollText size={18} />
+                <span><strong>Guides de quêtes</strong><small>Pas à pas, avec une carte à chaque étape</small></span>
               </a>
               <a className="er-pdf" href={PDF} download={NOM_PDF}>
                 <Download size={18} />

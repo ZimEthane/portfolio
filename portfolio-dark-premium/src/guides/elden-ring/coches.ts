@@ -16,3 +16,6 @@ export const ecrireTrouves = (c: Set<string>) => ecrire(CLE_TROUVES, c)
 const CLE_OBTENUS = 'guides:elden-ring:objets'
 export const lireObtenus = () => lire(CLE_OBTENUS)
 export const ecrireObtenus = (c: Set<string>) => ecrire(CLE_OBTENUS, c)
+const CLE_ETAPES = 'guides:elden-ring:quetes'
+export const lireEtapes = () => lire(CLE_ETAPES)
+export const ecrireEtapes = (c: Set<string>) => ecrire(CLE_ETAPES, c)
