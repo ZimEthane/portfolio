@@ -56,9 +56,11 @@ export function zoomFluide(map: L.Map, { sensibilite = 1 } = {}): ZoomFluide {
     e.stopPropagation()
     // Un cran de souris ≈ 0,45 niveau ; le pavé tactile envoie beaucoup de petits pas.
     const delta = Math.max(-60, Math.min(60, L.DomEvent.getWheelDelta(e)))
-    if (!delta) return
+    if (!delta || m._animatingZoom) return // zoom des boutons en cours : on le laisse finir
     if (!enCours) {
-      map.stop()
+      // Arrête un vol en cours (flyTo) sans « map.stop() » : celui-ci arrondit le zoom au quart de niveau avec
+      // une animation, qui ramenait la carte en arrière d'un coup au milieu de la glissade.
+      m._stop()
       enCours = true
       but = map.getZoom()
       avant = 0
@@ -67,7 +69,13 @@ export function zoomFluide(map: L.Map, { sensibilite = 1 } = {}): ZoomFluide {
     }
     souris = map.mouseEventToContainerPoint(e)
     ancre = map.containerPointToLatLng(souris)
-    but = Math.max(map.getMinZoom(), Math.min(map.getMaxZoom(), but + delta * 0.0075 * sensibilite))
+    const z = map.getZoom()
+    // Changement de sens en pleine glissade : on repart du zoom affiché, sinon la carte finirait d'abord
+    // le mouvement précédent (elle dézoomait encore un instant avant de rezoomer).
+    if ((delta > 0 && but < z) || (delta < 0 && but > z)) but = z
+    // Le niveau visé ne s'éloigne pas de plus de 1,5 niveau du zoom affiché : la carte reste sous le doigt.
+    but += delta * 0.0075 * sensibilite
+    but = Math.max(map.getMinZoom(), z - 1.5, Math.min(map.getMaxZoom(), z + 1.5, but))
     derniere = performance.now()
   }
 
