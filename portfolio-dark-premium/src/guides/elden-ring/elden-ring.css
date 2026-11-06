@@ -344,3 +344,10 @@ html:has(.er-fiche[open]) { overflow: hidden; }
 .er-livre .er-panoplie a:hover { transform: translateY(-2px) scale(1.06); border-color: #96712a; }
 .er-livre .er-panoplie img { display: block; width: 42px; height: 42px; }
 .er-vers-quetes { margin: 0 auto 26px; }
+.er-fiche-sans-carte { margin: 0; padding: 24px 14px; border: 1px dashed var(--bord); border-radius: 8px; font-size: 13px; color: var(--gris); text-align: center; }
+/* « Tu es ici » : miniature de la carte du jeu (voir carte/apercu.ts) */
+.er-apercu { position: relative; width: 100%; border: 1px solid #c9ad73; border-radius: 6px; overflow: hidden; background: #1a1611; }
+.er-apercu img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.er-apercu i { position: absolute; border: 2px solid #f3e6c3; border-radius: 3px; background: #e8c35a33; box-shadow: 0 0 0 1px #1d1813, 0 0 12px #e8c35acc; }
+svg.regionmap.mini.er-mc-remplace { display: none; }
+@media print { .er-apercu { display: none; } svg.regionmap.mini.er-mc-remplace { display: block; } }

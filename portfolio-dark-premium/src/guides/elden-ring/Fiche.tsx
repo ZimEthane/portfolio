@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import { ArrowLeft, ArrowRight, BookOpen, Check, ExternalLink, MapPin, X } from 'lucide-react'
+import CarteJeu from './carte/CarteJeu'
 import { lienPage } from './livre'
 import type { Boss, Donjon, Livre } from './livre'
 
@@ -131,11 +132,17 @@ function CorpsDonjon({ livre: l, donjon, coches, onCocher, onOuvrir }: Corps<{ d
     <>
       <div className="er-fiche-corps">
         <figure className="er-fiche-carte">
-          <span className="er-fiche-vignette">
-            <img src={donjon.carte} alt={`Carte autour de l'entrée de ${donjon.nom}`} />
-            <span dangerouslySetInnerHTML={{ __html: donjon.repere }} />
-          </span>
-          <figcaption>L'entrée du donjon sur la carte du monde. Il n'y a pas de carte de l'intérieur dans le jeu.</figcaption>
+          <CarteJeu
+            fiche={donjon.id}
+            nom={donjon.nom}
+            repli={(
+              <span className="er-fiche-vignette">
+                <img src={donjon.carte} alt={`Carte autour de l'entrée de ${donjon.nom}`} />
+                <span dangerouslySetInnerHTML={{ __html: donjon.repere }} />
+              </span>
+            )}
+          />
+          <figcaption>L'entrée du donjon sur la carte du jeu (zoomable). Il n'y a pas de carte de l'intérieur dans le jeu.</figcaption>
         </figure>
         <div className="er-fiche-infos">
           <BoutonCoche cle={donjon.cleFait} coches={coches} onCocher={onCocher} oui="Donjon fait" non="Marquer comme fait" />
@@ -162,7 +169,13 @@ function CorpsBoss({ livre: l, boss, coches, onCocher, onOuvrir }: Corps<{ boss:
   const bestiaire = l.sections.find(s => s.slug === 'bestiaire')!
   const donjons = boss.donjons.map(d => l.donjons.find(x => x.id === d)).filter(d => d !== undefined)
   return (
-    <div className={donjons.length ? 'er-fiche-corps' : 'er-fiche-corps is-seul'}>
+    <div className="er-fiche-corps">
+      {donjons.length === 0 && (
+        <figure className="er-fiche-carte">
+          <CarteJeu fiche={boss.id} nom={boss.nom} repli={<p className="er-fiche-sans-carte">Pas encore de repère sur la carte pour ce boss.</p>} />
+          <figcaption>Où le trouver, sur la carte du jeu (zoomable).</figcaption>
+        </figure>
+      )}
       {donjons.length > 0 && (
         <div className="er-fiche-lieux">
           <h3>{donjons.length > 1 ? 'Les donjons où le combattre' : 'Le donjon où le combattre'}</h3>

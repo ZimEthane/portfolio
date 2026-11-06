@@ -6,6 +6,7 @@ import { lienPage, lienSection, livre } from './livre'
 import type { Livre, PageLivre, SectionLivre, Titre } from './livre'
 import Fiche from './Fiche'
 import { ecrireCoches, lireCoches } from './coches'
+import { remplacerMinimap } from './carte/apercu'
 import './livre.css'
 import './elden-ring.css'
 
@@ -207,6 +208,27 @@ function Contenu({ livre: l, section, pages }: { livre: Livre; section: SectionL
     el.querySelectorAll('.didx-g').forEach(g => compter(g.querySelector('h5'), g)) // index des donjons, par région
     setCompte({ faits, total: cases.length })
   }, [coches, html])
+
+  // Cartes des chapitres : la même zone sur la carte du jeu, zoomable (chargée à part, avec Leaflet).
+  useEffect(() => {
+    const el = racine.current
+    const svgs = el ? Array.from(el.querySelectorAll<SVGSVGElement>('svg.realmap')) : []
+    if (!svgs.length) return
+    let annule = false
+    const fins: (() => void)[] = []
+    import('./carte/miniCarte').then(({ remplacerSvg }) => {
+      if (!annule) svgs.forEach(sv => fins.push(remplacerSvg(sv)))
+    })
+    return () => { annule = true; fins.forEach(f => f()) }
+  }, [html])
+
+  // « Tu es ici » : la vraie carte en miniature, zone du chapitre encadrée.
+  useEffect(() => {
+    const el = racine.current
+    if (!el || pages.length !== 1) return
+    const fins = Array.from(el.querySelectorAll<SVGSVGElement>('.minimap svg.regionmap.mini'), sv => remplacerMinimap(sv, pages[0].slug))
+    return () => fins.forEach(f => f())
+  }, [html, pages])
 
   useEffect(() => {
     if (!confirmer) return

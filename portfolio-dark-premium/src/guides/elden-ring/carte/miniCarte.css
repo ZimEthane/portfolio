@@ -1,0 +1,25 @@
+/* Petites cartes zoomables du guide (voir miniCarte.ts) */
+.er-mc { position: relative; width: 100%; max-width: 760px; margin: 0 auto; aspect-ratio: 1 / var(--ratio, 1); max-height: 78vh; min-height: 300px; border: 1px solid #c9ad73; border-radius: 8px; overflow: hidden; background: #1a1611; box-shadow: 0 10px 26px #2a231b26; }
+.er-mc-carte { position: absolute; inset: 0; font: 500 12px 'Inter Variable', Inter, sans-serif; }
+.er-mc-carte.leaflet-container { background: #1a1611; }
+.er-mc .leaflet-container img { max-width: none !important; }
+.er-mc .leaflet-container img.leaflet-tile { mix-blend-mode: normal; width: 257px !important; height: 257px !important; }
+.er-mc .leaflet-control-zoom { border: 1px solid #c9ad73 !important; box-shadow: 0 6px 16px #00000040; }
+.er-mc .leaflet-control-zoom a { width: 30px; height: 30px; line-height: 28px; background: #f4ede0; color: #2a231b; border-color: #c9ad73; }
+.er-mc-pin span { position: relative; isolation: isolate; display: grid; place-items: center; width: 28px; height: 28px; font: 700 13px 'Inter Variable', Inter, sans-serif; }
+.er-mc-pin span::before { content: ''; position: absolute; inset: 0; z-index: -1; border: 2.5px solid var(--bord); border-radius: 50%; background: var(--fond); box-shadow: 0 2px 6px #000a; }
+.er-mc-pin span.f-losange::before { border-radius: 4px; transform: rotate(45deg) scale(.82); }
+.er-mc-pin span.f-carre::before { border-radius: 6px; }
+.er-mc-pin:hover span { transform: scale(1.12); }
+.er-mc-grace svg { display: block; filter: drop-shadow(0 1px 2px #000); }
+.er-mc-etiquette span { position: absolute; transform: translate(-50%, -80%); padding: 2px 9px; border: 1.5px solid #b8975a; border-radius: 10px; background: #f4ede0e6; font: italic 700 12px 'EB Garamond Variable', 'EB Garamond', serif; color: #5a4318; white-space: nowrap; pointer-events: none; }
+.er-mc-bulle { padding: 3px 8px; border: 1px solid #c9ad73; border-radius: 6px; background: #1d1813; font: 500 12.5px 'Inter Variable', Inter, sans-serif; color: #f3e6c3; max-width: 260px; white-space: normal; box-shadow: 0 6px 14px #00000059; }
+.er-mc-bulle b { color: #e8c35a; margin-right: 4px; }
+.er-mc-bulle::before { border-top-color: #c9ad73 !important; }
+.er-mc-lien { position: absolute; left: 8px; bottom: 8px; z-index: 600; padding: 4px 10px; border: 1px solid #c9ad73; border-radius: 999px; background: #1d1813e6; font: 600 11.5px 'Inter Variable', Inter, sans-serif; color: #f3e6c3 !important; text-decoration: none !important; }
+.er-mc-lien:hover { background: #3d2f1e; }
+.er-mc-explorer { position: absolute; inset: 12px 0 auto 0; z-index: 650; margin: 0 auto; width: fit-content; padding: 8px 14px; border: 1px solid #c9ad73; border-radius: 999px; background: #f4ede0; font: 600 13px 'Inter Variable', Inter, sans-serif; color: #2a231b; box-shadow: 0 6px 16px #00000059; }
+.er-mc-carte:not(.is-active) .leaflet-control-zoom { opacity: .85; }
+svg.realmap.er-mc-remplace { display: none; }
+.er-fiche-carte .er-mc { aspect-ratio: auto; height: 340px; min-height: 0; max-width: none; }
+@media print { .er-mc { display: none; } svg.realmap.er-mc-remplace { display: block; } }
