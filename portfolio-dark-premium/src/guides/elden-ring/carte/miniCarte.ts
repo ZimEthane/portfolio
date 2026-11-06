@@ -4,6 +4,7 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import calage from './calage.json'
 import './miniCarte.css'
+import { zoomFluide } from './zoomFluide'
 
 const BASE = `${import.meta.env.BASE_URL}guides/elden-ring/carte/`
 const NATIF = 6 // zoom où 1 pixel d'écran = 1 pixel de la grande carte (1 m)
@@ -95,9 +96,10 @@ export function creerMiniCarte(boite: HTMLElement, o: Options): () => void {
   }
 
   // Molette : seulement après un clic sur la carte (sinon la page ne défile plus). Au doigt : bouton pour explorer.
-  const activer = () => { map.scrollWheelZoom.enable(); map.dragging.enable(); div.classList.add('is-active') }
+  const molette = zoomFluide(map)
+  const activer = () => { molette.activer(); map.dragging.enable(); div.classList.add('is-active') }
   map.on('click focus', activer)
-  map.on('mouseout', () => { if (!doigt) { map.scrollWheelZoom.disable(); div.classList.remove('is-active') } })
+  map.on('mouseout', () => { if (!doigt) { molette.desactiver(); div.classList.remove('is-active') } })
   if (doigt) {
     const b = document.createElement('button')
     b.type = 'button'; b.className = 'er-mc-explorer'; b.textContent = 'Toucher pour explorer la carte'
@@ -109,7 +111,7 @@ export function creerMiniCarte(boite: HTMLElement, o: Options): () => void {
     a.className = 'er-mc-lien'; a.href = o.lien; a.textContent = 'Carte interactive'
     div.appendChild(a)
   }
-  return () => { map.remove(); div.remove() }
+  return () => { molette.detruire(); map.remove(); div.remove() }
 }
 
 /** Remplace une carte figée du guide (svg.realmap) par la même zone de la carte du jeu, zoomable, avec ses repères. */
