@@ -15,6 +15,8 @@ Les repères de la carte (`public/guides/elden-ring/carte/`) sont extraits des f
 
 Les cartes (`erdb map`) sont à l'échelle 1 pixel = 1 mètre. Le calage des deux couches est dans `CALAGE` (extraire_carte.py) : il a été vérifié en superposant les sites de grâce aux images.
 
+Ce que contiennent les donjons fermés (catacombes, grottes, galeries, Cimetière abandonné, Table ronde) n'a pas de vraie place sur la carte du monde : leurs coordonnées converties tombent 30 à 150 m autour de l'entrée. On les regroupe donc en spirale autour de l'entrée, en suivant le lien du jeu entre la carte `mAA_BB` et son repère `WorldMapPointParam` `AABB00`, avec « À l'intérieur : … » dans la fiche. La Prison souterraine des parias et les Ruines des falaises gardent leur position (cartographiées au bon endroit), avec le nom du lieu.
+
 ## Mettre à jour
 
 1. Sur le PC où le jeu est installé : extraire le jeu avec UXM Selective Unpack, puis lancer `erdb map`, `erdb icons` et `erdb generate` (voir la doc d'ERDB).

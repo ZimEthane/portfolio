@@ -225,7 +225,7 @@ def quetes(a):
               f"Elle t'attend enfin à l'<strong>Église martiale</strong> (Bellum Church) et veut une {o('Fingerprint Grape')} : c'est l'envahisseur <strong>Festering Fingerprint Vyke</strong> qui l'a, près de l'<strong>Église de l'inhibition</strong>. Bats-le et rapporte-la.",
               carte(N("Hyetta la chercheuse", "Église martiale"), G("Bellum Church"), [N("Vyke")])),
             E("La Flamme de la frénésie", "Sous Leyndell", "niv. 90+",
-              "Sous Leyndell, dans les égouts (<strong>Terres d'exil souterraines</strong>), bats <strong>Mohg the Omen</strong>, puis frappe l'autel derrière lui : un passage secret descend vers la <strong>Proscription de la Flamme exaltée</strong>. Hyetta y attend et t'explique comment ouvrir la porte des Trois Doigts (sans armure).",
+              "Sous Leyndell, dans les égouts (<strong>Prison souterraine des parias</strong>, Subterranean Shunning-Grounds), bats <strong>Mohg the Omen</strong>, puis frappe l'autel derrière lui : un passage secret descend vers la <strong>Proscription de la Flamme exaltée</strong>. Hyetta y attend et t'explique comment ouvrir la porte des Trois Doigts (sans armure).",
               carte(N("Hyetta, Servante"), G("Frenzied Flame Proscription")), alerte="Accepter la flamme = fin du Seigneur de la Flamme frénétique (sauf si tu la retires avec l'aiguille de Miquella)."),
         ]})
 
@@ -422,8 +422,8 @@ def quetes(a):
               f"Après avoir atteint le plateau Altus, un homme en guenilles apparaît à la Table ronde : le <strong>Coprophage</strong>. Trouve une {o('Seedbed Curse')} (une au Manoir fortifié de Leyndell, une autre en haut d'une tour ronde près du Rempart oriental) et montre-la-lui : il te donne la {o('Sewer-Gaol Key')}.",
               None),
             E("Son vrai corps dans les égouts", "Leyndell (égouts)", "niv. 90+",
-              "Dans les égouts, les <strong>Terres d'exil souterraines</strong>, ouvre sa cellule et dis-lui de partir.",
-              carte(N("Le Coprophage", "Rempart de la capitale") or Li("Subterranean Shunning-Grounds"))),
+              "Dans les égouts, la <strong>Prison souterraine des parias</strong> (Subterranean Shunning-Grounds), ouvre sa cellule et dis-lui de partir : elle est près du site de grâce « Chemin souterrain ».",
+              carte(N("Le Coprophage", "Chemin souterrain") or Li("Subterranean Shunning-Grounds"))),
             E("Boggart dans les douves", "Leyndell", "niv. 90+",
               "À la Table ronde, il a laissé un message : rendez-vous aux douves extérieures. Parle à Boggart dans les douves : le Coprophage t'envahit. Bats-le (Sword of Milos). Boggart est mort : récupère sur lui une Seedbed Curse.",
               carte(N("Malfrat", "Rempart"), G("Avenue Balcony"))),

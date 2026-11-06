@@ -225,10 +225,12 @@ for gid, r in GRACES.items():
     if not dans_image(c, px, py):
         continue
     marqueurs.append({"id": f"g{gid}", "c": "graces", "n": n, "en": LIEUX_EN.get(r["textId1"]), "s": c, "x": px, "y": py})
-    graces_couche[c].append((px, py, n))
+    graces_couche[c].append((px, py, n, r["areaNo"]))
 
-def grace_proche(c, px, py):
-    best = min(graces_couche[c], key=lambda g: (g[0] - px) ** 2 + (g[1] - py) ** 2, default=None)
+def grace_proche(c, px, py, aire=None):
+    """Site de grâce le plus proche ; sous Leyndell (aire 35), seulement ceux des égouts."""
+    gs = [g for g in graces_couche[c] if aire is None or g[3] == aire] or graces_couche[c]
+    best = min(gs, key=lambda g: (g[0] - px) ** 2 + (g[1] - py) ** 2, default=None)
     return best[2] if best else ""
 
 # ---------- Lieux de la carte (donjons, repères) ----------
@@ -346,7 +348,7 @@ for nom_msb, aire, partie, pos, npc_id, talk in ENNEMIS:
                 c = couche_de(aire)
                 px, py = pixel(c, g[1], g[2])
                 if dans_image(c, px, py):
-                    pnj_places[PNJ_NOMS[r["nameId"]]].append((c, px, py))
+                    pnj_places[PNJ_NOMS[r["nameId"]]].append((c, px, py, nom_msb))
                     PNJ_EN_PAR_FR[PNJ_NOMS[r["nameId"]]] = PNJ_EN.get(r["nameId"], "")
         continue
     g = global_msb(nom_msb, *pos)
@@ -398,8 +400,8 @@ for carte in soupe.select("article.bcard[id]"):
             break
 
 for nom, places in pnj_places.items():
-    for k, (c, px, py) in enumerate(regrouper(places, 40)):
-        marqueurs.append({"id": f"n{norme(nom).replace(' ', '-')}-{k}", "c": "pnj", "n": nom, "en": PNJ_EN_PAR_FR.get(nom), "s": c, "x": px, "y": py})
+    for k, (c, px, py, nom_msb) in enumerate(regrouper(places, 40)):
+        marqueurs.append({"id": f"n{norme(nom).replace(' ', '-')}-{k}", "c": "pnj", "n": nom, "en": PNJ_EN_PAR_FR.get(nom), "s": c, "x": px, "y": py, "_msb": nom_msb})
 
 # Objets lâchés une seule fois par un ennemi précis (lot « map » de l'ennemi, avec drapeau d'obtention).
 nb_butins = 0
@@ -439,21 +441,56 @@ print("butins d'ennemis", nb_butins, file=sys.stderr)
 for m in marqueurs:
     if m["c"] == "lieux" and norme(m.get("en") or "") in donjons_guide:
         m["f"] = donjons_guide[norme(m["en"])]
-    if m["c"] not in ("graces", "lieux"):
-        m["pres"] = grace_proche(m["s"], m["x"], m["y"])
 
-# Objets et boss à l'intérieur des petits donjons (catacombes, grottes, tunnels) : on nomme le donjon.
-lieux = [m for m in marqueurs if m["c"] == "lieux"]
+# Objets, boss et personnages à l'intérieur des donjons fermés (catacombes, grottes, galeries, cimetière du début,
+# Table ronde — que le jeu situe hors de la carte, au large de Nécrolimbe).
+# Leurs coordonnées converties tombent 30 à 150 m autour de l'entrée, parfois sur un autre lieu. Le jeu relie chaque
+# carte mAA_BB à son repère de la carte du monde (WorldMapPointParam AABB00) : on nomme ce donjon et on regroupe
+# ses repères en spirale serrée autour de l'entrée, là où le joueur doit aller.
+point_de = {m["id"]: m for m in marqueurs if m["c"] == "lieux"}
+grace_par_id = {m["id"]: m for m in marqueurs if m["c"] == "graces"}
+table = next((m for m in marqueurs if m["c"] == "graces" and m.get("en") == "Table of Lost Grace"), None)
+ORDRE = {"boss": 0, "pnj": 1, "objets-cles": 1, "talismans": 2, "armes": 2, "armures": 2, "sorts": 2, "cendres-spirituelles": 2}
+sorties = collections.defaultdict(list)  # sites de grâce de chaque donjon fermé, par carte mAA_BB
+for gid, r in GRACES.items():
+    if r["areaNo"] in (30, 31, 32) and f"g{gid}" in grace_par_id:
+        sorties[f"m{r['areaNo']}_{r['gridXNo']:02}"].append(grace_par_id[f"g{gid}"])
 groupes = collections.defaultdict(list)
 for m in marqueurs:
-    if m.get("_msb", "")[1:3] in ("30", "31", "32", "39"):
-        groupes[m["_msb"]].append(m)
-for nom_msb, ms in groupes.items():
-    cx = sum(m["x"] for m in ms) / len(ms); cy = sum(m["y"] for m in ms) / len(ms)
-    l = min(lieux, key=lambda m: (m["x"] - cx) ** 2 + (m["y"] - cy) ** 2)
-    if math.hypot(l["x"] - cx, l["y"] - cy) < 300:
-        for m in ms:
+    nm = m.get("_msb", "")
+    if m["c"] in ("graces", "lieux") or not nm:
+        continue
+    aire, grille = nm[1:3], nm[4:6]
+    if aire in ("30", "31", "32"):
+        l = point_de.get(f"p{aire}{grille}00")
+        # Galerie à deux issues (Gael) : l'entrée dérobée a son propre site de grâce, loin de l'entrée principale.
+        issues = [g for g in sorties.get(nm[:6], []) if l and math.hypot(g["x"] - l["x"], g["y"] - l["y"]) > 50]
+        if l and issues:
+            l = min([l] + [dict(g, n=l["n"]) for g in issues], key=lambda e: (e["x"] - m["x"]) ** 2 + (e["y"] - m["y"]) ** 2)
+    elif aire == "18":
+        l = point_de.get("p180000")  # Cimetière abandonné (la Tombe des héros des confins s'ouvre à l'intérieur)
+    elif nm.startswith("m11_10") and table:
+        l = dict(table, n=LIEUX.get(11100, "Table ronde"))
+    elif aire in ("35", "39"):
+        # Grands souterrains cartographiés au bon endroit : on garde la position, on nomme seulement le lieu.
+        l = point_de.get(f"p{aire}{grille}00")
+        if l:
             m["z"] = l["n"]
+        continue
+    else:
+        continue
+    if l:
+        groupes[(l["n"], l["x"], l["y"])].append(m)
+for (nom, cx, cy), ms in groupes.items():
+    ms.sort(key=lambda m: (ORDRE.get(m["c"], 3), m["n"]))
+    for k, m in enumerate(ms):
+        r, a = 14 * math.sqrt(k + 1), k * 2.39996
+        m["x"], m["y"], m["z"] = round(cx + r * math.cos(a), 1), round(cy + r * math.sin(a), 1), nom
+print("donjons regroupés", len(groupes), sum(len(v) for v in groupes.values()), file=sys.stderr)
+
+for m in marqueurs:
+    if m["c"] not in ("graces", "lieux"):
+        m["pres"] = grace_proche(m["s"], m["x"], m["y"], 35 if m.get("_msb", "").startswith("m35") else None)
 for m in marqueurs:
     m.pop("_msb", None)
     for k in [k for k, v in m.items() if v is None]:

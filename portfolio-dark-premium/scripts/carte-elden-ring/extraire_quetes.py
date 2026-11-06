@@ -57,7 +57,10 @@ def carte(cible, depart=None, autres=(), via=(), chemin=None):
     if not cible:
         return None
     if depart is None or depart["id"] == cible["id"] or depart["s"] != cible["s"]:
-        depart = grace_proche(cible["s"], cible["x"], cible["y"], sauf=cible["id"])
+        # Le site de grâce noté sur le repère tient compte des souterrains (égouts de Leyndell) ; sinon, le plus proche.
+        meme = [g for g in graces if g["s"] == cible["s"] and g["n"] == cible.get("pres") and g["id"] != cible["id"]]
+        depart = min(meme, key=lambda g: (g["x"] - cible["x"]) ** 2 + (g["y"] - cible["y"]) ** 2, default=None) \
+            or grace_proche(cible["s"], cible["x"], cible["y"], sauf=cible["id"])
     spec = {"s": cible["s"], "cible": point(cible), "autres": [point(a) for a in autres if a and a["s"] == cible["s"] and a["id"] != cible["id"]]}
     via = [v for v in via if v and v["s"] == cible["s"]]
     if via:
@@ -66,6 +69,18 @@ def carte(cible, depart=None, autres=(), via=(), chemin=None):
         spec["depart"] = point(depart)
         dist, sens = direction(depart, cible)
         spec["chemin"] = chemin or (f"À environ {dist} m {sens} du site de grâce « {depart['n']} »." if dist >= 30 else f"Juste à côté du site de grâce « {depart['n']} ».")
+        z = cible.get("z")
+        # Donjons fermés (catacombes p30…, grottes p31…, galeries p32…, cimetière p18…) : repères regroupés à l'entrée.
+        entree = next((l for l in lieux.get(norme(z or ""), []) if l["c"] == "lieux" and l["id"][:3] in ("p18", "p30", "p31", "p32")
+                       and math.hypot(l["x"] - cible["x"], l["y"] - cible["y"]) < 90), None)
+        if z and not chemin:
+            if entree and math.hypot(entree["x"] - depart["x"], entree["y"] - depart["y"]) < 30:
+                spec["chemin"] = f"À l'intérieur de « {z} » : le site de grâce « {depart['n']} » est à l'entrée."
+            elif entree:
+                d2, s2 = direction(depart, entree)
+                spec["chemin"] = f"À l'intérieur de « {z} », dont l'entrée est à environ {d2} m {s2} du site de grâce « {depart['n']} »."
+            else:
+                spec["chemin"] = f"Dans « {z} ». " + spec["chemin"]
     elif chemin:
         spec["chemin"] = chemin
     return spec
