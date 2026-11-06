@@ -103,8 +103,8 @@ def P(motif, i=0):
 def G(nom):
     return next((m for m in graces if norme(m["n"]) == norme(nom) or norme(m.get("en")) == norme(nom)), None)
 
-renna, ranni_tour, ranni_cath = P("^Renna la|^Renna the"), next(m for m in pnj("^Ranni") if "Chambre" in (m.get("pres") or "") or m["x"] < 1600), next(m for m in pnj("^Ranni") if m["y"] > 5000)
-blaidd_tour = next(m for m in pnj("^Blaidd") if abs(m["x"] - 1560) < 40)
+renna, ranni_tour, ranni_cath = P("^Renna la|^Renna the"), next(m for m in pnj("^Ranni") if "Chambre" in (m.get("pres") or "")), next(m for m in pnj("^Ranni") if m["y"] > 5000)
+blaidd_tour = next(m for m in pnj("^Blaidd") if "Chambre de Ranni" in (m.get("pres") or ""))
 iji_tour = next(m for m in pnj("^Iji le") if m["y"] < 3750)
 seluvis_tour = next(m for m in pnj("Seluvis") if m["y"] < 3700)
 RANNI = {

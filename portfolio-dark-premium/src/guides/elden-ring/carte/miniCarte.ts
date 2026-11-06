@@ -52,9 +52,18 @@ export function creerMiniCarte(boite: HTMLElement, o: Options): () => void {
   }).addTo(map)
   map.setMaxBounds(toute.pad(0.1))
   if (o.bornes) {
+    // Carte d'un chapitre : elle s'ouvre cadrée sur la zone, comme une image ; on peut zoomer pour voir les repères
+    // de près, mais pas dézoomer au-delà de la zone ni s'en éloigner.
     const b = L.latLngBounds(P(o.bornes[0][0], o.bornes[1][1]), P(o.bornes[1][0], o.bornes[0][1]))
+    const cadrer = () => {
+      const z = map.getBoundsZoom(b, false, L.point(12, 12))
+      map.setMinZoom(z)
+      if (map.getZoom() < z) map.setZoom(z, { animate: false })
+    }
     map.fitBounds(b, { animate: false, padding: [6, 6] })
-    map.setMinZoom(Math.max(1, map.getZoom() - 1.5))
+    map.setMaxBounds(b.pad(0.08))
+    cadrer()
+    map.on('resize', cadrer)
   } else if (o.centre) map.setView(P(o.centre[0], o.centre[1]), o.zoom ?? 5, { animate: false })
 
   // Sites de grâce du jeu dans la zone (sous les repères).

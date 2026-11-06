@@ -16,7 +16,8 @@ ARGS = [a for a in sys.argv[1:] if not a.startswith("--")]
 SORTIE = ARGS[0] if ARGS else os.path.join(config.DOSSIER, "carte.json")
 
 # Calage des deux images (1 pixel = 1 mètre), voir les essais de superposition des grâces.
-CALAGE = {0: (7083, 16514), 1: (7595, 14978)}  # couche → (X0, Z0) ; px = X - X0, py = Z0 - Z
+# Recalé sur les repères placés à la main sur les cartes du guide (écart médian de 43 m vers l'ouest corrigé, reste ~8 m).
+CALAGE = {0: (7040, 16514), 1: (7552, 14978)}  # couche → (X0, Z0) ; px = X - X0, py = Z0 - Z
 TAILLE = {0: (9728, 9216), 1: (6400, 6912)}
 
 def lire(f, d):
