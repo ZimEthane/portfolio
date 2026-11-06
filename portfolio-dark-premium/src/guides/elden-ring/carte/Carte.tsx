@@ -22,6 +22,7 @@ export interface Marqueur {
   plus?: string[] // autres objets au même endroit, ou butin du boss
   d?: string // précision (« Coffre »)
   f?: string // fiche du guide (d05, b029)
+  o?: string // fiche de l'encyclopédie des objets
   pres?: string // site de grâce le plus proche
   z?: string // donjon qui le contient
 }
@@ -446,6 +447,7 @@ export default function Carte({ livre: l, chemin }: { livre: Livre; chemin: stri
                 <Check size={15} /> {estTrouve(choisi) ? (choisi.c === 'boss' ? 'Battu' : 'Trouvé') : (choisi.c === 'boss' ? 'Marquer battu' : 'Marquer trouvé')}
               </button>
               {choisi.f && <button type="button" onClick={() => setFiche(choisi.f!)}><BookOpen size={15} /> Fiche du guide</button>}
+              {choisi.o && <a className="erc-lien-objet" href={`#guides/elden-ring/objets/${choisi.o}`}><BookOpen size={15} /> Fiche de l'objet</a>}
               <button type="button" onClick={() => copierLien(choisi)} title="Copier le lien de ce repère"><Link2 size={15} /></button>
             </div>
           </section>

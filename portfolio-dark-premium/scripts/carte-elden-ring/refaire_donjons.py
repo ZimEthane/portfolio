@@ -1,6 +1,6 @@
 """Vignettes des donjons centrées sur leur vraie position (données du jeu), pour les fiches du guide."""
 import config
-import json
+import json, os
 from PIL import Image
 Image.MAX_IMAGE_PIXELS = None
 P = "public/guides/elden-ring/"

@@ -3,6 +3,7 @@
 // Pour mettre le guide à jour : remplacer guide.html par la nouvelle version, sans rien changer d'autre.
 import brut from './guide.html?raw'
 import cartesChapitres from './carte/cartes-chapitres.json'
+import indexObjets from './objets/index.json'
 
 export interface Titre { id: string; titre: string }
 
@@ -229,6 +230,19 @@ function lire(): Livre {
     if (lien.startsWith('img/')) image.setAttribute('href', IMAGES + lien.replace(/\.jpg$/, '.webp'))
     const calage = CHAPITRES[lien.match(/carte-\d+/)?.[0] ?? '']
     if (calage) enrichirCarte(doc, image, calage)
+  }
+  // Noms d'objets en gras : ils mènent à leur fiche dans l'encyclopédie des objets.
+  const objets = indexObjets as Record<string, string>
+  for (const fort of tous('strong, b')) {
+    if (fort.closest('a, h1, h2, h3, h4, h5, .label, .tag, svg')) continue
+    const nom = (fort.textContent ?? '').replace(/[’‘]/g, "'").replace(/\s*[×x]\s*\d+$/, '').trim().toLowerCase()
+    const cible = objets[nom] ?? objets[nom.replace(/\s*\(.*\)$/, '')]
+    if (!cible) continue
+    const lien = doc.createElement('a')
+    lien.className = 'er-objet'
+    lien.setAttribute('href', `#guides/elden-ring/objets/${cible}`)
+    fort.replaceWith(lien)
+    lien.appendChild(fort)
   }
   for (const el of tous('[style*="mm"]')) {
     el.setAttribute('style', el.getAttribute('style')!.replace(/(\d*\.?\d+)mm/g, (_, n) => `${Math.round(parseFloat(n) * PX_PAR_MM)}px`))

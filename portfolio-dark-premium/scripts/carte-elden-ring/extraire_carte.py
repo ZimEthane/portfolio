@@ -114,6 +114,18 @@ def icone(cat, iid):
         return ref
     return None
 
+LOTS_UTILISES = set()
+LIEUX_OBJETS = collections.defaultdict(list)  # "cat:id" → repères où on trouve l'objet
+
+def cle_objet(cat, iid):
+    return f"{cat}:{iid - iid % 100 if cat == 2 and iid < 50000000 else iid}"
+
+def noter(mid, objets):
+    for cat, iid, _n, _q in objets:
+        k = cle_objet(cat, iid)
+        if mid not in LIEUX_OBJETS[k]:
+            LIEUX_OBJETS[k].append(mid)
+
 def lots(table, lid):
     """Objets donnés par un lot et ses lots enchaînés (lid, lid+1, …)."""
     res, drapeaux = [], []
@@ -125,6 +137,7 @@ def lots(table, lid):
             if k == 0:
                 continue
             break
+        LOTS_UTILISES.add((id(table), lid + k))
         for i in range(1, 9):
             iid, cat = r.get(f"lotItemId0{i}", 0), r.get(f"lotItemCategory0{i}", 0)
             if iid > 0 and cat in FMG_CAT:
@@ -248,9 +261,10 @@ for nom_msb, aire, lot, partie, modele, pos in TRESORS:
     vus.add(cle)
     principal = objets[0]
     contenant = "Coffre" if modele.startswith(("AEG099_630", "AEG099_631", "AEG099_632", "AEG099_633")) else ""
+    noter(f"o{cle}", objets)
     marqueurs.append({
         "id": f"o{cle}", "c": categorie(principal[0], principal[1], principal[2]), "n": principal[2], "s": c, "x": px, "y": py,
-        "q": principal[3] if principal[3] > 1 else None,
+        "q": principal[3] if principal[3] > 1 else None, "k": cle_objet(principal[0], principal[1]),
         "ico": icone(principal[0], principal[1]),
         "plus": [f"{o[2]}" + (f" ×{o[3]}" if o[3] > 1 else "") for o in objets[1:]] or None,
         "d": contenant or None, "_msb": nom_msb,
@@ -401,9 +415,10 @@ for nom_msb, aire, partie, pos, npc_id, talk in ENNEMIS:
     if "dummy" in qui.lower() or qui.lower().startswith("dlc"):
         qui = ""
     principal = objets[0]
+    noter(f"o{drapeaux[0]}", objets)
     marqueurs.append({
         "id": f"o{drapeaux[0]}", "c": categorie(principal[0], principal[1], principal[2]), "n": principal[2], "s": c, "x": px, "y": py,
-        "q": principal[3] if principal[3] > 1 else None, "ico": icone(principal[0], principal[1]),
+        "q": principal[3] if principal[3] > 1 else None, "k": cle_objet(principal[0], principal[1]), "ico": icone(principal[0], principal[1]),
         "plus": [o[2] + (f" ×{o[3]}" if o[3] > 1 else "") for o in objets[1:]] or None,
         "d": f"Lâché par : {qui}" if qui else "Lâché par un ennemi", "_msb": nom_msb,
     })
@@ -440,7 +455,8 @@ print("autres boss", len(autres_boss), sorted(autres_boss)[:80], file=sys.stderr
 print("boss trouvés", len(boss_places), "/", len(boss_guide), "donjons liés", sum(1 for m in marqueurs if m.get("f", "").startswith("d")), "/", len(donjons_guide), file=sys.stderr)
 print("boss manquants", [boss_guide[k][1] for k in boss_guide if k not in boss_places], file=sys.stderr)
 print("donjons non liés", [n for k, n in ((k, k) for k in donjons_guide) if k not in {norme(m.get("en") or "") for m in marqueurs if m["c"] == "lieux"}], file=sys.stderr)
-json.dump({"marqueurs": marqueurs, "icones": sorted(ICONES)}, open(SORTIE, "w"), ensure_ascii=False)
+json.dump({"marqueurs": marqueurs, "icones": sorted(ICONES), "objets": LIEUX_OBJETS,
+           "lots_utilises": sorted(l for t, l in LOTS_UTILISES if t == id(LOT_MAP))}, open(SORTIE, "w"), ensure_ascii=False)
 
 # Copie pour le site : données compactes et icônes des objets (64 px).
 if "--site" in sys.argv:

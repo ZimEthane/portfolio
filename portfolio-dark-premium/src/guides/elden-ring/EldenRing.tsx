@@ -1,6 +1,6 @@
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, KeyboardEvent, MouseEvent } from 'react'
-import { ArrowLeft, ArrowRight, BookOpen, Check, Download, LayoutGrid, Map as IconeCarte } from 'lucide-react'
+import { ArrowLeft, ArrowRight, BookOpen, Check, Download, Gem, LayoutGrid, Map as IconeCarte } from 'lucide-react'
 import { animateScrollTo, scrollToId } from '../../scroll'
 import { lienPage, lienSection, livre } from './livre'
 import type { Livre, PageLivre, SectionLivre, Titre } from './livre'
@@ -10,6 +10,7 @@ import './livre.css'
 import './elden-ring.css'
 
 const Carte = lazy(() => import('./carte/Carte'))
+const Objets = lazy(() => import('./objets/Objets'))
 
 const deuxChiffres = (n: number) => String(n).padStart(2, '0')
 
@@ -330,8 +331,9 @@ function VueSection({ livre: l, section, pages, page }: { livre: Livre; section:
 export default function EldenRing({ chemin }: { chemin: string }) {
   const l = useMemo(livre, [])
   const surCarte = chemin === 'carte' || chemin.startsWith('carte/')
-  const vue = surCarte ? null : lireChemin(l, chemin)
-  const cle = surCarte ? 'carte' : vue ? `${vue.section.slug}/${vue.page?.slug ?? ''}` : ''
+  const surObjets = /^objets(\/|\?|$)/.test(chemin)
+  const vue = surCarte || surObjets ? null : lireChemin(l, chemin)
+  const cle = surCarte ? 'carte' : surObjets ? chemin : vue ? `${vue.section.slug}/${vue.page?.slug ?? ''}` : ''
   const ancre = vue?.ancre ?? ''
   const precedente = useRef<string | null>(null)
 
@@ -347,6 +349,24 @@ export default function EldenRing({ chemin }: { chemin: string }) {
     } else if (memePage) animateScrollTo(0)
     else window.scrollTo({ top: 0, behavior: 'instant' })
   }, [cle, ancre])
+
+  if (surObjets) {
+    return (
+      <main className="er er-sur-objets">
+        <div className="er-barre">
+          <a className="er-retour" href="#guides/elden-ring"><ArrowLeft size={15} /> Sommaire du guide</a>
+          <span className="er-fil">Elden Ring <i>/</i> <a href="#guides/elden-ring/objets">Encyclopédie des objets</a></span>
+        </div>
+        <Suspense fallback={<div className="erc-attente">Chargement des objets…</div>}>
+          <Objets chemin={chemin} />
+        </Suspense>
+        <footer className="er-pied">
+          <span>Elden Ring — Encyclopédie des objets · Données extraites du jeu (jeu de base)</span>
+          <span>{l.couverture.mention}</span>
+        </footer>
+      </main>
+    )
+  }
 
   if (surCarte) {
     return (
@@ -386,6 +406,10 @@ export default function EldenRing({ chemin }: { chemin: string }) {
               <a className="er-pdf" href="#guides/elden-ring/carte">
                 <IconeCarte size={18} />
                 <span><strong>Carte interactive</strong><small>Grâces, boss, donjons, objets · plus de 3 000 repères</small></span>
+              </a>
+              <a className="er-pdf" href="#guides/elden-ring/objets">
+                <Gem size={18} />
+                <span><strong>Encyclopédie des objets</strong><small>2 101 objets · statistiques, où les trouver</small></span>
               </a>
               <a className="er-pdf" href={PDF} download={NOM_PDF}>
                 <Download size={18} />

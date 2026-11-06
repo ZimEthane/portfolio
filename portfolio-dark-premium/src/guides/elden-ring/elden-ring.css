@@ -330,3 +330,8 @@ html:has(.er-fiche[open]) { overflow: hidden; }
 .er-livre a.er-carte-lien, .er-livre .er-carte-lien { display: flex; width: fit-content; margin: 6px auto 0; padding: 5px 12px; border: 1px solid var(--filet); border-radius: 999px; background: var(--carte); font: 600 12px 'Inter Variable', Inter, sans-serif; color: var(--fort); text-decoration: none; }
 .er-livre .er-carte-lien::before { content: '🗺'; margin-right: 6px; filter: sepia(1); }
 .er-livre .er-carte-lien:hover { border-color: var(--or); }
+
+/* Noms d'objets du guide : liens vers leur fiche de l'encyclopédie */
+.er-livre a.er-objet { color: inherit; text-decoration: underline dotted; text-underline-offset: 3px; text-decoration-color: var(--or); }
+.er-livre a.er-objet:hover { text-decoration-style: solid; }
+

@@ -63,10 +63,10 @@
 .erc-ou, .erc-plus { margin: 12px 0 0; font-size: 13px; line-height: 1.55; color: var(--gris-fonce); }
 .erc-ou b { color: var(--fort); font-weight: 600; }
 .erc-plus span { display: block; font: 600 10.5px 'Cinzel Variable', Cinzel, serif; letter-spacing: .14em; text-transform: uppercase; color: var(--gris); }
-.erc-actions { display: flex; gap: 8px; margin-top: 14px; }
-.erc-actions button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 12px; border: 1px solid var(--bord); border-radius: 8px; background: #fffaf0; font: 600 13px 'Inter Variable', Inter, sans-serif; color: var(--texte); cursor: pointer; }
+.erc-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.erc-actions button, .erc-actions .erc-lien-objet { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 12px; border: 1px solid var(--bord); border-radius: 8px; background: #fffaf0; font: 600 13px 'Inter Variable', Inter, sans-serif; color: var(--texte); cursor: pointer; }
 .erc-actions button:first-child { flex: 1; }
-.erc-actions button:hover { border-color: var(--or); }
+.erc-actions button:hover, .erc-actions .erc-lien-objet:hover { border-color: var(--or); }
 .erc-actions button.is-fait { border-color: #4f8a4f; background: #4f8a4f1f; color: #2f5f2f; }
 
 /* Accès depuis l'accueil du guide */

@@ -1,0 +1,69 @@
+/* ===== Encyclopédie des objets (guide Elden Ring) ===== */
+.ero, .ero-fiche { width: min(1180px, calc(100% - 64px)); margin: 0 auto; padding: 22px 0 40px; }
+.ero-etat { padding: 80px 0; text-align: center; color: var(--gris); }
+.ero-intro h1, .ero-tete h1 { margin: 0; font: 600 clamp(28px, 4vw, 42px)/1.1 'Cinzel Variable', Cinzel, serif; letter-spacing: .04em; color: var(--fort); }
+.ero-intro p { max-width: 760px; margin: 10px 0 18px; color: var(--gris-fonce); }
+.ero-recherche { position: relative; display: flex; align-items: center; max-width: 520px; }
+.ero-recherche svg { position: absolute; left: 12px; color: var(--gris); }
+.ero-recherche input { width: 100%; padding: 11px 14px 11px 38px; border: 1px solid var(--bord); border-radius: 10px; background: #fffaf0; font: inherit; color: var(--texte); }
+.ero-recherche input:focus { outline: 2px solid var(--or); border-color: transparent; }
+.ero-groupes { display: flex; flex-wrap: wrap; gap: 6px; margin: 22px 0 10px; }
+.ero-groupes button, .ero-sous button { padding: 7px 12px; border: 1px solid var(--bord); border-radius: 999px; background: transparent; font: 600 13px 'Inter Variable', Inter, sans-serif; color: var(--gris-fonce); cursor: pointer; }
+.ero-groupes button small { margin-left: 4px; font-weight: 500; color: var(--gris); }
+.ero-groupes button[aria-pressed="true"], .ero-sous button[aria-pressed="true"] { border-color: var(--or); background: #96712a1f; color: var(--fort); }
+.ero-groupes button:hover, .ero-sous button:hover { border-color: var(--or); }
+.ero-sous { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
+.ero-sous button { padding: 5px 10px; font-size: 12px; }
+.ero-compte { display: flex; align-items: center; gap: 6px; margin: 4px 0 14px; font-size: 13px; color: var(--gris); }
+.ero-grille { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px; }
+.ero-grille a { position: relative; display: flex; align-items: center; gap: 12px; padding: 8px 10px; border: 1px solid var(--bord); border-radius: 10px; background: var(--carte); color: var(--texte); transition: border-color .15s, transform .15s; }
+.ero-grille a:hover { border-color: var(--or); transform: translateY(-1px); }
+.ero-grille b { display: block; font-size: 14px; font-weight: 600; line-height: 1.3; }
+.ero-grille small { display: block; font-size: 12px; color: var(--gris); }
+.ero-grille .is-obtenu a { border-color: #4f8a4f80; }
+.ero-grille .is-obtenu .ero-illus { opacity: .6; }
+.ero-coche { position: absolute; top: 6px; right: 8px; color: #4f8a4f; }
+.ero-illus { flex: none; display: block; border-radius: 8px; background: radial-gradient(circle at 50% 45%, #3d2f1e, #14110d 75%); }
+.ero-min { width: 54px; height: 54px; }
+.ero-img { width: 220px; height: 220px; border: 1px solid #c9ad73; box-shadow: 0 14px 30px #2a231b33; }
+
+/* Fiche */
+.ero-retour { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--gris-fonce); }
+.ero-retour:hover { color: var(--fort); }
+.ero-tete { display: flex; gap: 26px; align-items: center; margin: 16px 0 22px; }
+.ero-cat { display: block; margin-bottom: 6px; font: 600 12px 'Cinzel Variable', Cinzel, serif; letter-spacing: .16em; text-transform: uppercase; color: var(--or); }
+.ero-en { display: block; margin-top: 4px; font-size: 13px; font-style: italic; color: var(--gris); }
+.ero-effet { margin: 12px 0 0; max-width: 560px; font-weight: 500; color: var(--gris-fonce); }
+.ero-obtenu { display: inline-flex; align-items: center; gap: 6px; margin-top: 14px; padding: 8px 14px; border: 1px solid var(--bord); border-radius: 8px; background: #fffaf0; font: 600 13px 'Inter Variable', Inter, sans-serif; color: var(--texte); cursor: pointer; }
+.ero-obtenu:hover { border-color: var(--or); }
+.ero-obtenu.is-oui { border-color: #4f8a4f; background: #4f8a4f1f; color: #2f5f2f; }
+.ero-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.ero-stats section, .ero-bloc { padding: 14px 16px; border: 1px solid var(--bord); border-radius: 10px; background: var(--carte); }
+.ero-stats h3, .ero-bloc h2 { margin: 0 0 8px; font: 600 13px 'Cinzel Variable', Cinzel, serif; letter-spacing: .14em; text-transform: uppercase; color: var(--or); }
+.ero-stats dl { margin: 0; display: grid; gap: 3px; }
+.ero-stats dl div { display: flex; justify-content: space-between; gap: 10px; padding: 3px 0; border-bottom: 1px dotted var(--bord); font-size: 13.5px; }
+.ero-stats dl div:last-child { border-bottom: 0; }
+.ero-stats dt { color: var(--gris-fonce); }
+.ero-stats dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--fort); }
+.ero-bloc { margin-top: 12px; }
+.ero-ou { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.ero-ou li { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; background: #fffaf0; }
+.ero-ou li > svg { flex: none; color: var(--or); }
+.ero-ou span { flex: 1; font-size: 14px; }
+.ero-ou small { display: block; font-size: 12.5px; color: var(--gris); }
+.ero-voir { flex: none; padding: 5px 10px; border: 1px solid var(--bord); border-radius: 999px; font-size: 12px; font-weight: 600; color: var(--fort); }
+.ero-voir:hover { border-color: var(--or); }
+.ero-vide { margin: 0; font-size: 14px; color: var(--gris-fonce); }
+.ero-desc { font: italic 400 17px/1.6 'EB Garamond Variable', 'EB Garamond', serif; color: var(--texte); }
+.ero-desc p { margin: 0; }
+.ero-voisins { display: flex; justify-content: space-between; gap: 12px; margin-top: 22px; }
+.ero-voisins a { display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; color: var(--gris-fonce); }
+.ero-voisins a:hover { color: var(--fort); }
+
+@media (max-width: 720px) {
+  .ero, .ero-fiche { width: calc(100% - 32px); }
+  .ero-tete { flex-direction: column; align-items: flex-start; gap: 14px; }
+  .ero-img { width: 160px; height: 160px; }
+  .ero-grille { grid-template-columns: 1fr 1fr; }
+  .ero-grille a { flex-direction: column; text-align: center; }
+}

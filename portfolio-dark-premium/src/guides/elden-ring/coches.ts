@@ -13,3 +13,6 @@ export const lireCoches = () => lire(CLE_COCHES)
 export const ecrireCoches = (c: Set<string>) => ecrire(CLE_COCHES, c)
 export const lireTrouves = () => lire(CLE_TROUVES)
 export const ecrireTrouves = (c: Set<string>) => ecrire(CLE_TROUVES, c)
+const CLE_OBTENUS = 'guides:elden-ring:objets'
+export const lireObtenus = () => lire(CLE_OBTENUS)
+export const ecrireObtenus = (c: Set<string>) => ecrire(CLE_OBTENUS, c)
