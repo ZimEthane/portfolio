@@ -2,6 +2,7 @@
 // sections (Les bases, Classes…), pages (chapitres) et titres de partie, avec leurs adresses.
 // Pour mettre le guide à jour : remplacer guide.html par la nouvelle version, sans rien changer d'autre.
 import brut from './guide.html?raw'
+import cartesChapitres from './carte/cartes-chapitres.json'
 
 export interface Titre { id: string; titre: string }
 
@@ -66,6 +67,36 @@ export interface Livre {
 
 const RACINE = '#guides/elden-ring'
 const IMAGES = `${import.meta.env.BASE_URL}guides/elden-ring/` // images dans public/guides/elden-ring/img/
+
+// Cartes des chapitres : emprise dans la grande carte du jeu (voir scripts/carte-elden-ring) et sites de grâce visibles.
+interface Calage { s: number; x: number; y: number; e: number; w: number; h: number; graces: [number, number, string][] }
+const CHAPITRES = cartesChapitres as unknown as Record<string, Calage>
+const SVG = 'http://www.w3.org/2000/svg'
+const FLAMME = 'M0,-4.6 C2.2,-2.4 3.2,-0.6 3.2,1.2 C3.2,3.2 1.7,4.6 0,4.6 C-1.7,4.6 -3.2,3.2 -3.2,1.2 C-3.2,-0.4 -2.2,-1.6 -1.2,-2.6 C-1,-1.2 -0.4,-0.4 0.4,-0.2 C0.6,-1.8 0.2,-3.2 0,-4.6Z'
+
+// Ajoute les sites de grâce sous les repères du guide, et un lien vers la même zone de la carte interactive.
+function enrichirCarte(doc: Document, image: Element, c: Calage) {
+  const svg = image.closest('svg')
+  if (!svg || svg.querySelector('.er-graces')) return
+  const k = c.w / 900
+  const g = doc.createElementNS(SVG, 'g')
+  g.setAttribute('class', 'er-graces')
+  for (const [x, y, nom] of c.graces) {
+    const r = doc.createElementNS(SVG, 'g')
+    r.setAttribute('transform', `translate(${x} ${y}) scale(${(1.25 * k).toFixed(2)})`)
+    r.innerHTML = `<title>${nom.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</title><circle r="6.4" fill="#1d1813" stroke="#e8c35a" stroke-width="1.3"/><path d="${FLAMME}" fill="#e8c35a"/>`
+    g.appendChild(r)
+  }
+  image.after(g)
+  const figure = svg.closest('figure')
+  if (!figure || figure.querySelector('.er-carte-lien')) return
+  const zoom = Math.max(2, Math.min(6, 6 - Math.log2((c.w * c.e) / 900)))
+  const lien = doc.createElement('a')
+  lien.className = 'er-carte-lien'
+  lien.setAttribute('href', `#guides/elden-ring/carte/@${c.s},${Math.round(c.x + (c.w * c.e) / 2)},${Math.round(c.y + (c.h * c.e) / 2)},${zoom.toFixed(1)}`)
+  lien.textContent = 'Voir cette zone sur la carte interactive'
+  figure.appendChild(lien) // dans la figure : elle est parfois posée directement dans la page (voir noeuds)
+}
 const PX_PAR_MM = (15 / 9.6) * (72 / 25.4) // même agrandissement que livre.css (scripts/convertir-css-guide.mjs)
 const PAGES_MAX_ENSEMBLE = 3 // au-delà, une section affiche ses pages une par une
 
@@ -196,6 +227,8 @@ function lire(): Livre {
   for (const image of tous('image')) {
     const lien = image.getAttribute('href') ?? image.getAttribute('xlink:href') ?? ''
     if (lien.startsWith('img/')) image.setAttribute('href', IMAGES + lien.replace(/\.jpg$/, '.webp'))
+    const calage = CHAPITRES[lien.match(/carte-\d+/)?.[0] ?? '']
+    if (calage) enrichirCarte(doc, image, calage)
   }
   for (const el of tous('[style*="mm"]')) {
     el.setAttribute('style', el.getAttribute('style')!.replace(/(\d*\.?\d+)mm/g, (_, n) => `${Math.round(parseFloat(n) * PX_PAR_MM)}px`))

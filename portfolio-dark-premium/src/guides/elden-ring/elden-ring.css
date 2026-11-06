@@ -324,3 +324,9 @@ html:has(.er-fiche[open]) { overflow: hidden; }
 .er-sur-carte .er-barre { width: min(1500px, calc(100% - 32px)); }
 .er-sur-carte .er-pied { width: min(1500px, calc(100% - 32px)); }
 .erc-attente { padding: 120px 0; text-align: center; color: var(--gris); }
+
+/* Cartes des chapitres : sites de grâce (tirés du jeu) et lien vers la carte interactive */
+.er-livre .er-graces title { pointer-events: none; }
+.er-livre a.er-carte-lien, .er-livre .er-carte-lien { display: flex; width: fit-content; margin: 6px auto 0; padding: 5px 12px; border: 1px solid var(--filet); border-radius: 999px; background: var(--carte); font: 600 12px 'Inter Variable', Inter, sans-serif; color: var(--fort); text-decoration: none; }
+.er-livre .er-carte-lien::before { content: '🗺'; margin-right: 6px; filter: sepia(1); }
+.er-livre .er-carte-lien:hover { border-color: var(--or); }

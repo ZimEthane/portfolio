@@ -289,6 +289,15 @@ export default function Carte({ livre: l, chemin }: { livre: Livre; chemin: stri
     setFiche(null)
     const id = chemin.split('/')[1]
     if (!id || id === 'souterrain') return
+    // Vue précise : @couche,x,y,zoom (lien « Voir cette zone » des cartes du guide)
+    const vue = id.match(/^@([01]),(\d+),(\d+),([\d.]+)$/)
+    if (vue) {
+      const c = Number(vue[1]) as 0 | 1
+      setCouche(c)
+      setChoisi(null)
+      setTimeout(() => carte.current?.setView(carte.current.unproject([Number(vue[2]), Number(vue[3])], NATIF), Number(vue[4]), { animate: false }), 60)
+      return
+    }
     const m = donnees.find(x => x.id === id) ?? donnees.find(x => x.f === id)
     if (m) aller(m)
     else setAbsent(l.boss.find(b => b.id === id)?.nom ?? l.donjons.find(d => d.id === id)?.nom ?? id)
