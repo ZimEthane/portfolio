@@ -1,12 +1,18 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, KeyboardEvent, MouseEvent } from 'react'
-import { ArrowLeft, ArrowRight, BookOpen, Check, Download, LayoutGrid } from 'lucide-react'
+import { ArrowLeft, ArrowRight, BookOpen, Check, Download, Gem, LayoutGrid, Map as IconeCarte, ScrollText } from 'lucide-react'
 import { animateScrollTo, scrollToId } from '../../scroll'
 import { lienPage, lienSection, livre } from './livre'
 import type { Livre, PageLivre, SectionLivre, Titre } from './livre'
 import Fiche from './Fiche'
+import { ecrireCoches, lireCoches } from './coches'
+import { remplacerMinimap } from './carte/apercu'
 import './livre.css'
 import './elden-ring.css'
+
+const Carte = lazy(() => import('./carte/Carte'))
+const Objets = lazy(() => import('./objets/Objets'))
+const Quetes = lazy(() => import('./quetes/Quetes'))
 
 const deuxChiffres = (n: number) => String(n).padStart(2, '0')
 
@@ -168,15 +174,6 @@ function useActif(ids: string[]) {
   return actif
 }
 
-// ----- Cases cochées : enregistrées dans le navigateur du visiteur -----
-const CLE_COCHES = 'guides:elden-ring:coches'
-function lireCoches(): Set<string> {
-  try { return new Set(JSON.parse(localStorage.getItem(CLE_COCHES) ?? '[]') as string[]) } catch { return new Set() }
-}
-function ecrireCoches(coches: Set<string>) {
-  try { localStorage.setItem(CLE_COCHES, JSON.stringify([...coches])) } catch { /* stockage indisponible : les cases restent cochées jusqu'au rechargement */ }
-}
-
 // Compteur « 12 / 63 » à côté du titre d'une liste (attribut lu par le CSS).
 function compter(titre: Element | null | undefined, groupe: Element | null | undefined) {
   if (!(titre instanceof HTMLElement) || !groupe) return
@@ -211,6 +208,27 @@ function Contenu({ livre: l, section, pages }: { livre: Livre; section: SectionL
     el.querySelectorAll('.didx-g').forEach(g => compter(g.querySelector('h5'), g)) // index des donjons, par région
     setCompte({ faits, total: cases.length })
   }, [coches, html])
+
+  // Cartes des chapitres : la même zone sur la carte du jeu, zoomable (chargée à part, avec Leaflet).
+  useEffect(() => {
+    const el = racine.current
+    const svgs = el ? Array.from(el.querySelectorAll<SVGSVGElement>('svg.realmap')) : []
+    if (!svgs.length) return
+    let annule = false
+    const fins: (() => void)[] = []
+    import('./carte/miniCarte').then(({ remplacerSvg }) => {
+      if (!annule) svgs.forEach(sv => fins.push(remplacerSvg(sv)))
+    })
+    return () => { annule = true; fins.forEach(f => f()) }
+  }, [html])
+
+  // « Tu es ici » : la vraie carte en miniature, zone du chapitre encadrée.
+  useEffect(() => {
+    const el = racine.current
+    if (!el || pages.length !== 1) return
+    const fins = Array.from(el.querySelectorAll<SVGSVGElement>('.minimap svg.regionmap.mini'), sv => remplacerMinimap(sv, pages[0].slug))
+    return () => fins.forEach(f => f())
+  }, [html, pages])
 
   useEffect(() => {
     if (!confirmer) return
@@ -322,6 +340,12 @@ function VueSection({ livre: l, section, pages, page }: { livre: Livre; section:
           <Navigation livre={l} section={section} affichees={pages} actif={actif} onChoix={() => setMenuOuvert(false)} />
         </details>
         {!page && <Intercalaire section={section} />}
+        {section.slug === 'quetes' && (
+          <a className="er-pdf er-vers-quetes" href="#guides/elden-ring/quetes-pas-a-pas">
+            <ScrollText size={18} />
+            <span><strong>Guides de quêtes pas à pas</strong><small>Chaque quête étape par étape, avec une carte annotée à chaque étape</small></span>
+          </a>
+        )}
         {pages.length > 0 && <Contenu livre={l} section={section} pages={pages} />}
         <nav className="er-suite" aria-label="Pages voisines">
           {avant ? <a href={avant.lien}><ArrowLeft size={15} /><span><small>{avant.quoi}</small>{avant.nom}</span></a> : <span />}
@@ -335,8 +359,11 @@ function VueSection({ livre: l, section, pages, page }: { livre: Livre; section:
 
 export default function EldenRing({ chemin }: { chemin: string }) {
   const l = useMemo(livre, [])
-  const vue = lireChemin(l, chemin)
-  const cle = vue ? `${vue.section.slug}/${vue.page?.slug ?? ''}` : ''
+  const surCarte = chemin === 'carte' || chemin.startsWith('carte/')
+  const surObjets = /^objets(\/|\?|$)/.test(chemin)
+  const surQuetes = /^quetes-pas-a-pas(\/|$)/.test(chemin)
+  const vue = surCarte || surObjets || surQuetes ? null : lireChemin(l, chemin)
+  const cle = surCarte ? 'carte' : surObjets || surQuetes ? chemin : vue ? `${vue.section.slug}/${vue.page?.slug ?? ''}` : ''
   const ancre = vue?.ancre ?? ''
   const precedente = useRef<string | null>(null)
 
@@ -352,6 +379,60 @@ export default function EldenRing({ chemin }: { chemin: string }) {
     } else if (memePage) animateScrollTo(0)
     else window.scrollTo({ top: 0, behavior: 'instant' })
   }, [cle, ancre])
+
+  if (surQuetes) {
+    return (
+      <main className="er er-sur-quetes">
+        <div className="er-barre">
+          <a className="er-retour" href="#guides/elden-ring"><ArrowLeft size={15} /> Sommaire du guide</a>
+          <span className="er-fil">Elden Ring <i>/</i> <a href="#guides/elden-ring/quetes-pas-a-pas">Guides de quêtes</a></span>
+        </div>
+        <Suspense fallback={<div className="erc-attente">Chargement des quêtes…</div>}>
+          <Quetes chemin={chemin} />
+        </Suspense>
+        <footer className="er-pied">
+          <span>Elden Ring — Guides de quêtes · Positions extraites du jeu (jeu de base)</span>
+          <span>{l.couverture.mention}</span>
+        </footer>
+      </main>
+    )
+  }
+
+  if (surObjets) {
+    return (
+      <main className="er er-sur-objets">
+        <div className="er-barre">
+          <a className="er-retour" href="#guides/elden-ring"><ArrowLeft size={15} /> Sommaire du guide</a>
+          <span className="er-fil">Elden Ring <i>/</i> <a href="#guides/elden-ring/objets">Encyclopédie des objets</a></span>
+        </div>
+        <Suspense fallback={<div className="erc-attente">Chargement des objets…</div>}>
+          <Objets chemin={chemin} />
+        </Suspense>
+        <footer className="er-pied">
+          <span>Elden Ring — Encyclopédie des objets · Données extraites du jeu (jeu de base)</span>
+          <span>{l.couverture.mention}</span>
+        </footer>
+      </main>
+    )
+  }
+
+  if (surCarte) {
+    return (
+      <main className="er er-sur-carte">
+        <div className="er-barre">
+          <a className="er-retour" href="#guides/elden-ring"><ArrowLeft size={15} /> Sommaire du guide</a>
+          <span className="er-fil">Elden Ring <i>/</i> Carte interactive</span>
+        </div>
+        <Suspense fallback={<div className="erc-attente">Chargement de la carte…</div>}>
+          <Carte livre={l} chemin={chemin} />
+        </Suspense>
+        <footer className="er-pied">
+          <span>Elden Ring — Carte interactive · Positions extraites du jeu (jeu de base)</span>
+          <span>{l.couverture.mention}</span>
+        </footer>
+      </main>
+    )
+  }
 
   return (
     <main className={vue ? 'er er-dans-section' : 'er'}>
@@ -369,10 +450,24 @@ export default function EldenRing({ chemin }: { chemin: string }) {
         : (
           <div className="er-accueil">
             <Couverture livre={l} />
-            <a className="er-pdf" href={PDF} download={NOM_PDF}>
-              <Download size={18} />
-              <span><strong>Télécharger le guide en PDF</strong><small>Version imprimable · 118 pages · 15 Mo</small></span>
-            </a>
+            <div className="er-acces">
+              <a className="er-pdf" href="#guides/elden-ring/carte">
+                <IconeCarte size={18} />
+                <span><strong>Carte interactive</strong><small>Grâces, boss, donjons, objets · plus de 3 000 repères</small></span>
+              </a>
+              <a className="er-pdf" href="#guides/elden-ring/objets">
+                <Gem size={18} />
+                <span><strong>Encyclopédie des objets</strong><small>2 101 objets · statistiques, où les trouver</small></span>
+              </a>
+              <a className="er-pdf" href="#guides/elden-ring/quetes-pas-a-pas">
+                <ScrollText size={18} />
+                <span><strong>Guides de quêtes</strong><small>Pas à pas, avec une carte à chaque étape</small></span>
+              </a>
+              <a className="er-pdf" href={PDF} download={NOM_PDF}>
+                <Download size={18} />
+                <span><strong>Télécharger le guide en PDF</strong><small>Version imprimable · 118 pages · 15 Mo</small></span>
+              </a>
+            </div>
             <Sommaire livre={l} />
           </div>
         )}

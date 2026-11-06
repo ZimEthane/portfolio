@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
-import { ArrowLeft, ArrowRight, BookOpen, Check, ExternalLink, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, BookOpen, Check, ExternalLink, MapPin, X } from 'lucide-react'
+import CarteJeu from './carte/CarteJeu'
 import { lienPage } from './livre'
 import type { Boss, Donjon, Livre } from './livre'
 
@@ -108,12 +109,13 @@ function Html({ cle, html }: { cle: string; html: string }) {
   return <div className="er-livre"><div className={`sec ${cle}`} dangerouslySetInnerHTML={{ __html: html }} /></div>
 }
 
-function Liens({ livre: l, chapitres, nom, children }: { livre: Livre; chapitres: number[]; nom: string; children?: ReactNode }) {
+function Liens({ livre: l, id, chapitres, nom, children }: { livre: Livre; id: string; chapitres: number[]; nom: string; children?: ReactNode }) {
   const progression = l.sections.find(s => s.slug === 'progression')
   const pages = chapitres.map(n => progression?.pages.find(p => p.slug === `chapitre-${n}`)).filter(p => p !== undefined)
   return (
     <ul className="er-fiche-liens">
       {children}
+      <li><a href={`#guides/elden-ring/carte/${id}`}><MapPin size={15} /> Voir sur la carte interactive</a></li>
       {progression && pages.map(p => (
         <li key={p.slug}><a href={lienPage(progression, p)}><BookOpen size={15} /> Dans la progression : {p.surtitre.toLowerCase()}, {p.titre}</a></li>
       ))}
@@ -130,16 +132,22 @@ function CorpsDonjon({ livre: l, donjon, coches, onCocher, onOuvrir }: Corps<{ d
     <>
       <div className="er-fiche-corps">
         <figure className="er-fiche-carte">
-          <span className="er-fiche-vignette">
-            <img src={donjon.carte} alt={`Carte autour de l'entrée de ${donjon.nom}`} />
-            <span dangerouslySetInnerHTML={{ __html: donjon.repere }} />
-          </span>
-          <figcaption>L'entrée du donjon sur la carte du monde. Il n'y a pas de carte de l'intérieur dans le jeu.</figcaption>
+          <CarteJeu
+            fiche={donjon.id}
+            nom={donjon.nom}
+            repli={(
+              <span className="er-fiche-vignette">
+                <img src={donjon.carte} alt={`Carte autour de l'entrée de ${donjon.nom}`} />
+                <span dangerouslySetInnerHTML={{ __html: donjon.repere }} />
+              </span>
+            )}
+          />
+          <figcaption>L'entrée du donjon sur la carte du jeu (zoomable). Il n'y a pas de carte de l'intérieur dans le jeu.</figcaption>
         </figure>
         <div className="er-fiche-infos">
           <BoutonCoche cle={donjon.cleFait} coches={coches} onCocher={onCocher} oui="Donjon fait" non="Marquer comme fait" />
           <Html cle={sectionDonjons.cle} html={donjon.contenu} />
-          <Liens livre={l} chapitres={donjon.chapitre === undefined ? [] : [donjon.chapitre]} nom={donjon.nom} />
+          <Liens livre={l} id={donjon.id} chapitres={donjon.chapitre === undefined ? [] : [donjon.chapitre]} nom={donjon.nom} />
         </div>
       </div>
       {donjon.boss.length > 0 && bestiaire && (
@@ -161,7 +169,13 @@ function CorpsBoss({ livre: l, boss, coches, onCocher, onOuvrir }: Corps<{ boss:
   const bestiaire = l.sections.find(s => s.slug === 'bestiaire')!
   const donjons = boss.donjons.map(d => l.donjons.find(x => x.id === d)).filter(d => d !== undefined)
   return (
-    <div className={donjons.length ? 'er-fiche-corps' : 'er-fiche-corps is-seul'}>
+    <div className="er-fiche-corps">
+      {donjons.length === 0 && (
+        <figure className="er-fiche-carte">
+          <CarteJeu fiche={boss.id} nom={boss.nom} repli={<p className="er-fiche-sans-carte">Pas encore de repère sur la carte pour ce boss.</p>} />
+          <figcaption>Où le trouver, sur la carte du jeu (zoomable).</figcaption>
+        </figure>
+      )}
       {donjons.length > 0 && (
         <div className="er-fiche-lieux">
           <h3>{donjons.length > 1 ? 'Les donjons où le combattre' : 'Le donjon où le combattre'}</h3>
@@ -183,7 +197,7 @@ function CorpsBoss({ livre: l, boss, coches, onCocher, onOuvrir }: Corps<{ boss:
       <div className="er-fiche-infos">
         <BoutonCoche cle={boss.cleBattu} coches={coches} onCocher={onCocher} oui="Boss battu" non="Marquer comme battu" />
         <div className="er-fiche-bcard"><Html cle={bestiaire.cle} html={boss.contenu} /></div>
-        <Liens livre={l} chapitres={boss.chapitres} nom={boss.nom} />
+        <Liens livre={l} id={boss.id} chapitres={boss.chapitres} nom={boss.nom} />
       </div>
     </div>
   )

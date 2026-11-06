@@ -2,6 +2,9 @@
 // sections (Les bases, Classes…), pages (chapitres) et titres de partie, avec leurs adresses.
 // Pour mettre le guide à jour : remplacer guide.html par la nouvelle version, sans rien changer d'autre.
 import brut from './guide.html?raw'
+import cartesChapitres from './carte/cartes-chapitres.json'
+import indexObjets from './objets/index.json'
+import classesDepart from './objets/classes.json'
 
 export interface Titre { id: string; titre: string }
 
@@ -66,6 +69,36 @@ export interface Livre {
 
 const RACINE = '#guides/elden-ring'
 const IMAGES = `${import.meta.env.BASE_URL}guides/elden-ring/` // images dans public/guides/elden-ring/img/
+
+// Cartes des chapitres : emprise dans la grande carte du jeu (voir scripts/carte-elden-ring) et sites de grâce visibles.
+interface Calage { s: number; x: number; y: number; e: number; w: number; h: number; graces: [number, number, string][] }
+const CHAPITRES = cartesChapitres as unknown as Record<string, Calage>
+const SVG = 'http://www.w3.org/2000/svg'
+const FLAMME = 'M0,-4.6 C2.2,-2.4 3.2,-0.6 3.2,1.2 C3.2,3.2 1.7,4.6 0,4.6 C-1.7,4.6 -3.2,3.2 -3.2,1.2 C-3.2,-0.4 -2.2,-1.6 -1.2,-2.6 C-1,-1.2 -0.4,-0.4 0.4,-0.2 C0.6,-1.8 0.2,-3.2 0,-4.6Z'
+
+// Ajoute les sites de grâce sous les repères du guide, et un lien vers la même zone de la carte interactive.
+function enrichirCarte(doc: Document, image: Element, c: Calage) {
+  const svg = image.closest('svg')
+  if (!svg || svg.querySelector('.er-graces')) return
+  const k = c.w / 900
+  const g = doc.createElementNS(SVG, 'g')
+  g.setAttribute('class', 'er-graces')
+  for (const [x, y, nom] of c.graces) {
+    const r = doc.createElementNS(SVG, 'g')
+    r.setAttribute('transform', `translate(${x} ${y}) scale(${(1.25 * k).toFixed(2)})`)
+    r.innerHTML = `<title>${nom.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</title><circle r="6.4" fill="#1d1813" stroke="#e8c35a" stroke-width="1.3"/><path d="${FLAMME}" fill="#e8c35a"/>`
+    g.appendChild(r)
+  }
+  image.after(g)
+  const figure = svg.closest('figure')
+  if (!figure || figure.querySelector('.er-carte-lien')) return
+  const zoom = Math.max(2, Math.min(6, 6 - Math.log2((c.w * c.e) / 900)))
+  const lien = doc.createElement('a')
+  lien.className = 'er-carte-lien'
+  lien.setAttribute('href', `#guides/elden-ring/carte/@${c.s},${Math.round(c.x + (c.w * c.e) / 2)},${Math.round(c.y + (c.h * c.e) / 2)},${zoom.toFixed(1)}`)
+  lien.textContent = 'Voir cette zone sur la carte interactive'
+  figure.appendChild(lien) // dans la figure : elle est parfois posée directement dans la page (voir noeuds)
+}
 const PX_PAR_MM = (15 / 9.6) * (72 / 25.4) // même agrandissement que livre.css (scripts/convertir-css-guide.mjs)
 const PAGES_MAX_ENSEMBLE = 3 // au-delà, une section affiche ses pages une par une
 
@@ -196,6 +229,51 @@ function lire(): Livre {
   for (const image of tous('image')) {
     const lien = image.getAttribute('href') ?? image.getAttribute('xlink:href') ?? ''
     if (lien.startsWith('img/')) image.setAttribute('href', IMAGES + lien.replace(/\.jpg$/, '.webp'))
+    const calage = CHAPITRES[lien.match(/carte-\d+/)?.[0] ?? '']
+    if (calage) enrichirCarte(doc, image, calage)
+  }
+  // Tableaux de la section Quêtes : le nom du PNJ mène à son guide pas à pas.
+  const PAS_A_PAS: [RegExp, string][] = [
+    [/Renna|Ranni/, 'ranni'], [/Blaidd/, 'blaidd'], [/Seluvis|Pidia/, 'seluvis'], [/Rogier/, 'rogier'], [/^Fia/, 'fia'], [/^D\b|Frère de D/, 'd'],
+    [/Gurranq/, 'd'], [/Sellen|Jerren/, 'sellen'], [/Nepheli|Gostoc/, 'nepheli'], [/Kenneth/, 'kenneth'], [/Irina|Edgar/, 'irina'],
+    [/Hyetta/, 'hyetta'], [/Roderika/, 'roderika'], [/^Boc/, 'boc'], [/Yura/, 'yura'], [/Patches/, 'patches'], [/Alexander/, 'alexander'],
+    [/Jar-Bairn|Diallos/, 'jarbairn'], [/Varré/, 'varre'], [/Thops/, 'thops'], [/Latenna|Albus/, 'latenna'], [/Rya|Tanith|Bernahl/, 'volcan'],
+    [/Boggart|Dung Eater/, 'dung-eater'], [/Corhyn|Goldmask/, 'goldmask'], [/Millicent|Gowry/, 'millicent'],
+  ]
+  for (const td of tous('.sec.s4 table tr > td:first-child')) {
+    const nom = (td.textContent ?? '').trim()
+    const id = PAS_A_PAS.find(([r]) => r.test(nom))?.[1]
+    if (!id || td.querySelector('.er-pas-a-pas')) continue
+    const a = doc.createElement('a')
+    a.className = 'er-pas-a-pas'
+    a.href = `#guides/elden-ring/quetes-pas-a-pas/${id}`
+    a.textContent = 'Pas à pas ›'
+    td.append(' ', a)
+  }
+  // Noms d'objets en gras : ils mènent à leur fiche dans l'encyclopédie des objets.
+  const objets = indexObjets as Record<string, string>
+  for (const fort of tous('strong, b')) {
+    if (fort.closest('a, h1, h2, h3, h4, h5, .label, .tag, svg')) continue
+    const nom = (fort.textContent ?? '').replace(/[’‘]/g, "'").replace(/\s*[×x]\s*\d+$/, '').trim().toLowerCase()
+    const cible = objets[nom] ?? objets[nom.replace(/\s*\(.*\)$/, '')]
+    if (!cible) continue
+    const lien = doc.createElement('a')
+    lien.className = 'er-objet'
+    lien.setAttribute('href', `#guides/elden-ring/objets/${cible}`)
+    fort.replaceWith(lien)
+    lien.appendChild(fort)
+  }
+  // Classes : leur équipement de départ, avec les illustrations du jeu (reconnues à leurs statistiques).
+  const echapper = (t: string) => t.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')
+  for (const carte of tous('.ccard')) {
+    const stats = Array.from(carte.querySelectorAll('.srow .sv'), e => Number(e.textContent)).join()
+    const classe = (classesDepart as { stats: number[]; objets: { s: string; i?: number; n: string }[] }[]).find(c => c.stats.join() === stats)
+    if (!classe?.objets.length || carte.querySelector('.er-panoplie')) continue
+    const bloc = doc.createElement('div')
+    bloc.className = 'er-panoplie'
+    bloc.innerHTML = `<span>Équipement de départ</span><div>${classe.objets.map(o =>
+      `<a href="#guides/elden-ring/objets/${o.s}" title="${echapper(o.n)}"><img src="${IMAGES}objets/min/${o.i}.webp" alt="${echapper(o.n)}" width="42" height="42" loading="lazy"></a>`).join('')}</div>`
+    carte.appendChild(bloc)
   }
   for (const el of tous('[style*="mm"]')) {
     el.setAttribute('style', el.getAttribute('style')!.replace(/(\d*\.?\d+)mm/g, (_, n) => `${Math.round(parseFloat(n) * PX_PAR_MM)}px`))
