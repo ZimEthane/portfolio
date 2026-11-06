@@ -6,6 +6,7 @@ import type { Livre } from '../livre'
 import Fiche from '../Fiche'
 import { ecrireCoches, ecrireTrouves, lireCoches, lireTrouves } from '../coches'
 import { CATEGORIES, PAR_ID } from './categories'
+import { redessinerPendantZoom, zoomFluide } from './zoomFluide'
 import './carte.css'
 
 // Un repère de la carte (voir scripts/carte-elden-ring : extrait des fichiers du jeu).
@@ -36,7 +37,7 @@ const COUCHES = [
 const CLE_FILTRES = 'guides:elden-ring:carte-filtres'
 
 const norme = (t: string) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
-const tailleZoom = (z: number) => Math.round(Math.min(30, Math.max(15, 15 + (z - 2) * 3.4)))
+const tailleZoom = (z: number) => Math.min(30, Math.max(15, 15 + (z - 2) * 3.4)) // continu : les repères grossissent en douceur
 
 // Pictogrammes des catégories, dessinés une fois dans des canevas (voir Sprites).
 const SPRITES: Record<string, HTMLCanvasElement> = {}
@@ -189,15 +190,20 @@ export default function Carte({ livre: l, chemin }: { livre: Livre; chemin: stri
   // ----- Carte Leaflet (une seule fois) -----
   useEffect(() => {
     if (!boite.current) return
+    const rendu = L.canvas({ padding: 0.3, tolerance: 4 })
+    const renduHalo = L.svg()
     const map = L.map(boite.current, {
-      crs: L.CRS.Simple, minZoom: 1, maxZoom: 8, zoomSnap: 0.25, zoomDelta: 0.5, wheelPxPerZoomLevel: 90,
-      attributionControl: false, zoomControl: false, preferCanvas: true, renderer: L.canvas({ padding: 0.4, tolerance: 4 }),
+      crs: L.CRS.Simple, minZoom: 1, maxZoom: 8, zoomSnap: 0.25, zoomDelta: 0.5, scrollWheelZoom: false,
+      attributionControl: false, zoomControl: false, preferCanvas: true, renderer: rendu,
     })
     L.control.zoom({ position: 'topright', zoomInTitle: 'Zoomer', zoomOutTitle: 'Dézoomer' }).addTo(map)
-    halo.current = L.circleMarker([0, 0], { renderer: L.svg(), radius: 19, className: 'erc-halo', interactive: false })
+    halo.current = L.circleMarker([0, 0], { renderer: renduHalo, radius: 19, className: 'erc-halo', interactive: false })
+    const molette = zoomFluide(map)
+    molette.activer()
+    const finRendu = redessinerPendantZoom(map, [rendu, renduHalo])
     map.on('click', () => setPanneau(false))
     carte.current = map
-    return () => { map.remove(); carte.current = null }
+    return () => { finRendu(); molette.detruire(); map.remove(); carte.current = null }
   }, [])
 
   // Fond de carte de la couche choisie.
