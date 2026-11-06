@@ -335,3 +335,11 @@ html:has(.er-fiche[open]) { overflow: hidden; }
 .er-livre a.er-objet { color: inherit; text-decoration: underline dotted; text-underline-offset: 3px; text-decoration-color: var(--or); }
 .er-livre a.er-objet:hover { text-decoration-style: solid; }
 
+
+/* Classes : équipement de départ (illustrations du jeu) */
+.er-livre .er-panoplie { margin-top: 8px; padding-top: 7px; border-top: 1px solid #c9ad7366; }
+.er-livre .er-panoplie > span { display: block; margin-bottom: 5px; font: 600 9.5px 'Cinzel Variable', Cinzel, serif; letter-spacing: .14em; text-transform: uppercase; color: #8a8073; }
+.er-livre .er-panoplie > div { display: flex; flex-wrap: wrap; gap: 4px; }
+.er-livre .er-panoplie a { display: block; border-radius: 6px; background: radial-gradient(circle at 50% 45%, #3d2f1e, #14110d 75%); border: 1px solid #c9ad7380; transition: transform .15s, border-color .15s; }
+.er-livre .er-panoplie a:hover { transform: translateY(-2px) scale(1.06); border-color: #96712a; }
+.er-livre .er-panoplie img { display: block; width: 42px; height: 42px; }

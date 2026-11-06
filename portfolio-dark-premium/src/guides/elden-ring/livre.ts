@@ -4,6 +4,7 @@
 import brut from './guide.html?raw'
 import cartesChapitres from './carte/cartes-chapitres.json'
 import indexObjets from './objets/index.json'
+import classesDepart from './objets/classes.json'
 
 export interface Titre { id: string; titre: string }
 
@@ -243,6 +244,18 @@ function lire(): Livre {
     lien.setAttribute('href', `#guides/elden-ring/objets/${cible}`)
     fort.replaceWith(lien)
     lien.appendChild(fort)
+  }
+  // Classes : leur équipement de départ, avec les illustrations du jeu (reconnues à leurs statistiques).
+  const echapper = (t: string) => t.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')
+  for (const carte of tous('.ccard')) {
+    const stats = Array.from(carte.querySelectorAll('.srow .sv'), e => Number(e.textContent)).join()
+    const classe = (classesDepart as { stats: number[]; objets: { s: string; i?: number; n: string }[] }[]).find(c => c.stats.join() === stats)
+    if (!classe?.objets.length || carte.querySelector('.er-panoplie')) continue
+    const bloc = doc.createElement('div')
+    bloc.className = 'er-panoplie'
+    bloc.innerHTML = `<span>Équipement de départ</span><div>${classe.objets.map(o =>
+      `<a href="#guides/elden-ring/objets/${o.s}" title="${echapper(o.n)}"><img src="${IMAGES}objets/min/${o.i}.webp" alt="${echapper(o.n)}" width="42" height="42" loading="lazy"></a>`).join('')}</div>`
+    carte.appendChild(bloc)
   }
   for (const el of tous('[style*="mm"]')) {
     el.setAttribute('style', el.getAttribute('style')!.replace(/(\d*\.?\d+)mm/g, (_, n) => `${Math.round(parseFloat(n) * PX_PAR_MM)}px`))

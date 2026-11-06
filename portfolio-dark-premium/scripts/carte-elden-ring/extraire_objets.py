@@ -330,3 +330,29 @@ json.dump(donnees, open(chemin_carte, "w"), ensure_ascii=False, separators=(",",
 stats = collections.Counter(f["t"] for f in fiches)
 print(len(fiches), "fiches", dict(stats), file=sys.stderr)
 print("avec emplacement :", sum(1 for f in fiches if f.get("ou")), "| illustrations manquantes :", manque_illus, "| repères liés :", lies, file=sys.stderr)
+
+# ---------- Équipement de départ des classes (CharaInitParam 3000 à 3011) ----------
+CLASSES = lire("CharaInitParam.param", "CharaInitParam")
+fiche_par_s = {f["s"]: f for f in fiches}
+classes = []
+for rid in range(3000, 3012):
+    r = CLASSES.get(rid)
+    if not r:
+        continue
+    objets = []
+    champs = [("equip_Wep_Right", 2), ("equip_Subwep_Right", 2), ("equip_Wep_Left", 2), ("equip_Subwep_Left", 2),
+              ("equip_Helm", 3), ("equip_Armer", 3), ("equip_Gaunt", 3), ("equip_Leg", 3), ("equip_Arrow", 2), ("equip_Bolt", 2),
+              ("equip_Accessory01", 4), ("equip_Accessory02", 4)] + [(f"equip_Spell_0{k}", 1) for k in range(1, 8)]
+    for champ, cat in champs:
+        iid = r.get(champ, -1)
+        if iid is None or iid <= 0:
+            continue
+        cle = f"{cat}:{iid - iid % 100 if cat == 2 and iid < 50000000 else iid}"
+        s = fiche_par_cle.get(cle)
+        if s and s not in [o["s"] for o in objets]:
+            f = fiche_par_s[s]
+            objets.append({"s": s, "i": f.get("i"), "n": f["n"]})
+    stats = [r[k] for k in ("baseVit", "baseWil", "baseEnd", "baseStr", "baseDex", "baseMag", "baseFai", "baseLuc")]
+    classes.append({"stats": stats, "objets": objets})
+json.dump(classes, open(os.path.join(os.path.dirname(INDEX), "classes.json"), "w"), ensure_ascii=False, separators=(",", ":"))
+print("classes :", [len(c["objets"]) for c in classes], file=sys.stderr)
