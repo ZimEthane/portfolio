@@ -232,6 +232,24 @@ function lire(): Livre {
     const calage = CHAPITRES[lien.match(/carte-\d+/)?.[0] ?? '']
     if (calage) enrichirCarte(doc, image, calage)
   }
+  // Tableaux de la section Quêtes : le nom du PNJ mène à son guide pas à pas.
+  const PAS_A_PAS: [RegExp, string][] = [
+    [/Renna|Ranni/, 'ranni'], [/Blaidd/, 'blaidd'], [/Seluvis|Pidia/, 'seluvis'], [/Rogier/, 'rogier'], [/^Fia/, 'fia'], [/^D\b|Frère de D/, 'd'],
+    [/Gurranq/, 'd'], [/Sellen|Jerren/, 'sellen'], [/Nepheli|Gostoc/, 'nepheli'], [/Kenneth/, 'kenneth'], [/Irina|Edgar/, 'irina'],
+    [/Hyetta/, 'hyetta'], [/Roderika/, 'roderika'], [/^Boc/, 'boc'], [/Yura/, 'yura'], [/Patches/, 'patches'], [/Alexander/, 'alexander'],
+    [/Jar-Bairn|Diallos/, 'jarbairn'], [/Varré/, 'varre'], [/Thops/, 'thops'], [/Latenna|Albus/, 'latenna'], [/Rya|Tanith|Bernahl/, 'volcan'],
+    [/Boggart|Dung Eater/, 'dung-eater'], [/Corhyn|Goldmask/, 'goldmask'], [/Millicent|Gowry/, 'millicent'],
+  ]
+  for (const td of tous('.sec.s4 table tr > td:first-child')) {
+    const nom = (td.textContent ?? '').trim()
+    const id = PAS_A_PAS.find(([r]) => r.test(nom))?.[1]
+    if (!id || td.querySelector('.er-pas-a-pas')) continue
+    const a = doc.createElement('a')
+    a.className = 'er-pas-a-pas'
+    a.href = `#guides/elden-ring/quetes-pas-a-pas/${id}`
+    a.textContent = 'Pas à pas ›'
+    td.append(' ', a)
+  }
   // Noms d'objets en gras : ils mènent à leur fiche dans l'encyclopédie des objets.
   const objets = indexObjets as Record<string, string>
   for (const fort of tous('strong, b')) {

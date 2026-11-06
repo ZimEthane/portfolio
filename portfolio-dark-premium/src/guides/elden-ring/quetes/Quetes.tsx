@@ -15,7 +15,7 @@ interface Etape {
 interface Quete { id: string; nom: string; en?: string; region?: string; fond?: string; detaille?: boolean; resume?: string; recompenses?: (string | null)[]; alertes?: string[]; etapes: Etape[] }
 
 const RACINE = `${import.meta.env.BASE_URL}guides/elden-ring/`
-const LIEN = '#guides/elden-ring/quetes'
+const LIEN = '#guides/elden-ring/quetes-pas-a-pas'
 const COUCHES = [{ id: 'surface', w: 9728, h: 9216 }, { id: 'souterrain', w: 6400, h: 6912 }]
 const FLAMME = 'M0,-4.6 C2.2,-2.4 3.2,-0.6 3.2,1.2 C3.2,3.2 1.7,4.6 0,4.6 C-1.7,4.6 -3.2,3.2 -3.2,1.2 C-3.2,-0.4 -2.2,-1.6 -1.2,-2.6 C-1,-1.2 -0.4,-0.4 0.4,-0.2 C0.6,-1.8 0.2,-3.2 0,-4.6Z'
 

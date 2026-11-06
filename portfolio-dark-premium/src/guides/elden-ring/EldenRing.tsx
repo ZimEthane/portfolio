@@ -341,7 +341,7 @@ function VueSection({ livre: l, section, pages, page }: { livre: Livre; section:
         </details>
         {!page && <Intercalaire section={section} />}
         {section.slug === 'quetes' && (
-          <a className="er-pdf er-vers-quetes" href="#guides/elden-ring/quetes">
+          <a className="er-pdf er-vers-quetes" href="#guides/elden-ring/quetes-pas-a-pas">
             <ScrollText size={18} />
             <span><strong>Guides de quêtes pas à pas</strong><small>Chaque quête étape par étape, avec une carte annotée à chaque étape</small></span>
           </a>
@@ -361,7 +361,7 @@ export default function EldenRing({ chemin }: { chemin: string }) {
   const l = useMemo(livre, [])
   const surCarte = chemin === 'carte' || chemin.startsWith('carte/')
   const surObjets = /^objets(\/|\?|$)/.test(chemin)
-  const surQuetes = /^quetes(\/|$)/.test(chemin)
+  const surQuetes = /^quetes-pas-a-pas(\/|$)/.test(chemin)
   const vue = surCarte || surObjets || surQuetes ? null : lireChemin(l, chemin)
   const cle = surCarte ? 'carte' : surObjets || surQuetes ? chemin : vue ? `${vue.section.slug}/${vue.page?.slug ?? ''}` : ''
   const ancre = vue?.ancre ?? ''
@@ -385,7 +385,7 @@ export default function EldenRing({ chemin }: { chemin: string }) {
       <main className="er er-sur-quetes">
         <div className="er-barre">
           <a className="er-retour" href="#guides/elden-ring"><ArrowLeft size={15} /> Sommaire du guide</a>
-          <span className="er-fil">Elden Ring <i>/</i> <a href="#guides/elden-ring/quetes">Guides de quêtes</a></span>
+          <span className="er-fil">Elden Ring <i>/</i> <a href="#guides/elden-ring/quetes-pas-a-pas">Guides de quêtes</a></span>
         </div>
         <Suspense fallback={<div className="erc-attente">Chargement des quêtes…</div>}>
           <Quetes chemin={chemin} />
@@ -459,7 +459,7 @@ export default function EldenRing({ chemin }: { chemin: string }) {
                 <Gem size={18} />
                 <span><strong>Encyclopédie des objets</strong><small>2 101 objets · statistiques, où les trouver</small></span>
               </a>
-              <a className="er-pdf" href="#guides/elden-ring/quetes">
+              <a className="er-pdf" href="#guides/elden-ring/quetes-pas-a-pas">
                 <ScrollText size={18} />
                 <span><strong>Guides de quêtes</strong><small>Pas à pas, avec une carte à chaque étape</small></span>
               </a>
