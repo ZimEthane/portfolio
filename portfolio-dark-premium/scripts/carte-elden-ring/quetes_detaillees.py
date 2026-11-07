@@ -8,7 +8,7 @@ Les positions viennent des données du jeu : N() personnage, Li() lieu, G() site
 
 
 def quetes(a):
-    N, Li, G, OM, carte, o, E = a.N, a.Li, a.G, a.OM, a.carte, a.o, a.E
+    N, Li, G, OM, carte, o, E, M = a.N, a.Li, a.G, a.OM, a.carte, a.o, a.E, a.M
     Q = []
 
     # ------------------------------------------------------------------ Blaidd
@@ -576,6 +576,179 @@ def quetes(a):
             E("Fidèle à Nepheli", "Château de Voilorage", "fin",
               "Plus tard, il te demande de trouver un souverain digne : c'est Nepheli. Il finit dans la salle du trône de Voilorage.",
               carte(N("Kenneth", "Godrick"), G("Godrick the Grafted"))),
+        ]})
+
+    # ------------------------------------------------------------------ Gurranq
+    Q.append({
+        "id": "gurranq", "nom": "Gurranq, le Clerc bestial", "en": "Gurranq, Beast Clergyman", "region": "Caelid (Tertre draconique), partout pour les Mortefleurs",
+        "resume": "Un prêtre-bête affamé de Mortefleurs (Deathroot). Chaque Mortefleur que tu lui apportes rapporte une récompense : sceau, incantations bestiales, cendre de guerre, grand marteau et, à la neuvième, une pierre de forge des dragons anciens.",
+        "recompenses": ["Clawmark Seal", "Beast Eye", "Bestial Sling", "Bestial Vitality", "Ash of War: Beast's Roar", "Beast Claw",
+                        "Stone of Gurranq", "Beastclaw Greathammer", "Gurranq's Beast Claw", "Ancient Dragon Smithing Stone"],
+        "alertes": ["Après la 4e Mortefleur, Gurranq t'attaque à ta visite suivante : frappe-le jusqu'à ce qu'il se calme (inutile de le tuer), puis recharge la zone et parle-lui. Si tu le tues, la quête s'arrête là."],
+        "etapes": [
+            E("Rejoindre le Sanctuaire bestial", "Nécrolimbe → Tertre draconique", "dès le début",
+              "Au nord-est de la <strong>Troisième église de Marika</strong> (Nécrolimbe est), un portail de téléportation mène directement au <strong>Sanctuaire bestial</strong>, tout au nord du Tertre draconique. Entre dans le bâtiment : <strong>Gurranq</strong> est accroupi au fond, dans le noir. D (Table ronde) t'en parle aussi si tu lui montres une Mortefleur.",
+              carte(N("Gurranq"), G("Bestial Sanctum"), [Li("Bestial Sanctum")]), repere="Une silhouette énorme et voûtée, enveloppée de bandages, qui te demande à manger d'une voix rauque."),
+            E("1re Mortefleur : Nocher diaphane du village des Eaux nécromantes", "Nécrolimbe (est)", "niv. 20+",
+              f"Le <strong>Nocher diaphane</strong> (Tibia Mariner, sur sa barque fantôme) du village des Eaux nécromantes lâche une {o('Deathroot')}. Il disparaît sous terre : frappe-le quand il réapparaît et tue les squelettes qu'il invoque. Donne la Mortefleur à Gurranq : {o('Clawmark Seal')} et {o('Beast Eye')}. L'Œil de bête tremble quand une Mortefleur est proche.",
+              carte(N("Nocher diaphane", "Eaux nécromantes"), G("Summonwater Village Outskirts"))),
+            E("2e : Catacombes des Couteaux noirs", "Liurnia (ouest)", "niv. 40+",
+              f"Au fond des <strong>Catacombes des Couteaux noirs</strong>, après le boss, un coffre contient une Mortefleur. Récompense : {o('Bestial Sling')}.",
+              carte(OM("Deathroot", G("Black Knife Catacombs")))),
+            E("3e : Nocher diaphane de Liurnia", "Liurnia (est)", "niv. 40+",
+              f"Un autre <strong>Nocher diaphane</strong> erre près de <strong>Jarrebourg</strong>. Récompense : {o('Bestial Vitality')}.",
+              carte(N("Nocher diaphane", "Jarrebourg"), G("Jarburg"))),
+            E("4e : Catacombes funestes", "Stormhill (Nécrolimbe)", "niv. 30+",
+              f"Dans les <strong>Catacombes funestes</strong> (Deathtouched Catacombs), au nord de Stormhill, un coffre derrière le boss. Récompense : {o('Ash of War: Beast\'s Roar')}.",
+              carte(OM("Deathroot", G("Deathtouched Catacombs"))), alerte="C'est après cette 4e Mortefleur que Gurranq t'attaque à ta visite suivante : calme-le en le frappant, ne le tue pas."),
+            E("5e : Nocher diaphane du Plateau Altus", "Plateau Altus (ouest)", "niv. 60+",
+              f"Le <strong>Nocher diaphane</strong> des ruines de Wyndham, sur le Plateau Altus. Récompense : {o('Beast Claw')}.",
+              carte(N("Nocher diaphane", "Cavernes du sage"), G("Sage's Cave"))),
+            E("6e : Tombe des héros de Gelmir", "Mont Gelmir", "niv. 70+",
+              f"Un coffre au fond de la <strong>Tombe des héros de Gelmir</strong>. Récompense : {o('Stone of Gurranq')}.",
+              carte(OM("Deathroot", G("Gelmir Hero's Grave")))),
+            E("7e : Nocher diaphane près de Solcastel", "Cimes des Géants", "niv. 100+",
+              f"Le dernier <strong>Nocher diaphane</strong> rôde devant la <strong>Grande porte de Solcastel</strong>. Récompense : {o('Beastclaw Greathammer')}.",
+              carte(G("Castle Sol Main Gate"), G("Castle Sol Main Gate"))),
+            E("8e : Catacombes des Cimes des Géants", "Cimes des Géants", "niv. 100+",
+              f"Un coffre derrière le boss (Esprit d'arbre ulcéreux) des <strong>Catacombes des Cimes des Géants</strong>. Récompense : {o('Gurranq\'s Beast Claw')}.",
+              carte(OM("Deathroot", G("Giants' Mountaintop Catacombs")))),
+            E("9e : Chemin secret vers l'Arbre-Sacré", "Champs enneigés consacrés", "niv. 110+",
+              f"Un coffre dans le <strong>Chemin secret vers l'Arbre-Sacré</strong> (catacombes des Champs enneigés consacrés). Dernière récompense : une {o('Ancient Dragon Smithing Stone')}.",
+              carte(OM("Deathroot", G("Hidden Path to the Haligtree")))),
+            E("Gurranq redevient Maliketh", "Farum Azula", "fin du jeu",
+              "Gurranq n'est autre que <strong>Maliketh, la Lame d'ébène</strong>, que tu affrontes à Farum Azula. Le combat a lieu quoi que tu aies fait avec les Mortefleurs.",
+              carte(N("Maliketh"))),
+        ]})
+
+    # ------------------------------------------------------------------ Envahisseurs de la Table ronde
+    Q.append({
+        "id": "ensha", "nom": "Ensha, porteur de la dépouille royale", "en": "Ensha of the Royal Remains", "region": "Table ronde",
+        "resume": "Le garde silencieux de Gideon, appuyé contre le mur devant sa chambre. Il t'envahit à la Table ronde dès que tu ramasses une moitié du Médaillon secret de l'Arbre-Sacré ; bats-le pour avoir sa Main agrippée et tout le set de la Dépouille royale.",
+        "recompenses": ["Clinging Bone", "Royal Remains Helm", "Royal Remains Armor", "Royal Remains Gauntlets", "Royal Remains Greaves"],
+        "etapes": [
+            E("Le repérer devant la chambre de Gideon", "Table ronde", "dès le début",
+              "À la <strong>Table ronde</strong>, Ensha se tient contre le mur, juste à droite de la porte de la chambre de <strong>Gideon Ofnir</strong>. Il ne parle pas : il te fait seulement un geste.",
+              carte(N("Ensha"), G("Table of Lost Grace"))),
+            E("Ramasser une moitié du Médaillon secret", "Liurnia ou Cimes des Géants", "niv. 50+",
+              f"Récupère l'une des deux moitiés : la {o('Haligtree Secret Medallion (Right)')} auprès du vieil <strong>Albus</strong> (Village des Albinauriques, Liurnia), ou la {o('Haligtree Secret Medallion (Left)')} sur le toit de <strong>Solcastel</strong>. Voir la quête « Le Médaillon secret de l'Arbre-Sacré ».",
+              carte(N("Le vieil Albus"), G("Village of the Albinaurics"))),
+            E("L'invasion à la Table ronde", "Table ronde", "niv. 50+",
+              f"Voyage jusqu'à la Table ronde : Ensha t'envahit aussitôt (la salle est plongée dans l'ombre). Il revient à chaque visite tant qu'il n'est pas vaincu. Il lâche la {o('Clinging Bone')}.",
+              carte(N("Ensha"), G("Table of Lost Grace")), astuce="Il combine des attaques rapides à la Main agrippée et des sorts de gravité : reste à distance moyenne et punis après ses enchaînements."),
+            E("Le set à son ancienne place", "Table ronde", "après l'invasion",
+              f"Retourne devant la chambre de Gideon, là où Ensha se tenait : tout le set de la Dépouille royale t'attend au sol ({o('Royal Remains Helm')}, armure, gantelets, jambières). Gideon s'excuse ensuite pour son serviteur.",
+              carte(N("Ensha"), G("Table of Lost Grace"))),
+        ]})
+
+    Q.append({
+        "id": "alberich", "nom": "Alberich le Railleur", "en": "Mad Tongue Alberich", "region": "Table ronde, Leyndell",
+        "resume": "Un sorcier rendu fou, qui t'envahit dans la grande salle basse de la Table ronde. Il lâche la Langue de raillerie ; son set se trouve bien plus tard à Leyndell.",
+        "recompenses": ["Taunter's Tongue", "Alberich's Pointed Hat", "Alberich's Robe", "Alberich's Bracers", "Alberich's Trousers"],
+        "etapes": [
+            E("Sauter du balcon", "Table ronde", "niv. 40+",
+              f"À la Table ronde, prends le couloir qui mène au grand balcon et saute dans la salle en contrebas : <strong>Alberich</strong> t'envahit. Bats-le pour la {o('Taunter\'s Tongue')} et un Remède des Doigts crochus.",
+              carte(M("Mad Tongue Alberich"), G("Table of Lost Grace")), astuce="Ses sorts infligent du gel : attaque-le de près pendant qu'il incante."),
+            E("Son set, à Leyndell", "Leyndell, capitale royale", "niv. 80+",
+              f"Le set d'Alberich ({o('Alberich\'s Pointed Hat')}, robe, brassards, pantalon) est posé dans Leyndell, près du site de grâce <strong>Manoir fortifié, rez-de-chaussée</strong>.",
+              carte(OM("Alberich's Pointed Hat"), G("Fortified Manor, First Floor"))),
+        ]})
+
+    # ------------------------------------------------------------------ Médaillon secret
+    Q.append({
+        "id": "albus", "nom": "Le Médaillon secret de l'Arbre-Sacré (Albus)", "en": "Old Albus & the Haligtree Secret Medallion", "region": "Liurnia, Cimes des Géants",
+        "resume": "Les deux moitiés du médaillon qui ouvrent le chemin caché des Champs enneigés consacrés, puis de l'Arbre-Sacré de Miquella. La moitié droite vient du vieil Albus, la gauche de Solcastel.",
+        "recompenses": ["Haligtree Secret Medallion (Right)", "Haligtree Secret Medallion (Left)", "Black Flame's Protection"],
+        "etapes": [
+            E("Le pot qui parle", "Liurnia (sud-ouest)", "niv. 40+",
+              f"Au <strong>Village des Albinauriques</strong> (falaises au sud-ouest de Liurnia), monte la pente depuis le site de grâce jusqu'au gros pot isolé, en haut. Fais une roulade dedans ou frappe-le : c'est le vieil <strong>Albus</strong>. Épuise son dialogue : il te confie la {o('Haligtree Secret Medallion (Right)')} pour <strong>Latenna</strong>. (S'il meurt, la moitié tombe à sa place.)",
+              carte(N("Le vieil Albus"), G("Village of the Albinaurics"), [Li("Village of the Albinaurics")]), repere="Un pot plus gros que les autres, seul au sommet du village, à côté d'un Parfumeur dépravé.",
+              alerte="Ramasser une moitié du médaillon déclenche l'invasion d'Ensha à ta prochaine visite à la Table ronde."),
+            E("La moitié gauche, sur le toit de Solcastel", "Cimes des Géants", "niv. 100+",
+              f"Traverse <strong>Solcastel</strong> jusqu'au toit et bats le <strong>Commandant Niall</strong>. La {o('Haligtree Secret Medallion (Left)')} est sur le cadavre juste derrière son arène.",
+              carte(OM("Haligtree Secret Medallion (Left)"), G("Castle Sol Rooftop"), [N("Commandant Niall")])),
+            E("Le dire à Gideon", "Table ronde", "après une moitié",
+              f"Parle du médaillon à <strong>Gideon Ofnir</strong> : il te donne {o('Black Flame\'s Protection')}. (Voir aussi la quête de Gideon pour ses autres récompenses.)",
+              carte(N("Sire Gideon"), G("Table of Lost Grace"))),
+            E("Le Grand Ascenseur de Rold", "Abords de la capitale", "niv. 110+",
+              "Avec les deux moitiés, lève le médaillon au <strong>Grand Ascenseur de Rold</strong> : l'ascenseur te propose les <strong>Champs enneigés consacrés</strong>. Le chemin caché mène ensuite à l'Arbre-Sacré.",
+              carte(G("Grand Lift of Rold"), G("Grand Lift of Rold"))),
+        ]})
+
+    # ------------------------------------------------------------------ Gideon
+    Q.append({
+        "id": "gideon", "nom": "Sire Gideon Ofnir l'Omniscient", "en": "Sir Gideon Ofnir, the All-Knowing", "region": "Table ronde, Leyndell (cendres)",
+        "resume": "Le maître de la Table ronde collectionne les secrets. Chaque information que tu lui rapportes peut valoir une récompense, jusqu'au duel final à Leyndell, capitale des cendres.",
+        "recompenses": ["Black Flame's Protection", "Lord's Divine Fortification", "Fevor's Cookbook [3]", "Law of Causality",
+                        "Scepter of the All-Knowing", "All-Knowing Helm", "All-Knowing Armor", "All-Knowing Gauntlets", "All-Knowing Greaves"],
+        "etapes": [
+            E("Le maître de la Table ronde", "Table ronde", "dès la Table ronde",
+              "Gideon t'attend dans sa chambre, au fond de la Table ronde. Reviens lui parler régulièrement : quand tu sais quelque chose de nouveau, une option de dialogue apparaît.",
+              carte(N("Sire Gideon"), G("Table of Lost Grace"))),
+            E("Le Médaillon secret", "Table ronde", "après une moitié du médaillon",
+              f"Parle-lui du Médaillon secret de l'Arbre-Sacré : {o('Black Flame\'s Protection')}.",
+              carte(N("Sire Gideon"), G("Table of Lost Grace"))),
+            E("L'Arbre-Sacré", "Table ronde", "après l'Arbre-Sacré",
+              f"Une fois l'Arbre-Sacré de Miquella atteint, raconte-le-lui : {o('Lord\'s Divine Fortification')}.",
+              carte(Li("Miquella's Haligtree"))),
+            E("Le Mausolée de la dynastie Mohgwyn", "Table ronde", "après Mohgwyn",
+              f"Quand tu as atteint le palais Mohgwyn, dis-lui où se trouve le mausolée de la dynastie : {o('Fevor\'s Cookbook [3]')}.",
+              carte(Li("Mohgwyn Dynasty Mausoleum"))),
+            E("La mort de Mohg", "Table ronde", "après Mohg",
+              f"Après avoir vaincu <strong>Mohg, seigneur du sang</strong>, parle-lui encore : {o('Law of Causality')}.",
+              carte(N("Mohg"))),
+            E("Le duel à Leyndell, capitale des cendres", "Leyndell (cendres)", "fin du jeu",
+              f"Après la Forge des Géants, Gideon t'attend dans le Sanctuaire de l'Arbre-Monde de la capitale en cendres. Bats-le pour le {o('Scepter of the All-Knowing')} et le set de l'Omniscient ({o('All-Knowing Helm')}…).",
+              carte(N("Sire Gideon", "Arbre-Monde"), G("Erdtree Sanctuary"))),
+        ]})
+
+    # ------------------------------------------------------------------ Grande jarre
+    Q.append({
+        "id": "grande-jarre", "nom": "Le défi de la Grande jarre", "en": "The Great-Jar", "region": "Caelid (Tertre draconique)",
+        "resume": "Une jarre géante et muette garde un petit colisée au nord de Caelid. Bats ses trois chevaliers à la suite, sans mourir, et elle te donne le meilleur talisman de charge du jeu.",
+        "recompenses": ["Great-Jar's Arsenal"],
+        "etapes": [
+            E("Atteindre la Grande jarre (par la Siofra)", "Caelid (nord)", "niv. 60+",
+              "On la voit du haut des falaises près de la Cabane du marchand ascétique, mais on n'y descend que par le bas : passe par la rivière <strong>Siofra</strong> et remonte par le puits jusqu'au site de grâce <strong>Puits profond de la rivière Siofra</strong>, puis suis le chemin vers le nord jusqu'au colisée gardé par deux golems archers.",
+              carte(M("Knight of the Great Jar"), G("Deep Siofra Well"))),
+            E("Trois duels de suite", "Caelid (nord)", "niv. 60+",
+              f"Parle à la Grande jarre : trois signes rouges apparaissent devant elle. Invoque et bats les trois <strong>Chevaliers de la Grande jarre</strong> l'un après l'autre, sans mourir (hors ligne, leurs équipements sont fixes ; en ligne, ce sont des builds de vrais joueurs). Reparle à la jarre : {o('Great-Jar\'s Arsenal')}.",
+              carte(M("Knight of the Great Jar"), G("Deep Siofra Well")), astuce="Garde des fioles pour le troisième duel : ta vie n'est pas rendue entre les combats."),
+        ]})
+
+    # ------------------------------------------------------------------ Melina
+    Q.append({
+        "id": "melina", "nom": "Melina", "en": "Melina", "region": "Nécrolimbe, Table ronde, Leyndell, Cimes des Géants",
+        "resume": "La jeune femme sans doigts qui t'accompagne tout le jeu : elle te confie Torrent, permet de monter de niveau, t'emmène à la Table ronde et t'ouvre la route des Cimes après Morgott.",
+        "recompenses": ["Spectral Steed Whistle", "Rold Medallion"],
+        "alertes": ["Accepter la Flamme de la frénésie (quête de Hyetta) fait partir Melina : elle ne t'accompagne plus jusqu'à la Forge des Géants."],
+        "etapes": [
+            E("La rencontre et Torrent", "Nécrolimbe", "dès le début",
+              f"Après avoir activé trois sites de grâce, repose-toi à l'un d'eux (souvent les <strong>Portes</strong>, Gatefront) : Melina apparaît. Accepte son marché : tu reçois le {o('Spectral Steed Whistle')} (Torrent) et tu peux désormais monter de niveau aux sites de grâce.",
+              carte(G("Gatefront"), G("Gatefront"))),
+            E("La Table ronde", "Nécrolimbe / Stormhill", "vers Voilorage",
+              "Plus tard, en te reposant à un site de grâce près du Château de Voilorage (Stormhill) ou en arrivant à Liurnia, Melina te propose de t'emmener à la <strong>Table ronde</strong>. Accepte : le lieu devient accessible par voyage rapide.",
+              carte(G("Table of Lost Grace"), G("Table of Lost Grace"))),
+            E("Le Médaillon de Rold", "Leyndell, capitale royale", "après Morgott",
+              f"Après la victoire contre <strong>Morgott, roi Réprouvé</strong>, repose-toi au site de grâce de la salle du trône : Melina te donne le {o('Rold Medallion')}, qui fait fonctionner le Grand Ascenseur de Rold vers les Cimes des Géants.",
+              carte(N("Morgott"), G("Elden Throne"))),
+            E("La Forge des Géants", "Cimes des Géants", "fin du jeu",
+              "Au sommet des Cimes, une fois le Géant de feu vaincu, repose-toi au site de grâce de la <strong>Forge des Géants</strong> : Melina s'offre pour embraser l'Arbre-Monde. Le choix est définitif : il marque la fin des quêtes qui doivent se finir avant (Fia, Nepheli, Goldmask…).",
+              carte(G("Forge of the Giants"), G("Forge of the Giants")), alerte="Termine avant les quêtes qui se ferment quand l'Arbre-Monde brûle."),
+        ]})
+
+    # ------------------------------------------------------------------ Enia
+    Q.append({
+        "id": "enia", "nom": "Enia l'Augure des Doigts", "en": "Finger Reader Enia", "region": "Table ronde",
+        "resume": "La lectrice des Deux Doigts, à la Table ronde. Elle échange chaque Souvenir de demi-dieu contre une arme, un sort ou une cendre, et offre une Sacoche à talisman quand tu as deux Runes majeures.",
+        "recompenses": ["Talisman Pouch"],
+        "etapes": [
+            E("Échanger les Souvenirs", "Table ronde", "après le 1er Souvenir",
+              "Enia se tient près des Deux Doigts, au fond de la Table ronde. Elle échange chaque <strong>Souvenir</strong> (lâché par les grands boss) contre l'un des deux objets proposés. Un Souvenir ne s'échange qu'une fois : pour avoir les deux objets, duplique-le d'abord dans un <strong>Mausolée errant</strong> (un Souvenir par mausolée).",
+              carte(N("Enia"), G("Table of Lost Grace"))),
+            E("Deux Runes majeures", "Table ronde", "après 2 Runes majeures",
+              f"Avec deux Runes majeures (par ex. Godrick et Rennala), parle à Enia : elle te donne une {o('Talisman Pouch')}. Une autre te revient après l'ombre de Godfrey à Leyndell, et Margit en lâche une à Voilorage.",
+              carte(N("Enia"), G("Table of Lost Grace"))),
         ]})
 
     return Q

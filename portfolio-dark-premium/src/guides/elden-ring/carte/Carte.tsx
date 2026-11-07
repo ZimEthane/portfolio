@@ -5,7 +5,7 @@ import { ArrowLeft, BookOpen, Check, Eye, EyeOff, Link2, Map as IconeCarte, Moun
 import type { Livre } from '../livre'
 import Fiche from '../Fiche'
 import { ecrireCoches, ecrireTrouves, lireCoches, lireTrouves } from '../coches'
-import { aDesCibles, BASE_OBJETS, chargerObjets, ciblesDirectes, LIEN_CARTE_OBJET, LIEN_OBJETS, liensSource, texteSource } from '../objets/donnees'
+import { aDesCibles, BASE_OBJETS, chargerObjets, ciblesDirectes, LIEN_CARTE_OBJET, LIEN_OBJETS, lienQuete, liensSource, texteSource } from '../objets/donnees'
 import type { Donnees as DonneesObjets, Objet, Source } from '../objets/donnees'
 import { CATEGORIES, PAR_ID } from './categories'
 import { redessinerPendantZoom, zoomFluide } from './zoomFluide'
@@ -59,7 +59,7 @@ interface Selection {
 
 // Mode « objet suivi » : chaque source de l'objet, avec ses endroits sur la carte.
 interface PointSuivi { s: 0 | 1; x: number; y: number; sec: number; k: number; m?: Marqueur; q?: number; z?: string; pres?: string; nom?: string; img?: number }
-interface Section { ks: number[]; titre: string; detail?: string; via?: { s: string; n: string; pourquoi: string }; img?: number; points: PointSuivi[] }
+interface Section { ks: number[]; titre: string; detail?: string; via?: { s: string; n: string; pourquoi: string }; img?: number; points: PointSuivi[]; lien?: string }
 interface Suivi { objet: Objet; sections: Section[] }
 
 const BASE = `${import.meta.env.BASE_URL}guides/elden-ring/carte/`
@@ -252,6 +252,8 @@ function Chemin({ sel, graces, regions }: { sel: Selection; graces: Marqueur[][]
   const region = regions[g.id]
   const hauteur = sel.h && !sel.z ? `, ${Math.abs(sel.h)} m plus ${sel.h > 0 ? 'haut' : 'bas'}` : ''
   if (sel.m?.c === 'graces') return region ? <p className="erc-ou">Région : <b>{region}</b></p> : null
+  // La Table ronde est hors de la carte : on y va par voyage rapide (site de grâce « Table de la grâce »).
+  if (sel.z === 'Bastion de la Table ronde') return <p className="erc-ou">À la <b>Table ronde</b> : hors de la carte, on y va par voyage rapide (site de grâce « Table de la grâce »).</p>
   return (
     <p className="erc-ou">
       {sel.z && <>À l'intérieur de <b>{sel.z}</b><br />Entrée </>}
@@ -306,7 +308,7 @@ function construireSections(o: Objet, parSlug: Map<string, Objet>, parId: Map<st
     }
     const liens = liensSource(src)
     const direct = uniques(pointsDe(src, secs.length, k, o.i))
-    if (direct.length || !liens.length) secs.push({ ks: [k], titre, detail, points: direct })
+    if (direct.length || !liens.length) secs.push({ ks: [k], titre, detail, points: direct, ...(src.t === 'quete' ? { lien: lienQuete(src) } : {}) })
     for (const l of liens) {
       const lo = parSlug.get(l.s)
       if (!lo) continue
@@ -815,7 +817,10 @@ export default function Carte({ livre: l, chemin }: { livre: Livre; chemin: stri
                       <span className="erc-nb">{sec.points.length}</span>
                     </button>
                   ) : (
-                    <div className="erc-section-texte"><b>{sec.titre}</b>{sec.detail && <small>{sec.detail}</small>}</div>
+                    <div className="erc-section-texte">
+                      <b>{sec.titre}</b>{sec.detail && <small>{sec.detail}</small>}
+                      {sec.lien && <a href={sec.lien}>Voir la quête pas à pas</a>}
+                    </div>
                   )}
                   {section === i && sec.points.length > 1 && sec.points.length <= 40 && (
                     <ol className="erc-endroits">

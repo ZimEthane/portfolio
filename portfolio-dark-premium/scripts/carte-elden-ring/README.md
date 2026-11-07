@@ -49,6 +49,8 @@ Ce que contiennent les donjons fermés (catacombes, grottes, galeries, Cimetièr
    Sorties : `ennemis.json` (où sont posés les ennemis qui lâchent un objet), `ressources.json` (points de cueillette),
    et dans `objets.json` chaque source d'un objet avec ce qu'il faut montrer sur la carte (`#guides/elden-ring/carte/objet/<fiche>`).
    Les noms français des ennemis ordinaires (le jeu n'en affiche pas) sont dans `noms_ennemis.py`.
+   Puis `extraire_quetes.py` : il ajoute la page « Tous les envahisseurs PNJ » et relie chaque objet aux quêtes qui le
+   donnent (étape qui le cite, ou lot du jeu nommé d'après un personnage de la quête : table `QUETE_PNJ`).
 
 Limites actuelles : le jeu de base seulement (les fichiers de l'extension ne sont pas reconnus par UXM), et 6 boss du bestiaire sans repère.
 

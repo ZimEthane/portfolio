@@ -310,7 +310,12 @@ def E(titre, region, niveau, texte, carte=None, repere=None, astuce=None, alerte
         e["objets"] = objets_cites
     return e
 
-api = types.SimpleNamespace(N=N, Li=lambda n: lieu(n), G=G, OM=lambda en, pres=None: repere_objet(obj(en), pres), carte=carte, o=lien_objet, E=E)
+def M(nom_en, i=0):
+    """Repère de n'importe quelle catégorie (envahisseur, lieu…) par son nom anglais."""
+    ms = [m for m in donnees if m.get("en") == nom_en]
+    return ms[i] if len(ms) > i else None
+
+api = types.SimpleNamespace(N=N, M=M, Li=lambda n: lieu(n), G=G, OM=lambda en, pres=None: repere_objet(obj(en), pres), carte=carte, o=lien_objet, E=E)
 DETAILLEES = quetes_detaillees.quetes(api)
 for q in DETAILLEES:
     q["detaille"] = True
@@ -344,6 +349,92 @@ for qid, nom, motif in QUETES:
             etapes.append({"chapitre": chap, "lien": slug_chap, "html": html, "carte": spec})
     if etapes:
         quetes.append({"id": qid, "nom": nom, "etapes": etapes})
+
+# ---------- Envahisseurs : une page faite à partir des données (où ils apparaissent, ce qu'ils laissent) ----------
+objets_liste = json.load(open(os.path.join(SITE, "objets", "objets.json")))
+for f_ in objets_liste["objets"]:
+    f_["ou"] = [x for x in f_.get("ou", []) if x["t"] != "quete"]  # relance : on refait les liens vers les quêtes
+regions_cartes = json.load(open(os.path.join(SITE, "carte", "donnees.json"))).get("regions", {})
+def region_m(m):
+    g = grace_proche(m["s"], m["x"], m["y"])
+    return regions_cartes.get(g["id"], "") if g else ""
+CONDITIONS_ENV = {
+    "Mad Tongue Alberich": "Il t'envahit quand tu sautes du balcon dans la grande salle basse de la Table ronde.",
+    "Ensha of the Royal Remains": "Il t'envahit à la Table ronde dès que tu as ramassé une moitié du Médaillon secret de l'Arbre-Sacré, et revient à chaque visite tant qu'il n'est pas vaincu. Son set t'attend ensuite là où il se tenait.",
+    "Edgar the Revenger": "Pendant la quête d'Irina : après le drame du Château de Vent-Hurlant, repose-toi au site de grâce de la Cabane du vengeur.",
+    "Eleonora, Violet Bloody Finger": "Pendant la quête de Yura.",
+    "Knight of the Great Jar": "Les trois duels du défi de la Grande jarre (signes rouges devant elle).",
+}
+par_marqueur = {}
+for f_ in objets_liste["objets"]:
+    for x in f_.get("ou", []):
+        for i_ in ([x["id"]] if x["t"] == "carte" and x.get("id") else []) + x.get("ids", []):
+            par_marqueur.setdefault(i_, []).append(f_["s"])
+envs = {}
+for m in donnees:
+    # Les envahisseurs, plus les personnages qui envahissent à un moment de leur histoire (Ensha à la Table ronde)
+    if m["c"] == "envahisseurs" or (m["c"] == "pnj" and m.get("en") in CONDITIONS_ENV):
+        envs.setdefault(m.get("en") or m["n"], []).append(m)
+etapes_env = []
+for en_nom, ms in sorted(envs.items(), key=lambda kv: (region_m(kv[1][0]), kv[1][0]["n"])):
+    lache = list(dict.fromkeys(s_ for m in ms for s_ in par_marqueur.get(m["id"], [])))
+    if not lache:
+        continue  # esprits invoqués et figurants : rien à récupérer
+    m0 = ms[0]
+    ou = f"près du site de grâce <strong>{m0.get('pres')}</strong>" if m0.get("pres") else "à l'endroit indiqué sur la carte"
+    texte = f"{CONDITIONS_ENV.get(en_nom, 'Envahisseur PNJ : il apparaît quand tu approches de cet endroit (parfois seulement à une étape précise d’une quête).')} On le trouve {ou}. Il laisse : " + \
+        ", ".join(lien_objet(objets[s_]["en"]) for s_ in lache if s_ in objets) + "."
+    e = E(m0["n"], region_m(m0), "", texte, carte(m0))
+    e["objets"] = lache
+    etapes_env.append(e)
+quetes.append({"id": "envahisseurs", "nom": "Tous les envahisseurs PNJ", "en": "NPC invaders", "detaille": True, "fond": "table-ronde",
+               "resume": "Chaque envahisseur PNJ du jeu de base qui laisse quelque chose : où il apparaît et ce qu'il lâche (armes, armures, talismans…). Les conditions particulières sont précisées ; sinon, il suffit d'approcher.",
+               "region": "Toute la carte", "recompenses": list(dict.fromkeys(s_ for e in etapes_env for s_ in e["objets"])), "etapes": etapes_env})
+
+# ---------- Objets donnés par les personnages de chaque quête (noms de lignes Paramdex), en plus de ceux cités ----------
+QUETE_PNJ = {
+    "ranni": ["Ranni the Witch", "Renna"], "blaidd": ["Blaidd is the Half-Wolf", "Blaidd", "War Counselor Iji", "Iji"],
+    "rogier": ["Sorcerer Rogier"], "fia": ["Fia", "Prince of Death's Throne"], "d": ["D- Hunter of the Dead", "Prince of Death's Throne"],
+    "alexander": ["Iron Fist Alexander"], "millicent": ["Millicent", "Gowry"], "irina": ["Irina", "Edgar"], "hyetta": ["Hyetta", "Shabriri"],
+    "varre": ["White-Faced Varre"], "patches": ["Patches"], "nepheli": ["Nepheli Loux", "Gatekeeper Gostoc", "Kenneth Haight"],
+    "volcan": ["Tanith", "Rya", "Zorayas", "Juno Hoslow", "Rileigh the Idle", "Old Knight Istvan"],
+    "sellen": ["Sorceress Sellen", "Witch-Hunter Jerren", "Master Lusat", "Master Azur"], "goldmask": ["Goldmask", "Brother Corhyn"],
+    "dung-eater": ["Dung Eater", "Big Boggart"], "boc": ["Boc"], "yura": ["Bloody Finger Hunter Yura", "[Bloody Finger Hunter Yura", "Eleonora- Violet Bloody Finger"],
+    "thops": ["Thops"], "latenna": ["Latenna"], "roderika": ["Roderika", "Hewg"], "jarbairn": ["Jar Bairn"],
+    "seluvis": ["Seluvis", "Preceptor Seluvis", "Pidia- Carian Servant"], "kenneth": ["Kenneth Haight"], "bernahl": ["Knight Bernahl"], "miriel": ["Miriel- Pastor of Vows"],
+    "gurranq": ["Gurranq"], "ensha": ["Ensha of the Royal Remains"], "albus": ["Albus"], "gideon": ["Gideon Ofnir"],
+    "grande-jarre": ["The Great-Jar"], "melina": ["Melina"], "enia": ["Enia", "Finger Reader Enia"],
+}
+BRUTES = json.load(open(os.path.join(config.DOSSIER, "sources-brutes.json")))
+def parties_brut(b):
+    t, nom = b.split(":", 1)
+    return t, [norme(x) for x in re.split(r"\s+[-–/]\s+", nom)]
+noms_quete = {qid: {norme(n) for n in ns} for qid, ns in QUETE_PNJ.items()}
+pnj_sans_quete = {}
+for slug_, bruts in BRUTES.items():
+    for b in bruts:
+        t, parts = parties_brut(b)
+        if t == "boutique" and not any("quest" in p for p in parts[1:]):
+            continue  # boutique ordinaire : déjà indiquée comme source, pas une récompense de quête
+        for q in quetes:
+            if noms_quete.get(q["id"], set()) & set(parts) and slug_ in objets:
+                q.setdefault("recompenses", [])
+                if slug_ not in q["recompenses"]:
+                    q["recompenses"].append(slug_)
+# Lien de chaque objet vers les quêtes qui en parlent (étape qui le cite, sinon récompense de la quête)
+par_objet_quete = {}
+for q in quetes:
+    for i, e in enumerate(q["etapes"]):
+        for s_ in e.get("objets", []):
+            par_objet_quete.setdefault(s_, {}).setdefault(q["id"], (i, e.get("titre") or e.get("chapitre") or ""))
+    for s_ in q.get("recompenses", []):
+        par_objet_quete.setdefault(s_, {}).setdefault(q["id"], (None, ""))
+nom_quete = {q["id"]: q["nom"] for q in quetes}
+for f_ in objets_liste["objets"]:
+    for qid, (i, titre) in par_objet_quete.get(f_["s"], {}).items():
+        f_.setdefault("ou", []).append({"t": "quete", "q": qid, "n": nom_quete[qid], **({"i": i, "et": titre} if i is not None else {})})
+json.dump(objets_liste, open(os.path.join(SITE, "objets", "objets.json"), "w"), ensure_ascii=False, separators=(",", ":"))
+print("liens objets → quêtes :", sum(len(v) for v in par_objet_quete.values()), "pour", len(par_objet_quete), "objets", file=sys.stderr)
 
 os.makedirs(os.path.join(SITE, "quetes"), exist_ok=True)
 json.dump({"quetes": quetes}, open(os.path.join(SITE, "quetes", "quetes.json"), "w"), ensure_ascii=False, separators=(",", ":"))
