@@ -36,6 +36,7 @@ export interface Source {
   q?: string // quête (adresse)
   i?: number // quête : n° de l'étape (à partir de 0)
   et?: string // quête : titre de l'étape
+  pack?: string // départ : classe ajoutée par un pack payant
 }
 export interface Objet {
   s: string // adresse
@@ -43,6 +44,7 @@ export interface Objet {
   n: string
   en: string
   c: string // sous-catégorie
+  pack?: string // contenu payant à part (« Tarnished Pack ») : absent du monde sans lui
   i?: number // illustration
   d: string // description
   e?: string // effet
@@ -99,7 +101,7 @@ export function texteSource(s: Source): { titre: string; detail?: string } {
       return { titre: livres.length ? `Fabrication : recette du ${liste(livres)}` : 'Fabrication', detail: ingr.length ? `Ingrédients : ${ingr.join(', ')}` : undefined }
     }
     case 'depart':
-      return { titre: 'Équipement de départ', detail: `Classe : ${liste(s.classes ?? [])}` }
+      return { titre: 'Équipement de départ', detail: `Classe : ${liste(s.classes ?? [])}${s.pack ? ` (classe du ${s.pack})` : ''}` }
     case 'souvenir':
       return { titre: 'Souvenir au choix à la création du personnage' }
     case 'retouche':

@@ -98,7 +98,8 @@ TYPES_ARMES = {
     "Fist": "Poing", "Claw": "Griffe", "Colossal Weapon": "Arme colossale", "Light Bow": "Arc léger", "Bow": "Arc",
     "Greatbow": "Grand arc", "Crossbow": "Arbalète", "Ballista": "Baliste", "Glintstone Staff": "Bâton de sorcellerie",
     "Sacred Seal": "Sceau sacré", "Torch": "Torche", "Small Shield": "Petit bouclier", "Medium Shield": "Bouclier moyen",
-    "Greatshield": "Grand bouclier", "Arrow": "Flèche", "Greatarrow": "Grande flèche", "Bolt": "Carreau", "Greatbolt": "Grand carreau",
+    "Greatshield": "Grand bouclier", "Thrusting Shield": "Bouclier d'estoc", "Backhand Blade": "Lame-revers",
+    "Light Greatsword": "Espadon léger", "Great Katana": "Grand katana", "Arrow": "Flèche", "Greatarrow": "Grande flèche", "Bolt": "Carreau", "Greatbolt": "Grand carreau",
 }
 PIECES = {"Head": "Tête", "Body": "Torse", "Arms": "Bras", "Legs": "Jambes"}
 SOUS_CAT = {
@@ -303,6 +304,7 @@ def voisins(pres, rayon=320, maxi=2):
 
 # ---------- Boutiques (avec le repère du marchand) ----------
 NOMS_BOUTIQUES = noms_lignes("ShopLineupParam")
+DRAPEAU_PACK = 6953  # Tarnished Pack possédé : débloque ses lignes de boutique (ajoutées sans nom dans Paramdex)
 TYPE_BOUTIQUE = {0: 2, 1: 3, 2: 4, 3: 1, 4: 5}  # equipType → catégorie de lot
 # Marchands sans nom propre : type de marchand (nom anglais) et site de grâce le plus proche.
 MARCHANDS = {
@@ -365,6 +367,8 @@ for rid, r in BOUTIQUES.items():
     if cat is None or r.get("equipId", 0) <= 0:
         continue
     nom = NOMS_BOUTIQUES.get(rid, "")
+    if not nom and r.get("eventFlag_forRelease") == DRAPEAU_PACK:
+        nom = next((NOMS_BOUTIQUES[j] for j in range(rid - 1, rid - 15, -1) if NOMS_BOUTIQUES.get(j, "").startswith("[")), "")
     m = re.match(r"\[(.+?)\]", nom)
     if not m:
         continue
@@ -393,7 +397,7 @@ for rid, r in BOUTIQUES.items():
             perle = fr("GoodsName").get(8900 + drapeau - 11109700)
             if perle:
                 src["apres"] = f"après leur avoir donné la {perle}"
-        elif drapeau:
+        elif drapeau and drapeau != DRAPEAU_PACK:
             src["apres"] = "en rattrapage, si tu n'as pas pu l'obtenir à sa source normale"
     if r.get("value", -1) > 0:
         src["prix"] = r["value"]
@@ -631,6 +635,50 @@ for cat_, (nom_f_, _, _) in FMG.items():
 # (drapeaux 2000/2001) : en jeu normal ils se trouvent (Doigt crochu sur un cadavre du Cimetière abandonné, Langue de
 # raillerie d'Alberich, Doigt sanglant de Varré…). On ne s'en sert donc pas comme source.
 
+# ---------- Tarnished Pack (DLC payant de la version 1.17) ----------
+# ERDB s'arrête à la 1.10 : on fabrique leurs fiches d'après les paramètres du jeu. Ils n'apparaissent dans le monde
+# (trésors, marchands, envahisseurs) qu'avec le pack ; le drapeau 6953 débloque leurs lignes de boutique.
+TARNISHED_PACK = {
+    "armaments": [67530000, 8530000, 66530000, 64530000, 13510000, 3560000, 31540000, 62520000],
+    "armor": [5340000, 5340100, 5340200, 5340300, 5350000, 5350100, 5350200, 5350300, 5351100,
+              5360000, 5360100, 5360200, 5360300, 5361000, 5370000, 5370100, 5370200, 5370300],
+    "keys": [2009600, 2009610, 2009620],
+}
+PACK_IDS = {(cat_, i) for d_, ids_ in TARNISHED_PACK.items() for cat_ in [2 if d_ == "armaments" else 3 if d_ == "armor" else 1] for i in ids_}
+TYPES_ARME_PARAM = {90: "Thrusting Shield", 92: "Backhand Blade", 93: "Light Greatsword", 94: "Great Katana"}
+SPEFFETS = lire("SpEffectParam.param", "SpEffect")
+ERDB_ARMES = json.load(open(os.path.join(config.ERDB, "armaments.json")))
+def entree_pack(dossier, iid, nom):
+    if dossier == "armaments":
+        a = ARMES[iid]
+        # Type, attributs d'attaque et matériau d'amélioration : comme les armes d'ERDB qui ont les mêmes valeurs dans le jeu.
+        ref = ERDB_ARMES
+        def cle_arme(r, f):
+            return {"category": r["wepType"], "attack_attributes": (r["atkAttribute"], r["atkAttribute2"]),
+                    "upgrade_material": r["reinforceTypeId"]}[f]
+        def valeur(f):
+            c = collections.Counter(tuple(e.get(f)) if isinstance(e.get(f), list) else e.get(f) for e in ref.values()
+                                    if ARMES.get(e["id"]) and cle_arme(ARMES[e["id"]], f) == cle_arme(a, f))
+            v = c.most_common(1)[0][0] if c else None
+            return list(v) if isinstance(v, tuple) else v
+        categorie = TYPES_ARME_PARAM.get(a["wepType"]) or valeur("category")
+        effets = {}
+        champs_se = {"bloodAttackPower": "bleed", "poizonAttackPower": "poison", "freezeAttackPower": "frostbite",
+                     "sleepAttackPower": "sleep", "madnessAttackPower": "madness", "curseAttackPower": "death_blight", "diseaseAttackPower": "scarlet_rot"}
+        for j in range(3):
+            sp = SPEFFETS.get(a.get(f"spEffectBehaviorId{j}", -1))
+            for champ_, nom_se in champs_se.items():
+                if sp and sp.get(champ_, 0) > 0:
+                    effets[nom_se] = sp[champ_]
+        return {"id": iid, "name": nom, "icon": a["iconId"], "category": categorie, "summary": "",
+                "attack_attributes": valeur("attack_attributes"), "upgrade_material": valeur("upgrade_material"),
+                "affinity": {"Standard": {"status_effects": effets}}}
+    if dossier == "armor":
+        r = ARMURES[iid]
+        return {"id": iid, "name": nom, "icon": r["iconIdM"], "summary": "",
+                "category": {0: "Head", 1: "Body", 2: "Arms", 3: "Legs"}.get(r["protectorCategory"], "")}
+    return {"id": iid, "name": nom, "icon": BIENS[iid]["iconId"], "summary": "", "category": ""}
+
 # ---------- Fiches ----------
 os.makedirs(os.path.join(SORTIE, "img"), exist_ok=True)
 os.makedirs(os.path.join(SORTIE, "min"), exist_ok=True)
@@ -646,6 +694,10 @@ for dossier, type_fiche, groupe, cat in GROUPES:
             if nom_ not in erdb_tout and BIENS.get(iid_):
                 erdb_tout[nom_] = {**modele, "id": iid_, "name": nom_, "icon": BIENS[iid_].get("iconId", modele["icon"]),
                                    "summary": "", "category": modele.get("category", "")}
+    for iid_ in TARNISHED_PACK.get(dossier, []):
+        nom_ = en(FMG[cat][0]).get(iid_)
+        if nom_ and nom_ not in erdb_tout:
+            erdb_tout[nom_] = entree_pack(dossier, iid_, nom_)
     nom_f, desc_f, eff_f = FMG[cat]
     for nom_en, e in erdb_tout.items():
         iid = e["id"]
@@ -668,6 +720,8 @@ for dossier, type_fiche, groupe, cat in GROUPES:
         }
         if eff_f and fr(eff_f).get(iid):
             fiche["e"] = fr(eff_f)[iid]
+        if (cat, iid) in PACK_IDS:
+            fiche["pack"] = "Tarnished Pack"
         if cat == 2:
             fiche["st"] = stats_arme(iid, e)
         elif cat == 3:
@@ -745,7 +799,8 @@ SPECIAUX = {
     "Flask of Cerulean Tears": [{"t": "depart", "classes": ["toutes les classes"]}],
     "Flask of Crimson Tears": [{"t": "depart", "classes": ["toutes les classes"]}],
 }
-CLASSES_NOMS = ["Vagabond", "Guerrier", "Héros", "Bandit", "Astrologue", "Prophète", "Confesseur", "Samouraï", "Prisonnier", "Misérable"]
+CLASSES_NOMS = ["Vagabond", "Guerrier", "Héros", "Bandit", "Astrologue", "Prophète", "Confesseur", "Samouraï", "Prisonnier", "Misérable",
+                "Chevalier d'Idus", "Chevalier lourd"]  # les deux dernières : Tarnished Pack
 CLASSES_P = lire("CharaInitParam.param", "CharaInitParam")
 depart = collections.defaultdict(list)
 CHAMPS_DEPART = [("equip_Wep_Right", 2), ("equip_Subwep_Right", 2), ("equip_Wep_Left", 2), ("equip_Subwep_Left", 2),
@@ -768,6 +823,8 @@ for f in fiches:
     k = f["_k"]
     if depart.get(k):
         ou.insert(0, {"t": "depart", "classes": depart[k] if len(depart[k]) < 10 else ["toutes les classes"]})
+        if all(c_ in ("Chevalier d'Idus", "Chevalier lourd") for c_ in depart[k]):
+            ou[0]["pack"] = "Tarnished Pack"
     if f["en"] in SOUVENIRS:
         ou.insert(0, {"t": "souvenir"})
     for src in ou:
