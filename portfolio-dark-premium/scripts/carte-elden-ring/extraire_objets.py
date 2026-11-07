@@ -98,7 +98,8 @@ TYPES_ARMES = {
     "Fist": "Poing", "Claw": "Griffe", "Colossal Weapon": "Arme colossale", "Light Bow": "Arc léger", "Bow": "Arc",
     "Greatbow": "Grand arc", "Crossbow": "Arbalète", "Ballista": "Baliste", "Glintstone Staff": "Bâton de sorcellerie",
     "Sacred Seal": "Sceau sacré", "Torch": "Torche", "Small Shield": "Petit bouclier", "Medium Shield": "Bouclier moyen",
-    "Greatshield": "Grand bouclier", "Arrow": "Flèche", "Greatarrow": "Grande flèche", "Bolt": "Carreau", "Greatbolt": "Grand carreau",
+    "Greatshield": "Grand bouclier", "Thrusting Shield": "Bouclier d'estoc", "Backhand Blade": "Lame-revers",
+    "Light Greatsword": "Espadon léger", "Great Katana": "Grand katana", "Arrow": "Flèche", "Greatarrow": "Grande flèche", "Bolt": "Carreau", "Greatbolt": "Grand carreau",
 }
 PIECES = {"Head": "Tête", "Body": "Torse", "Arms": "Bras", "Legs": "Jambes"}
 SOUS_CAT = {
@@ -235,6 +236,10 @@ _FREQ = collections.Counter(w for ws in _PAR_NOM.values() for w in ws)
 def concorde(noms_a, noms_b):
     a, b = set().union(*map(mots, noms_a)), set().union(*map(mots, noms_b))
     commun = a & b
+    # Un mot du sujet inconnu de tous les repères (« Fortified » de Fortified Manor) : le sujet n'est pas un de ces
+    # repères, un seul mot commun (« Manor ») ne suffit pas.
+    if any(_FREQ[w] == 0 and len(w) >= 5 for w in a) and len(commun) < 2:
+        return False
     return len(commun) >= 2 or any(_FREQ[w] <= 4 for w in commun)
 
 # Mots des noms de lignes Paramdex qui ne désignent personne (« Corpse » ne doit pas mener à la Cabane fétide).
@@ -245,7 +250,7 @@ def trouver(sujets, pres=None, cats=("boss", "pnj", "envahisseurs", "lieux"), ma
     strict : nom exact ou contenu mot pour mot seulement (pas de ressemblance approximative)."""
     import difflib
     for sujet in sujets:
-        n = norme(sujet)
+        n = " ".join(FAUTES.get(w, w) for w in norme(sujet).split())
         if len(n) < 3 or n in GENERIQUES:
             continue
         cands = [m for m in SUJETS if m["c"] in cats]
@@ -299,6 +304,7 @@ def voisins(pres, rayon=320, maxi=2):
 
 # ---------- Boutiques (avec le repère du marchand) ----------
 NOMS_BOUTIQUES = noms_lignes("ShopLineupParam")
+DRAPEAU_PACK = 6953  # Tarnished Pack possédé : débloque ses lignes de boutique (ajoutées sans nom dans Paramdex)
 TYPE_BOUTIQUE = {0: 2, 1: 3, 2: 4, 3: 1, 4: 5}  # equipType → catégorie de lot
 # Marchands sans nom propre : type de marchand (nom anglais) et site de grâce le plus proche.
 MARCHANDS = {
@@ -361,6 +367,8 @@ for rid, r in BOUTIQUES.items():
     if cat is None or r.get("equipId", 0) <= 0:
         continue
     nom = NOMS_BOUTIQUES.get(rid, "")
+    if not nom and r.get("eventFlag_forRelease") == DRAPEAU_PACK:
+        nom = next((NOMS_BOUTIQUES[j] for j in range(rid - 1, rid - 15, -1) if NOMS_BOUTIQUES.get(j, "").startswith("[")), "")
     m = re.match(r"\[(.+?)\]", nom)
     if not m:
         continue
@@ -372,6 +380,14 @@ for rid, r in BOUTIQUES.items():
     else:
         qui = libelle(brut)
     src = {"t": "boutique", "qui": qui}
+    if brut.startswith("Enia - "):
+        # Tenue d'un boss vendue contre des runes une fois le boss vaincu (drapeau 91xx) : pas un échange de Remembrance.
+        BOSS_ENIA = {9104: "Morgott, roi Réprouvé", 9107: "Godfrey, premier Seigneur d'Elden / Hoarah Loux le Guerrier",
+                     9130: "Radahn le Fléau des astres", 9112: "Mohg, seigneur du sang", 9118: "Rennala, reine de la pleine lune",
+                     9116: "Maliketh la Lame d'ébène", 9120: "Malenia, épée de Miquella"}
+        boss = BOSS_ENIA.get(r.get("eventFlag_forRelease")) or traduire(brut.split(" - ", 1)[1])
+        src["qui"] = "Enia (Table ronde)"
+        src["apres"] = f"après avoir vaincu {boss}"
     if brut.startswith("Twin Maiden Husks"):
         # Lignes débloquées par une Perle cinéraire donnée aux Carcasses (drapeau 111097xx = perle 89xx), ou en
         # rattrapage d'un objet clé manqué (Gideon mort, Renna partie, Kalé tué…).
@@ -381,7 +397,7 @@ for rid, r in BOUTIQUES.items():
             perle = fr("GoodsName").get(8900 + drapeau - 11109700)
             if perle:
                 src["apres"] = f"après leur avoir donné la {perle}"
-        elif drapeau:
+        elif drapeau and drapeau != DRAPEAU_PACK:
             src["apres"] = "en rattrapage, si tu n'as pas pu l'obtenir à sa source normale"
     if r.get("value", -1) > 0:
         src["prix"] = r["value"]
@@ -436,6 +452,8 @@ def ennemi_proche_nom(p, rayon=12):
     n_ = re.sub(r"\s*(\(.*?\)|\[.*?\]|\{.*)", "", NOMS_NPC.get(int(best[1]), "")).strip()
     return traduire(n_) if n_ and "dummy" not in n_.lower() else ""
 TRACE_RECOMPENSES = []  # pour auditer_sources.py
+LOTS_DE_SOURCE = {}  # (objet, source) → lots du jeu qui la donnent (audit des sources écartées)
+SOURCES_ECARTEES = []
 # Lots dont la ligne Paramdex ne nomme qu'un lieu, mais dont on sait qui les donne (nom anglais du repère).
 LOTS_REPERES = {11100900: "Ensha of the Royal Remains",  # Main agrippée : lâchée par Ensha, envahisseur de la Table ronde
                 11100800: "Mad Tongue Alberich",  # Langue de raillerie : lâchée par Alberich, envahisseur de la Table ronde
@@ -462,8 +480,8 @@ def filtre_region(ids, parties):
     garde = [i for i in ids if i in par_id_ and voulu.lower() in region_de(par_id_[i]).lower()]
     return garde or ids
 for lid, r in LOTS.items():
-    if lid in lots_utilises:
-        continue
+    if lid in lots_utilises or lid < 10000:
+        continue  # déjà sur la carte, ou lot « système » (moins de 10000 : tests, objets de départ, lots génériques des scripts)
     t = str(lid)
     if (len(t) == 10 and t[:2] == "20") or (len(t) == 8 and t[:2] in ("20", "21", "22", "25", "28")):
         continue  # extension
@@ -534,6 +552,7 @@ for lid, r in LOTS.items():
                 src["e"], src["nb"] = e, len(ennemis_site[e]["p"])
             if src not in recompenses[k]:
                 recompenses[k].append(src)
+            LOTS_DE_SOURCE.setdefault((k, json.dumps(src, sort_keys=True, ensure_ascii=False)), []).append(lid)
 
 # ---------- Butins aléatoires des ennemis : lot de l'ennemi (NpcParam) → ses emplacements sur la carte ----------
 LOTS_ENN = lire("ItemLotParam_enemy.param", "ItemLotParam")
@@ -616,6 +635,50 @@ for cat_, (nom_f_, _, _) in FMG.items():
 # (drapeaux 2000/2001) : en jeu normal ils se trouvent (Doigt crochu sur un cadavre du Cimetière abandonné, Langue de
 # raillerie d'Alberich, Doigt sanglant de Varré…). On ne s'en sert donc pas comme source.
 
+# ---------- Tarnished Pack (DLC payant de la version 1.17) ----------
+# ERDB s'arrête à la 1.10 : on fabrique leurs fiches d'après les paramètres du jeu. Ils n'apparaissent dans le monde
+# (trésors, marchands, envahisseurs) qu'avec le pack ; le drapeau 6953 débloque leurs lignes de boutique.
+TARNISHED_PACK = {
+    "armaments": [67530000, 8530000, 66530000, 64530000, 13510000, 3560000, 31540000, 62520000],
+    "armor": [5340000, 5340100, 5340200, 5340300, 5350000, 5350100, 5350200, 5350300, 5351100,
+              5360000, 5360100, 5360200, 5360300, 5361000, 5370000, 5370100, 5370200, 5370300],
+    "keys": [2009600, 2009610, 2009620],
+}
+PACK_IDS = {(cat_, i) for d_, ids_ in TARNISHED_PACK.items() for cat_ in [2 if d_ == "armaments" else 3 if d_ == "armor" else 1] for i in ids_}
+TYPES_ARME_PARAM = {90: "Thrusting Shield", 92: "Backhand Blade", 93: "Light Greatsword", 94: "Great Katana"}
+SPEFFETS = lire("SpEffectParam.param", "SpEffect")
+ERDB_ARMES = json.load(open(os.path.join(config.ERDB, "armaments.json")))
+def entree_pack(dossier, iid, nom):
+    if dossier == "armaments":
+        a = ARMES[iid]
+        # Type, attributs d'attaque et matériau d'amélioration : comme les armes d'ERDB qui ont les mêmes valeurs dans le jeu.
+        ref = ERDB_ARMES
+        def cle_arme(r, f):
+            return {"category": r["wepType"], "attack_attributes": (r["atkAttribute"], r["atkAttribute2"]),
+                    "upgrade_material": r["reinforceTypeId"]}[f]
+        def valeur(f):
+            c = collections.Counter(tuple(e.get(f)) if isinstance(e.get(f), list) else e.get(f) for e in ref.values()
+                                    if ARMES.get(e["id"]) and cle_arme(ARMES[e["id"]], f) == cle_arme(a, f))
+            v = c.most_common(1)[0][0] if c else None
+            return list(v) if isinstance(v, tuple) else v
+        categorie = TYPES_ARME_PARAM.get(a["wepType"]) or valeur("category")
+        effets = {}
+        champs_se = {"bloodAttackPower": "bleed", "poizonAttackPower": "poison", "freezeAttackPower": "frostbite",
+                     "sleepAttackPower": "sleep", "madnessAttackPower": "madness", "curseAttackPower": "death_blight", "diseaseAttackPower": "scarlet_rot"}
+        for j in range(3):
+            sp = SPEFFETS.get(a.get(f"spEffectBehaviorId{j}", -1))
+            for champ_, nom_se in champs_se.items():
+                if sp and sp.get(champ_, 0) > 0:
+                    effets[nom_se] = sp[champ_]
+        return {"id": iid, "name": nom, "icon": a["iconId"], "category": categorie, "summary": "",
+                "attack_attributes": valeur("attack_attributes"), "upgrade_material": valeur("upgrade_material"),
+                "affinity": {"Standard": {"status_effects": effets}}}
+    if dossier == "armor":
+        r = ARMURES[iid]
+        return {"id": iid, "name": nom, "icon": r["iconIdM"], "summary": "",
+                "category": {0: "Head", 1: "Body", 2: "Arms", 3: "Legs"}.get(r["protectorCategory"], "")}
+    return {"id": iid, "name": nom, "icon": BIENS[iid]["iconId"], "summary": "", "category": ""}
+
 # ---------- Fiches ----------
 os.makedirs(os.path.join(SORTIE, "img"), exist_ok=True)
 os.makedirs(os.path.join(SORTIE, "min"), exist_ok=True)
@@ -623,6 +686,18 @@ fiches, slugs, coupes = [], set(), []
 manque_illus = 0
 for dossier, type_fiche, groupe, cat in GROUPES:
     erdb_tout = json.load(open(os.path.join(config.ERDB, dossier + ".json")))
+    if dossier == "tools":
+        # Oubliés par ERDB : la Fiole de larmes pourpres (tous ses niveaux, la version pleine) et la Fiole de salut miraculeux
+        modele = erdb_tout["Flask of Cerulean Tears"]
+        manquants_ = [(1000 + 2 * k, "Flask of Crimson Tears" + (f" +{k}" if k else "")) for k in range(13)] + [(250, "Flask of Wondrous Physick")]
+        for iid_, nom_ in manquants_:
+            if nom_ not in erdb_tout and BIENS.get(iid_):
+                erdb_tout[nom_] = {**modele, "id": iid_, "name": nom_, "icon": BIENS[iid_].get("iconId", modele["icon"]),
+                                   "summary": "", "category": modele.get("category", "")}
+    for iid_ in TARNISHED_PACK.get(dossier, []):
+        nom_ = en(FMG[cat][0]).get(iid_)
+        if nom_ and nom_ not in erdb_tout:
+            erdb_tout[nom_] = entree_pack(dossier, iid_, nom_)
     nom_f, desc_f, eff_f = FMG[cat]
     for nom_en, e in erdb_tout.items():
         iid = e["id"]
@@ -645,6 +720,8 @@ for dossier, type_fiche, groupe, cat in GROUPES:
         }
         if eff_f and fr(eff_f).get(iid):
             fiche["e"] = fr(eff_f)[iid]
+        if (cat, iid) in PACK_IDS:
+            fiche["pack"] = "Tarnished Pack"
         if cat == 2:
             fiche["st"] = stats_arme(iid, e)
         elif cat == 3:
@@ -722,7 +799,8 @@ SPECIAUX = {
     "Flask of Cerulean Tears": [{"t": "depart", "classes": ["toutes les classes"]}],
     "Flask of Crimson Tears": [{"t": "depart", "classes": ["toutes les classes"]}],
 }
-CLASSES_NOMS = ["Vagabond", "Guerrier", "Héros", "Bandit", "Astrologue", "Prophète", "Confesseur", "Samouraï", "Prisonnier", "Misérable"]
+CLASSES_NOMS = ["Vagabond", "Guerrier", "Héros", "Bandit", "Astrologue", "Prophète", "Confesseur", "Samouraï", "Prisonnier", "Misérable",
+                "Chevalier d'Idus", "Chevalier lourd"]  # les deux dernières : Tarnished Pack
 CLASSES_P = lire("CharaInitParam.param", "CharaInitParam")
 depart = collections.defaultdict(list)
 CHAMPS_DEPART = [("equip_Wep_Right", 2), ("equip_Subwep_Right", 2), ("equip_Wep_Left", 2), ("equip_Subwep_Left", 2),
@@ -745,6 +823,8 @@ for f in fiches:
     k = f["_k"]
     if depart.get(k):
         ou.insert(0, {"t": "depart", "classes": depart[k] if len(depart[k]) < 10 else ["toutes les classes"]})
+        if all(c_ in ("Chevalier d'Idus", "Chevalier lourd") for c_ in depart[k]):
+            ou[0]["pack"] = "Tarnished Pack"
     if f["en"] in SOUVENIRS:
         ou.insert(0, {"t": "souvenir"})
     for src in ou:
@@ -780,6 +860,8 @@ for f in fiches:
     # « Événement du jeu » sans repère ni endroit : n'apporte rien quand l'objet a d'autres sources
     vides = [x for x in ou if x["t"] == "recompense" and not x.get("ids") and not x.get("e") and (x.get("quoi", "").startswith("Événement du jeu") or x.get("quoi") == "Objet d'information")]
     if vides and len(vides) < len(ou):
+        for x in vides:
+            SOURCES_ECARTEES.append({"objet": f["en"], "source": x, "lots": [l_ for kk in f["_cles"] for l_ in LOTS_DE_SOURCE.get((kk, json.dumps(x, sort_keys=True, ensure_ascii=False)), [])]})
         ou[:] = [x for x in ou if x not in vides]
     # Qui donne la récompense (noms des repères), pour l'encyclopédie
     for x in ou:
@@ -821,6 +903,21 @@ for _rid, _r in BOUTIQUES.items():
 json.dump({f["s"]: sorted(set().union(*(BRUT.get(kk, set()) for kk in f["_cles"]))) for f in fiches},
           open(os.path.join(config.DOSSIER, "sources-brutes.json"), "w"), ensure_ascii=False)
 
+# Tableaux : la récompense posée à l'endroit peint n'apparaît que si l'on a le tableau (lots « Reward - "X" Painting »)
+TABLEAU_DE_LOT = {}
+for _lid, _nom in NOMS_LOTS.items():
+    _m = re.match(r'\[Reward - (".+?" Painting)\]', _nom)
+    if _m:
+        TABLEAU_DE_LOT[str(_lid)] = _m.group(1)
+for f in fiches:
+    for x in f.get("ou", []):
+        if x["t"] == "carte":
+            lot_ = next((l_ for l_ in TABLEAU_DE_LOT if x["id"].endswith(l_) and len(x["id"]) - len(l_) <= 2), None)
+            if lot_ and par_en.get(TABLEAU_DE_LOT[lot_]):
+                t_ = par_en[TABLEAU_DE_LOT[lot_]]
+                x["comment"] = "Récompense du " + re.sub(r"^Tableau\s*:\s*", "tableau ", t_["n"])
+                x["tableau"] = {"s": t_["s"], "n": t_["n"]}
+
 # Perle cinéraire de chaque marchand (lâchée quand il meurt) : les Carcasses des Servantes jumelles vendent alors son stock.
 reperes_id = {m["id"]: m for m in MARQ}
 perle_par_marchand = {}
@@ -859,6 +956,7 @@ if os.path.exists(chemin_res):
     res_["types"] = [t_[:3] + [k_vers_s.get(t_[0], "")] for t_ in res_["types"]]
     json.dump(res_, open(chemin_res, "w"), ensure_ascii=False, separators=(",", ":"))
 json.dump(TRACE_RECOMPENSES, open(os.path.join(config.DOSSIER, "trace-recompenses.json"), "w"), ensure_ascii=False)
+json.dump(SOURCES_ECARTEES, open(os.path.join(config.DOSSIER, "sources-ecartees.json"), "w"), ensure_ascii=False)
 utilises = {x["e"] for f in fiches for x in f.get("ou", []) if x.get("e")}
 json.dump({k: v for k, v in ennemis_site.items() if k in utilises and v["p"]},
           open(os.path.join(config.SORTIE, "ennemis.json"), "w"), ensure_ascii=False, separators=(",", ":"))

@@ -364,6 +364,10 @@ CONDITIONS_ENV = {
     "Edgar the Revenger": "Pendant la quête d'Irina : après le drame du Château de Vent-Hurlant, repose-toi au site de grâce de la Cabane du vengeur.",
     "Eleonora, Violet Bloody Finger": "Pendant la quête de Yura.",
     "Knight of the Great Jar": "Les trois duels du défi de la Grande jarre (signes rouges devant elle).",
+    "Festering Fingerprint Vyke": "Il t'envahit près de l'Église de l'inhibition, au nord de Liurnia (sur la route du village de la Flamme exaltée).",
+    # Tarnished Pack : envahisseurs ordinaires (pas de condition de quête), présents seulement si tu as le pack.
+    "Knight Leontiel": "Tarnished Pack : elle t'envahit quand tu approches de ce secteur de Caelid, autour du Château du Lion rouge.",
+    "The Noble Broken Mask": "Tarnished Pack : il t'envahit dans la Leyndell d'avant l'incendie, près du Sanctuaire de l'Arbre-Monde. Il n'existe pas dans la Capitale des cendres : fais-le avant de brûler l'Arbre-Monde.",
 }
 par_marqueur = {}
 for f_ in objets_liste["objets"]:
@@ -382,7 +386,9 @@ for en_nom, ms in sorted(envs.items(), key=lambda kv: (region_m(kv[1][0]), kv[1]
         continue  # esprits invoqués et figurants : rien à récupérer
     m0 = ms[0]
     ou = f"près du site de grâce <strong>{m0.get('pres')}</strong>" if m0.get("pres") else "à l'endroit indiqué sur la carte"
-    texte = f"{CONDITIONS_ENV.get(en_nom, 'Envahisseur PNJ : il apparaît quand tu approches de cet endroit (parfois seulement à une étape précise d’une quête).')} On le trouve {ou}. Il laisse : " + \
+    cond_ = CONDITIONS_ENV.get(en_nom, 'Envahisseur PNJ : il apparaît quand tu approches de cet endroit (parfois seulement à une étape précise d’une quête).')
+    elle_ = " elle " in cond_
+    texte = f"{cond_} {'On la trouve' if elle_ else 'On le trouve'} {ou}. {'Elle laisse' if elle_ else 'Il laisse'} : " + \
         ", ".join(lien_objet(objets[s_]["en"]) for s_ in lache if s_ in objets) + "."
     e = E(m0["n"], region_m(m0), "", texte, carte(m0))
     e["objets"] = lache
@@ -390,6 +396,103 @@ for en_nom, ms in sorted(envs.items(), key=lambda kv: (region_m(kv[1][0]), kv[1]
 quetes.append({"id": "envahisseurs", "nom": "Tous les envahisseurs PNJ", "en": "NPC invaders", "detaille": True, "fond": "table-ronde",
                "resume": "Chaque envahisseur PNJ du jeu de base qui laisse quelque chose : où il apparaît et ce qu'il lâche (armes, armures, talismans…). Les conditions particulières sont précisées ; sinon, il suffit d'approcher.",
                "region": "Toute la carte", "recompenses": list(dict.fromkeys(s_ for e in etapes_env for s_ in e["objets"])), "etapes": etapes_env})
+
+# ---------- Tableaux : trouver le tableau, puis l'endroit peint, où l'esprit du peintre laisse sa récompense ----------
+ennemis_json = json.load(open(os.path.join(SITE, "carte", "ennemis.json")))
+AIDE_TABLEAUX = {
+    '"Homing Instinct" Painting': "La vue est prise au bord de la mer, au nord-ouest du site de grâce des Ruines côtières, au sud des Ruines brûlées par le dragon.",
+    '"Resurrection" Painting': "L'endroit peint se trouve au Manoir de Caria, dans les étages.",
+    '"Champion\'s Song" Painting': "L'endroit peint est la falaise au sud-ouest du site de grâce Chemin des remparts (là où l'on affronte Lansseax), face à la Tombe du héros canonisé.",
+    '"Sorcerer" Painting': "L'endroit peint est dans les Champs enneigés consacrés, près de la Grotte des parias.",
+    '"Prophecy" Painting': "L'endroit peint est derrière l'Église des pèlerins, sur la Péninsule larmoyante.",
+    '"Flightless Bird" Painting': "L'endroit peint est le village des moulins (Hauteurs aux moulins, Plateau Altus), au-delà des danseuses.",
+    '"Redmane" Painting': "L'endroit peint est en contrebas des falaises du Tertre draconique, au sud-est de l'Arbre-Monde mineur.",
+}
+etapes_tab = []
+for en_t, aide_t in AIDE_TABLEAUX.items():
+    s_t = obj(en_t)
+    if not s_t:
+        continue
+    o_t = objets[s_t]
+    recomp = [f_["s"] for f_ in objets_liste["objets"] for x in f_.get("ou", []) if (x.get("tableau") or {}).get("s") == s_t]
+    marque = next((par_id[x["id"]] for f_ in objets_liste["objets"] for x in f_.get("ou", []) if (x.get("tableau") or {}).get("s") == s_t and x.get("id") in par_id), None)
+    src_t = next((x for x in o_t.get("ou", []) if x["t"] == "recompense"), {})
+    ou_t = src_t.get("quoi", "")
+    texte = (f"Le {lien_objet(en_t)} se trouve ici : <strong>{ou_t}</strong>. Examine-le, puis rends-toi à l'endroit qu'il représente. {aide_t} "
+             f"L'esprit du peintre y apparaît (seulement si tu as le tableau) et laisse : " + ", ".join(lien_objet(objets[r]["en"]) for r in recomp) + ".")
+    pt_t = None
+    if src_t.get("ids") and src_t["ids"][0] in par_id:
+        pt_t = par_id[src_t["ids"][0]]
+    elif src_t.get("e") and ennemis_json.get(src_t["e"], {}).get("p"):
+        s_, x_, y_ = ennemis_json[src_t["e"]]["p"][0]
+        pt_t = {"id": f"tab-{s_t}", "s": s_, "x": x_, "y": y_, "n": o_t["n"], "c": "objets-cles"}
+    e = E(o_t["n"].replace("Tableau : ", "").replace("Tableau\xa0: ", ""), ou_t.split(" – ")[0], "", texte, carte(marque, None, [pt_t] if pt_t else []) if marque else None)
+    e["objets"] = [s_t] + recomp
+    etapes_tab.append(e)
+if etapes_tab:
+    quetes.append({"id": "tableaux", "nom": "Les sept tableaux du peintre", "en": "Artist's Paintings", "detaille": True, "fond": "caria",
+                   "resume": "Sept tableaux cachés dans les Cabanes de l'artiste et les châteaux. Chacun montre un paysage : va à l'endroit peint et l'esprit du peintre te laisse une récompense.",
+                   "region": "Toute la carte", "recompenses": list(dict.fromkeys(s_ for e in etapes_tab for s_ in e["objets"])), "etapes": etapes_tab})
+
+# ---------- Tarnished Pack : où récupérer chaque objet du pack (d'après les sources de l'encyclopédie) ----------
+ORDRE_REGIONS = ["Nécrolimbe", "Péninsule larmoyante", "Château de Voilorage", "Liurnia, contrée lacustre", "Caelid", "Marais d'Ivoine",
+                 "Tertre draconique de Greyoll", "Plateau Altus", "Abords de la capitale", "Leyndell, capitale royale", "Bastion de la Table ronde"]
+env_par_nom = {m.get("en") or m["n"]: m for m in donnees if m["c"] == "envahisseurs"}
+groupes_pack = {}
+for f_ in objets_liste["objets"]:
+    if not f_.get("pack"):
+        continue
+    for x in f_.get("ou", []):
+        if x["t"] == "carte" and x.get("id") in par_id:
+            cle_, m = ("carte", x["id"]), par_id[x["id"]]
+        elif x["t"] in ("boutique", "recompense") and x.get("ids") and x["ids"][0] in par_id:
+            cle_, m = (x["t"], x.get("qui") or x["ids"][0]), par_id[x["ids"][0]]
+        else:
+            continue
+        g = groupes_pack.setdefault(cle_, {"src": x, "m": m, "objets": []})
+        if f_["s"] not in g["objets"]:
+            g["objets"].append(f_["s"])
+def rang_region(g):
+    r = region_m(g["m"])
+    return (ORDRE_REGIONS.index(r) if r in ORDRE_REGIONS else len(ORDRE_REGIONS), r, g["m"]["n"])
+etapes_pack = []
+for g in sorted(groupes_pack.values(), key=rang_region):
+    x, m = g["src"], g["m"]
+    liens = ", ".join(lien_objet(objets[s_]["en"]) for s_ in g["objets"])
+    pres = f" Site de grâce le plus proche : <strong>{m['pres']}</strong>." if m.get("pres") else ""
+    if x["t"] == "carte":
+        titre = objets[g["objets"][0]]["n"]
+        texte = f"{x.get('comment') or 'Ramassé sur place'} : {liens}.{pres}"
+    elif x["t"] == "boutique":
+        titre = x["qui"]
+        prix = {s_: next((y.get("prix") for y in objets[s_].get("ou", []) if y["t"] == "boutique" and y.get("qui") == x["qui"]), None) for s_ in g["objets"]}
+        texte = "En vente : " + ", ".join(lien_objet(objets[s_]["en"]) + (f" ({prix[s_]:,} runes)".replace(",", " ") if prix[s_] else "") for s_ in g["objets"]) + "." + pres
+        if x.get("perle"):
+            texte += f" Si tu as donné la {x['perle']['n']} aux Carcasses des Servantes jumelles, elles vendent aussi tout ça à la Table ronde."
+    else:
+        titre = (x.get("chez") or [m["n"]])[0]
+        cond = CONDITIONS_ENV.get(m.get("en") or "", "Il t'envahit quand tu approches de cet endroit.").replace("Tarnished Pack : ", "")
+        texte = f"{cond[0].upper() + cond[1:]} Il laisse : {liens}.{pres}".replace("Il laisse", "Elle laisse" if titre.startswith("Chevaleresse") else "Il laisse")
+    e = E(titre, region_m(m), "", texte, carte(m))
+    e["objets"] = g["objets"]
+    etapes_pack.append(e)
+classes_pack = [o for o in objets_liste["objets"] if any(y["t"] == "depart" and y.get("pack") for y in o.get("ou", []))]
+if classes_pack:
+    par_classe = {}
+    for o in classes_pack:
+        for y in o["ou"]:
+            if y["t"] == "depart" and y.get("pack"):
+                for c_ in y["classes"]:
+                    par_classe.setdefault(c_, []).append(o["s"])
+    texte = "Si tu crées un nouveau personnage, les deux classes du pack partent avec leur équipement : " + " ; ".join(
+        f"<strong>{c_}</strong> : " + ", ".join(lien_objet(objets[s_]["en"]) for s_ in ss) for c_, ss in par_classe.items()) +         ". Avec un personnage existant, tout s'achète chez les marchands ci-dessous."
+    e = E("Les deux nouvelles classes", "Création du personnage", "", texte)
+    e["objets"] = [s_ for ss in par_classe.values() for s_ in ss]
+    etapes_pack.insert(0, e)
+if etapes_pack:
+    quetes.append({"id": "tarnished-pack", "nom": "Tarnished Pack : tout récupérer", "en": "Tarnished Pack", "detaille": True, "fond": "table-ronde",
+                   "resume": "Le DLC payant de la version 1.17 ajoute deux classes, des armes, quatre tenues, deux envahisseurs et trois apparences pour Torrent. Rien de tout ça n'apparaît dans le monde sans le pack.",
+                   "region": "Toute la carte", "recompenses": list(dict.fromkeys(s_ for e in etapes_pack for s_ in e["objets"])), "etapes": etapes_pack})
 
 # ---------- Objets donnés par les personnages de chaque quête (noms de lignes Paramdex), en plus de ceux cités ----------
 QUETE_PNJ = {
