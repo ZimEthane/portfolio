@@ -28,6 +28,8 @@
 .erq-etapes > li { position: relative; display: grid; grid-template-columns: 44px 1fr; gap: 16px; padding-bottom: 26px; }
 .erq-etapes > li::before { content: ''; position: absolute; left: 21px; top: 44px; bottom: 0; width: 2px; background: linear-gradient(var(--filet), transparent); }
 .erq-etapes > li:last-child::before { display: none; }
+.erq-etapes > li { scroll-margin-top: 90px; }
+.erq-etapes > li.is-visee .erq-corps { border-radius: 10px; box-shadow: 0 0 0 2px var(--or), 0 10px 26px #96712a33; }
 .erq-num { display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid #c9ad73; border-radius: 50%; background: #1d1813; font: 600 17px 'Cinzel Variable', Cinzel, serif; color: #f3e6c3; box-shadow: 0 4px 12px #2a231b33; }
 .is-faite .erq-num { background: #4f8a4f; border-color: #4f8a4f; }
 .erq-corps { min-width: 0; padding: 16px 18px; border: 1px solid var(--bord); border-radius: 10px; background: var(--carte); box-shadow: 0 6px 18px #2a231b0f; }

@@ -5,7 +5,7 @@ export interface Lien { s?: string; n: string; q?: number } // autre fiche (adre
 
 export interface Source {
   t: 'carte' | 'boutique' | 'recompense' | 'butin' | 'cueillette' | 'hors-carte' | 'fabrication' | 'depart' | 'souvenir'
-    | 'retouche' | 'fiole' | 'attachee' | 'aide'
+    | 'retouche' | 'fiole' | 'attachee' | 'aide' | 'quete'
   id?: string // repère de la carte (t = carte)
   ids?: string[] // repères : marchand, boss, personnage, lieu
   e?: string // groupe d'ennemis ou endroit d'un événement (ennemis.json)
@@ -30,6 +30,11 @@ export interface Source {
   inverse?: number
   niveau?: number
   armes?: Lien[]
+  apres?: string // boutique : condition (« après leur avoir donné la Perle… »)
+  perle?: Lien // boutique : Perle cinéraire du marchand (les Carcasses des Servantes jumelles vendent alors son stock)
+  q?: string // quête (adresse)
+  i?: number // quête : n° de l'étape (à partir de 0)
+  et?: string // quête : titre de l'étape
 }
 export interface Objet {
   s: string // adresse
@@ -48,6 +53,8 @@ export interface Donnees { version: string; groupes: { t: string; nom: string }[
 export const BASE_OBJETS = `${import.meta.env.BASE_URL}guides/elden-ring/objets/`
 export const LIEN_OBJETS = '#guides/elden-ring/objets'
 export const LIEN_CARTE_OBJET = '#guides/elden-ring/carte/objet'
+export const LIEN_QUETES = '#guides/elden-ring/quetes-pas-a-pas'
+export const lienQuete = (s: Source) => `${LIEN_QUETES}/${s.q}${s.i !== undefined ? `/${s.i + 1}` : ''}`
 
 let cache: Promise<Donnees> | null = null
 export const chargerObjets = () => (cache ??= fetch(`${BASE_OBJETS}objets.json`).then(r => {
@@ -69,12 +76,14 @@ export function texteSource(s: Source): { titre: string; detail?: string } {
       return { titre: s.quoi ?? 'Hors de la carte' }
     case 'boutique':
       return {
-        titre: `Vendu par ${s.qui}`,
-        detail: `${s.echange ? `Échange contre : ${s.echange}` : s.prix ? runes(s.prix) : 'Prix variable'}${s.stock ? ` · ${s.stock} en stock` : ' · stock illimité'}`,
+        titre: `Vendu par ${s.qui}${s.apres ? `, ${s.apres}` : ''}`,
+        detail: `${s.echange ? `Échange contre : ${s.echange}` : s.prix ? runes(s.prix) : 'Prix variable'}${s.stock ? ` · ${s.stock} en stock` : ' · stock illimité'}`
+          + (s.perle ? ` · aussi chez les Carcasses des Servantes jumelles (Table ronde) si tu leur donnes la ${s.perle.n}` : ''),
       }
     case 'recompense': {
       const chez = s.chez?.length ? liste(s.chez) : ''
       if (s.quoi?.startsWith('Événement du jeu')) return { titre: chez ? `Obtenu auprès de ${chez}` : 'Donné par un événement du jeu', detail: 'Butin ou cadeau (boss, envahisseur, personnage ou scène)' }
+      if (chez && s.chez?.length === 1 && s.chez[0] === s.quoi) return { titre: `Obtenu auprès de ${chez}`, detail: 'Récompense (boss, quête, personnage ou envahisseur)' }
       return { titre: `Obtenu : ${s.quoi}`, detail: chez ? `Auprès de : ${chez}` : 'Récompense (boss, quête ou personnage)' }
     }
     case 'butin':
@@ -98,12 +107,14 @@ export function texteSource(s: Source): { titre: string; detail?: string } {
       return { titre: `Fixée sur ${liste((s.armes ?? []).map(a => a.n))}`, detail: 'Vient avec l\'arme ; se retire avec une Pierre à aiguiser' }
     case 'aide':
       return { titre: 'Message d\'aide du jeu', detail: 'Obtenu automatiquement au fil de l\'aventure (premières découvertes)' }
+    case 'quete':
+      return { titre: `Quête : ${s.n}`, detail: s.i !== undefined ? `Étape ${s.i + 1} : ${s.et}` : 'Récompense de la quête' }
   }
   return { titre: '' }
 }
 
 // Raisons acceptées de ne rien montrer sur la carte.
-export const SANS_CARTE = new Set<Source['t']>(['depart', 'souvenir', 'aide'])
+export const SANS_CARTE = new Set<Source['t']>(['depart', 'souvenir', 'aide', 'quete'])
 
 // Fiches liées dont les emplacements comptent pour cette source (livre de recettes, version d'origine…).
 export function liensSource(s: Source): { s: string; n: string; pourquoi: string }[] {

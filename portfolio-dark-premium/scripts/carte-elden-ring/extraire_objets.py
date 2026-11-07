@@ -225,12 +225,28 @@ VIDES = {"the", "of", "a", "an", "and", "de", "la", "le", "les", "du", "des", "d
 def mots(t):
     return {w for w in norme(t).split() if len(w) >= 3 and w not in VIDES}
 
-def trouver(sujets, pres=None, cats=("boss", "pnj", "envahisseurs", "lieux"), maxi=4):
-    """Repères dont le nom anglais ou français correspond le mieux à l'un des sujets (du plus précis au plus vague)."""
+# Mots rares des noms de repères (au plus 4 noms différents) : un seul en commun suffit pour relier un nom
+# (« Alexander »), alors qu'un mot courant (« Royal », « Knight ») ne suffit pas.
+_PAR_NOM = collections.defaultdict(set)  # un nom français → tous ses mots (français et anglais)
+for m in SUJETS:
+    for x in m["_noms"]:
+        _PAR_NOM[norme(m["n"])] |= mots(x)
+_FREQ = collections.Counter(w for ws in _PAR_NOM.values() for w in ws)
+def concorde(noms_a, noms_b):
+    a, b = set().union(*map(mots, noms_a)), set().union(*map(mots, noms_b))
+    commun = a & b
+    return len(commun) >= 2 or any(_FREQ[w] <= 4 for w in commun)
+
+# Mots des noms de lignes Paramdex qui ne désignent personne (« Corpse » ne doit pas mener à la Cabane fétide).
+GENERIQUES = {"corpse", "unknown", "ld", "field", "incantation", "sorcery", "info item", "merchant", "boss drop", "invasion", "quest"}
+
+def trouver(sujets, pres=None, cats=("boss", "pnj", "envahisseurs", "lieux"), maxi=4, strict=False):
+    """Repères dont le nom anglais ou français correspond le mieux à l'un des sujets (du plus précis au plus vague).
+    strict : nom exact ou contenu mot pour mot seulement (pas de ressemblance approximative)."""
     import difflib
     for sujet in sujets:
         n = norme(sujet)
-        if len(n) < 3:
+        if len(n) < 3 or n in GENERIQUES:
             continue
         cands = [m for m in SUJETS if m["c"] in cats]
         res = [m for m in cands if n in m["_noms"]]
@@ -239,13 +255,18 @@ def trouver(sujets, pres=None, cats=("boss", "pnj", "envahisseurs", "lieux"), ma
             # « Godrick » : Godrick the Grafted plutôt que Soldier of Godrick (le nom qui commence par le sujet).
             if any(x.startswith(n) for m in res for x in m["_noms"]):
                 res = [m for m in res if any(x.startswith(n) for x in m["_noms"])]
-        if not res:
+        if not res and not strict:
             res = [m for m in cands if max((difflib.SequenceMatcher(None, n, x).ratio() for x in m["_noms"]), default=0) >= 0.86]
-        if not res and mots(n):
-            score = {m["id"]: max(len(mots(n) & mots(x)) for x in m["_noms"]) for m in cands}
+        if not res and not strict and mots(n):
+            # Mots en commun, à condition d'être parlants (voir concorde) : sinon « Royal » suffirait à confondre
+            # Ensha of the Royal Remains avec Royal Revenant.
+            score = {m["id"]: max(len(mots(n) & mots(x)) for x in m["_noms"]) for m in cands if concorde([n], m["_noms"])}
             best = max(score.values(), default=0)
-            res = [m for m in cands if best and score[m["id"]] == best]
+            res = [m for m in cands if best and score.get(m["id"]) == best]
         if res:
+            # Nom partagé par un personnage et son garde (Tanith / Chevalier de Tanith) : le personnage
+            if any(m["c"] == "pnj" for m in res) and any(m["c"] == "envahisseurs" for m in res) and n not in {x for m in res if m["c"] == "envahisseurs" for x in m["_noms"]}:
+                res = [m for m in res if m["c"] != "envahisseurs"]
             if pres:
                 res = sorted(res, key=lambda m: (m["s"] != pres[0], (m["x"] - pres[1]) ** 2 + (m["y"] - pres[2]) ** 2))
             return [m["id"] for m in res[:maxi]]
@@ -351,6 +372,17 @@ for rid, r in BOUTIQUES.items():
     else:
         qui = libelle(brut)
     src = {"t": "boutique", "qui": qui}
+    if brut.startswith("Twin Maiden Husks"):
+        # Lignes débloquées par une Perle cinéraire donnée aux Carcasses (drapeau 111097xx = perle 89xx), ou en
+        # rattrapage d'un objet clé manqué (Gideon mort, Renna partie, Kalé tué…).
+        drapeau = r.get("eventFlag_forRelease", 0) or 0
+        src["qui"] = "Carcasses des Servantes jumelles"
+        if 11109745 <= drapeau <= 11109765:
+            perle = fr("GoodsName").get(8900 + drapeau - 11109700)
+            if perle:
+                src["apres"] = f"après leur avoir donné la {perle}"
+        elif drapeau:
+            src["apres"] = "en rattrapage, si tu n'as pas pu l'obtenir à sa source normale"
     if r.get("value", -1) > 0:
         src["prix"] = r["value"]
     if r.get("mtrlId", -1) > 0 and MATIERES.get(r["mtrlId"]):
@@ -390,6 +422,45 @@ NOMS_NPC = noms_lignes("NpcParam")
 PLACES = carte["ennemis"]
 ennemis_site = {}
 recompenses = collections.defaultdict(list)
+def ennemi_proche_nom(p, rayon=12):
+    """Nom (français) de l'ennemi posé à l'endroit d'un événement sans nom (ex. un Nocher diaphane qui lâche une Mortefleur)."""
+    best = None
+    for nid, pts_ in PLACES.items():
+        for s_, x_, y_ in pts_:
+            if s_ == p["s"]:
+                d = math.hypot(x_ - p["x"], y_ - p["y"])
+                if d < rayon and (best is None or d < best[0]):
+                    best = (d, nid)
+    if not best:
+        return ""
+    n_ = re.sub(r"\s*(\(.*?\)|\[.*?\]|\{.*)", "", NOMS_NPC.get(int(best[1]), "")).strip()
+    return traduire(n_) if n_ and "dummy" not in n_.lower() else ""
+TRACE_RECOMPENSES = []  # pour auditer_sources.py
+# Lots dont la ligne Paramdex ne nomme qu'un lieu, mais dont on sait qui les donne (nom anglais du repère).
+LOTS_REPERES = {11100900: "Ensha of the Royal Remains",  # Main agrippée : lâchée par Ensha, envahisseur de la Table ronde
+                11100800: "Mad Tongue Alberich",  # Langue de raillerie : lâchée par Alberich, envahisseur de la Table ronde
+                # Perles des colporteurs : lâchées par le Chasseur de perles cinéraires qui apparaît la nuit près de ces
+                # cabanes (le script vise le personnage qui s'y tient le jour : Bernahl, Miriel, les marchands).
+                1037460400: "Bell Bearing Hunter", 1042380410: "Bell Bearing Hunter", 1043530400: "Bell Bearing Hunter",
+                1048410800: "Bell Bearing Hunter"}
+# Région nommée en tête de la ligne Paramdex (« Liurnia - Field - Tibia Mariner ») : on ne garde que les repères de cette
+# région, sinon le butin d'un Nocher diaphane serait montré sur tous les Nochers du jeu.
+REGIONS_EN = {"limgrave": "Nécrolimbe", "stormhill": "Nécrolimbe", "weeping peninsula": "Péninsule", "weeping penisula": "Péninsule",
+              "liurnia": "Liurnia", "caelid": "Caelid", "greyoll s dragonbarrow": "Tertre draconique", "altus plateau": "Altus",
+              "mt gelmir": "Gelmir", "capital outskirts": "Abords de la capitale", "leyndell": "Leyndell", "ashen leyndell": "cendres",
+              "mountaintops of the giants": "Cimes", "mountaintops": "Cimes", "forbidden lands": "Terres interdites",
+              "consecrated snowfield": "Champs enneigés", "flame peak": "Pic de la Flamme", "siofra": "Siofra", "ainsel": "Ainsel",
+              "nokron": "Nokron", "deeproot depths": "Fonderacine", "lake of rot": "Lac putréfié", "farum azula": "Farum Azula",
+              "haligtree": "Arbre-Sacré", "mohgwyn": "Mohgwyn"}
+def filtre_region(ids, parties):
+    if not parties or not ids:
+        return ids
+    voulu = REGIONS_EN.get(norme(parties[0]))
+    if not voulu:
+        return ids
+    par_id_ = {m["id"]: m for m in SUJETS}
+    garde = [i for i in ids if i in par_id_ and voulu.lower() in region_de(par_id_[i]).lower()]
+    return garde or ids
 for lid, r in LOTS.items():
     if lid in lots_utilises:
         continue
@@ -410,31 +481,48 @@ for lid, r in LOTS.items():
     if parties:
         pts = [p for p in pts if p["t"] != "pnj" or mots(p.get("en", "")) & mots(" ".join(parties))]
     # Récompense de boss nommée : le nom du boss est plus sûr que les drapeaux partagés entre événements.
-    boss_nomme = trouver(list(reversed(parties)), pres, cats=("boss",)) if parties else []
-    if boss_nomme:
-        ids = boss_nomme
+    boss_nomme = trouver(list(reversed(parties)), pres, cats=("boss",), strict=True, maxi=12) if parties else []
+    if lid in LOTS_REPERES:
+        ids = [m_["id"] for m_ in MARQ if m_.get("en") == LOTS_REPERES[lid]]
+        if pres and len(ids) > 1:  # plusieurs repères du même nom : celui de l'endroit du lot
+            ids = [min(ids, key=lambda i_: next(((m_["s"] != pres[0], (m_["x"] - pres[1]) ** 2 + (m_["y"] - pres[2]) ** 2) for m_ in MARQ if m_["id"] == i_)))]
+    elif boss_nomme:
+        ids = filtre_region(boss_nomme, parties)
     elif pts:
         # Donné par un personnage, un boss ou une scène : d'après les scripts du jeu (événements et dialogues).
         for p in pts:
-            proche = min((x for x in SUJETS if x["c"] in ("boss", "pnj", "envahisseurs") and x["s"] == p["s"]),
-                         key=lambda x: (x["x"] - p["x"]) ** 2 + (x["y"] - p["y"]) ** 2, default=None)
-            if proche and math.hypot(proche["x"] - p["x"], proche["y"] - p["y"]) < 15:
+            # Repère tout proche, et du même nom que la ligne du lot quand elle en a un : sinon ce n'est qu'un voisin
+            # (un scarabée tué à côté de Rogier n'est pas un cadeau de Rogier) et on montre l'endroit exact.
+            # À égalité, le personnage passe avant le garde posé à côté de lui (Tanith avant le Chevalier de Tanith).
+            # Sans nom de ligne, le nom de l'entité du script fait foi (Chasseur de perles cinéraires ≠ marchand voisin).
+            nom_ref = parties or [n_ for n_ in (p.get("en"), p.get("n")) if n_ and "dummy" not in n_.lower()]
+            voisins = [x for x in SUJETS if x["c"] in ("boss", "pnj", "envahisseurs") and x["s"] == p["s"]
+                       and math.hypot(x["x"] - p["x"], x["y"] - p["y"]) < 15 and (not nom_ref or concorde(nom_ref, x["_noms"]))]
+            proche = min(voisins, key=lambda x: (x["c"] != "pnj", math.hypot(x["x"] - p["x"], x["y"] - p["y"])), default=None)
+            if proche:
                 if proche["id"] not in ids:
                     ids.append(proche["id"])
             else:
                 e = f"lot-{lid}"
-                ennemis_site.setdefault(e, {"n": (parties[-1] if parties else p.get("n")) or "Endroit de l'événement", "p": []})
+                nom_p = p.get("n") if p.get("n") and "dummy" not in p.get("n", "").lower() else ennemi_proche_nom(p)
+                ennemis_site.setdefault(e, {"n": (libelle(parties[-1]) if parties else nom_p) or "Endroit de l'événement", "p": []})
                 if [p["s"], round(p["x"]), round(p["y"])] not in ennemis_site[e]["p"]:
                     ennemis_site[e]["p"].append([p["s"], round(p["x"]), round(p["y"])])
     elif parties and parties[0].startswith("Chapel of Anticipation"):
         ids = beffrois
     elif parties:
-        ids = trouver(list(reversed(parties)), pres)
+        ids = filtre_region(trouver(list(reversed(parties)), pres, maxi=12), parties)[:4]
+        if not ids:
+            # Nom de lieu : le site de grâce du même nom (ex. Trône du prince de la mort)
+            ids = [m_["id"] for m_ in graces if norme(m_.get("en")) in {norme(x) for x in parties}][:1]
         if not ids:
             p = ennemis_proches(list(reversed(parties)), pres)
             if p:
                 e = f"lot-{lid}"
-                ennemis_site[e] = {"n": parties[-1], "p": [p]}
+                ennemis_site[e] = {"n": libelle(parties[-1]), "p": [p]}
+    TRACE_RECOMPENSES.append({"lot": lid, "parties": parties, "ids": list(ids), "e": e,
+                              "noms": [(x["n"], x.get("en")) for x in SUJETS if x["id"] in ids][:6],
+                              "scripts": [(p.get("t"), p.get("n"), p.get("en")) for p in pts][:4]})
     for j in range(1, 9):
         iid, cat = r.get(f"lotItemId0{j}", 0), r.get(f"lotItemCategory0{j}", 0)
         if iid > 0 and (cat in FMG or cat == 6):
@@ -524,15 +612,9 @@ ALIAS = collections.defaultdict(list)
 for cat_, (nom_f_, _, _) in FMG.items():
     for j, t in en(nom_f_).items():
         ALIAS[(cat_, t)].append(j)
-# Objets donnés directement par l'événement de départ (événement commun 701 : doigts, effigies, anneaux…)
-import scripts_jeu
-TYPE_DON = {0: 2, 1: 3, 2: 4, 3: 1, 4: 5}
-DONS_DEPART = set()
-for eid_, instrs_, params_ in scripts_jeu.tous_les_evenements().get("common", []):
-    if eid_ == 701:
-        for b_, n_, v_ in instrs_:
-            if (b_, n_) == (2003, 43) and len(v_) > 1 and v_[0] in TYPE_DON:
-                DONS_DEPART.add(cle(TYPE_DON[v_[0]], v_[1]))
+# L'événement commun 701 donne doigts, effigies et anneaux multijoueur, mais seulement dans les versions de test réseau
+# (drapeaux 2000/2001) : en jeu normal ils se trouvent (Doigt crochu sur un cadavre du Cimetière abandonné, Langue de
+# raillerie d'Alberich, Doigt sanglant de Varré…). On ne s'en sert donc pas comme source.
 
 # ---------- Fiches ----------
 os.makedirs(os.path.join(SORTIE, "img"), exist_ok=True)
@@ -592,15 +674,13 @@ for dossier, type_fiche, groupe, cat in GROUPES:
         for kk in cles:
             ou += [x for x in boutiques.get(kk, []) + recompenses.get(kk, []) if x not in ou]
         for qui, pc in sorted({q: p for kk in cles for q, p in butins.get(kk, {}).items() if ennemis_site[cle_ennemi(q)]["p"]}.items(),
-                              key=lambda x: -x[1])[:8]:
+                              key=lambda x: -x[1]):  # tous les ennemis qui le lâchent, du plus probable au moins
             # Ennemi jamais posé sur les cartes du jeu de base : variante de l'extension, on l'écarte.
             ce = cle_ennemi(qui)
             ou.append({"t": "butin", "qui": qui, "pc": pc, "e": ce, "nb": len(ennemis_site[ce]["p"])})
         fab = [l for kk in cles for l in fabrication.get(kk, [])]
         if fab:
             ou.append({"t": "fabrication", "livres": list(dict.fromkeys(fab)), "_ingr": [x for kk in cles for x in ingredients.get(kk, [])]})
-        if any(kk in DONS_DEPART for kk in cles):
-            ou.insert(0, {"t": "depart", "classes": ["reçu au début du jeu"]})
         if ou:
             fiche["ou"] = ou
         fiches.append(fiche)
@@ -637,6 +717,8 @@ SPECIAUX = {
     "Mending Rune of the Fell Curse": [{"t": "recompense", "quoi": "Fin de la quête du Coprophage : cinq Seedbed Curses dans sa cellule des égouts",
                                         "sujets": [("pnj", "Le Coprophage")]}],
     "Rold Medallion": [{"t": "recompense", "quoi": "Donné par Melina après la mort de Morgott", "sujets": [("boss", "Morgott, the Omen King")]}],
+    "Small Golden Effigy": [{"t": "recompense", "quoi": "Reçue en activant ta première Effigie du martyr (bassin d'invocation) : la plus proche est juste à l'est du site de grâce de la Première étape",
+                             "sujets": [("graces", "The First Step")]}],
     "Flask of Cerulean Tears": [{"t": "depart", "classes": ["toutes les classes"]}],
     "Flask of Crimson Tears": [{"t": "depart", "classes": ["toutes les classes"]}],
 }
@@ -705,8 +787,65 @@ for f in fiches:
             noms_ = list(dict.fromkeys(NOM_REPERE[i] for i in x["ids"] if i in NOM_REPERE))
             if noms_ and x["t"] == "recompense":
                 x["chez"] = noms_[:4]
+        elif x["t"] == "recompense" and x.get("e") and x.get("quoi", "").startswith("Événement du jeu"):
+            nom_e = ennemis_site.get(x["e"], {}).get("n", "")
+            if nom_e and nom_e != "Endroit de l'événement":
+                x["chez"] = [nom_e]
     if not ou:
         f.pop("ou")
+# Noms de lignes Paramdex (anglais) de tout ce qui donne chaque objet : lots de la carte, butins d'ennemis, boutiques.
+# Sert à extraire_quetes.py pour rattacher aux quêtes les objets donnés par leurs personnages.
+BRUT = collections.defaultdict(set)
+for _lid, _r in LOTS.items():
+    _m = re.match(r"\[(.+?)\]", NOMS_LOTS.get(_lid, ""))
+    _t = str(_lid)
+    if not _m or (len(_t) == 10 and _t[:2] == "20") or (len(_t) == 8 and _t[:2] in ("20", "21", "22", "25", "28")):
+        continue  # sans nom, ou extension
+    for j in range(1, 9):
+        iid, cat = _r.get(f"lotItemId0{j}", 0), _r.get(f"lotItemCategory0{j}", 0)
+        if iid > 0 and (cat in FMG or cat == 6):
+            BRUT[cle(cat, iid)].add("lot:" + _m.group(1))
+for _lid, _r in LOTS_ENN.items():
+    _m = re.match(r"\[(.+?)\]", NOMS_ENN.get(_lid, ""))
+    if not _m:
+        continue
+    for j in range(1, 9):
+        iid, cat = _r.get(f"lotItemId0{j}", 0), _r.get(f"lotItemCategory0{j}", 0)
+        if iid > 0 and (cat in FMG or cat == 6):
+            BRUT[cle(cat, iid)].add("ennemi:" + _m.group(1))
+for _rid, _r in BOUTIQUES.items():
+    _m = re.match(r"\[(.+?)\]", NOMS_BOUTIQUES.get(_rid, ""))
+    _cat = TYPE_BOUTIQUE.get(_r.get("equipType"))
+    if _m and _cat is not None and _r.get("equipId", 0) > 0:
+        BRUT[cle(_cat, _r["equipId"])].add("boutique:" + _m.group(1))
+json.dump({f["s"]: sorted(set().union(*(BRUT.get(kk, set()) for kk in f["_cles"]))) for f in fiches},
+          open(os.path.join(config.DOSSIER, "sources-brutes.json"), "w"), ensure_ascii=False)
+
+# Perle cinéraire de chaque marchand (lâchée quand il meurt) : les Carcasses des Servantes jumelles vendent alors son stock.
+reperes_id = {m["id"]: m for m in MARQ}
+perle_par_marchand = {}
+for f in fiches:
+    if not re.search(r"Bell Bearing", f["en"]) or re.search(r"Miner|Peddler|Picker", f["en"]):
+        continue
+    for x in f.get("ou", []):
+        for i_ in ([x["id"]] if x["t"] == "carte" and x.get("id") else []) + x.get("ids", []):
+            m_ = reperes_id.get(i_)
+            if not m_:
+                continue
+            if m_["c"] == "pnj":
+                perle_par_marchand.setdefault(i_, f)
+                continue
+            proche = min((y for y in SUJETS if y["c"] == "pnj" and y["s"] == m_["s"]),
+                         key=lambda y: (y["x"] - m_["x"]) ** 2 + (y["y"] - m_["y"]) ** 2, default=None)
+            if proche and math.hypot(proche["x"] - m_["x"], proche["y"] - m_["y"]) < 30:
+                perle_par_marchand.setdefault(proche["id"], f)
+for f in fiches:
+    for x in f.get("ou", []):
+        if x["t"] == "boutique" and not x.get("apres"):
+            perle = next((perle_par_marchand[i_] for i_ in x.get("ids", []) if i_ in perle_par_marchand), None)
+            if perle:
+                x["perle"] = {"s": perle["s"], "n": perle["n"]}
+
 fiche_par_cle = {f["_k"]: f["s"] for f in fiches}
 for f in fiches:
     f.pop("_k", None)
@@ -719,6 +858,7 @@ if os.path.exists(chemin_res):
     k_vers_s = {k_: f["s"] for f in fiches for x in f.get("ou", []) if x["t"] == "cueillette" for k_ in x.get("k", [])}
     res_["types"] = [t_[:3] + [k_vers_s.get(t_[0], "")] for t_ in res_["types"]]
     json.dump(res_, open(chemin_res, "w"), ensure_ascii=False, separators=(",", ":"))
+json.dump(TRACE_RECOMPENSES, open(os.path.join(config.DOSSIER, "trace-recompenses.json"), "w"), ensure_ascii=False)
 utilises = {x["e"] for f in fiches for x in f.get("ou", []) if x.get("e")}
 json.dump({k: v for k, v in ennemis_site.items() if k in utilises and v["p"]},
           open(os.path.join(config.SORTIE, "ennemis.json"), "w"), ensure_ascii=False, separators=(",", ":"))

@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowLeft, ArrowRight, BookOpen, Check, Gift, Hammer, Leaf, Map as IconeCarte, MapPin, Search, ShoppingBag, Skull, Sparkles, Trophy, User } from 'lucide-react'
+import { ArrowLeft, ArrowRight, BookOpen, Check, Gift, Hammer, Leaf, Map as IconeCarte, MapPin, ScrollText, Search, ShoppingBag, Skull, Sparkles, Trophy, User } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { ecrireObtenus, lireObtenus } from '../coches'
-import { aDesCibles, BASE_OBJETS as BASE, chargerObjets as charger, LIEN_CARTE_OBJET, LIEN_OBJETS as LIEN, texteSource } from './donnees'
+import { aDesCibles, BASE_OBJETS as BASE, chargerObjets as charger, LIEN_CARTE_OBJET, LIEN_OBJETS as LIEN, lienQuete, texteSource } from './donnees'
 import type { Donnees, Lien, Objet, Source, Valeur } from './donnees'
 import './objets.css'
 
@@ -38,7 +38,7 @@ function Stats({ st }: { st: Record<string, Valeur> }) {
 
 const ICONES: Record<Source['t'], LucideIcon> = {
   carte: MapPin, cueillette: Leaf, 'hors-carte': MapPin, boutique: ShoppingBag, recompense: Trophy, butin: Skull, fabrication: Hammer,
-  depart: User, souvenir: Gift, retouche: Sparkles, fiole: Sparkles, attachee: Sparkles, aide: BookOpen,
+  depart: User, souvenir: Gift, retouche: Sparkles, fiole: Sparkles, attachee: Sparkles, aide: BookOpen, quete: ScrollText,
 }
 
 function Liens({ titre, liens }: { titre: string; liens?: Lien[] }) {
@@ -71,7 +71,9 @@ function Ou({ objet }: { objet: Objet }) {
               {s.t === 'fabrication' && <><Liens titre="Livre" liens={s.livres} /><Liens titre="Ingrédients" liens={s.ingredients} /></>}
               {(s.t === 'retouche' || s.t === 'fiole') && s.s && <Liens titre="Fiche" liens={[{ s: s.s, n: s.n ?? '' }]} />}
               {s.t === 'attachee' && <Liens titre="Arme" liens={s.armes} />}
+              {s.perle && <Liens titre="Perle cinéraire" liens={[s.perle]} />}
             </span>
+            {s.t === 'quete' && <a href={lienQuete(s)} className="ero-voir">Voir la quête</a>}
             {aDesCibles(s) && <a href={`${LIEN_CARTE_OBJET}/${objet.s}/${k}`} className="ero-voir">Voir sur la carte</a>}
           </li>
         )

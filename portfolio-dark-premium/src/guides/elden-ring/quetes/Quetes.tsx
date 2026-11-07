@@ -114,8 +114,13 @@ function Recompenses({ slugs }: { slugs: (string | null)[] }) {
   )
 }
 
-function VueQuete({ q, faites, basculer }: { q: Quete; faites: Set<string>; basculer: (k: string) => void }) {
-  useEffect(() => { window.scrollTo({ top: 0, behavior: 'instant' }) }, [q.id])
+function VueQuete({ q, faites, basculer, etape }: { q: Quete; faites: Set<string>; basculer: (k: string) => void; etape?: number }) {
+  // Lien vers une étape précise (depuis l'encyclopédie des objets) : on la fait défiler en vue.
+  useEffect(() => {
+    const cible = etape ? document.getElementById(`etape-${etape}`) : null
+    if (cible) cible.scrollIntoView({ behavior: 'instant', block: 'start' })
+    else window.scrollTo({ top: 0, behavior: 'instant' })
+  }, [q.id, etape])
   const nb = q.etapes.filter((_, i) => faites.has(`${q.id}:${i}`)).length
   return (
     <article className="erq">
@@ -147,7 +152,7 @@ function VueQuete({ q, faites, basculer }: { q: Quete; faites: Set<string>; basc
           const cle = `${q.id}:${i}`
           const faite = faites.has(cle)
           return (
-            <li key={cle} className={faite ? 'is-faite' : undefined}>
+            <li key={cle} id={`etape-${i + 1}`} className={[faite ? 'is-faite' : '', etape === i + 1 ? 'is-visee' : ''].filter(Boolean).join(' ') || undefined}>
               <div className="erq-num">{i + 1}</div>
               <div className="erq-corps">
                 <header>
@@ -188,6 +193,7 @@ export default function Quetes({ chemin }: { chemin: string }) {
   const [faites, setFaites] = useState(lireEtapes)
   useEffect(() => { charger().then(d => setQuetes(d.quetes), () => setErreur(true)) }, [])
   const id = chemin.split('/')[1] ?? ''
+  const etape = Number(chemin.split('/')[2]) || undefined
   const basculer = (k: string) => setFaites(avant => {
     const s = new Set(avant)
     if (s.has(k)) s.delete(k); else s.add(k)
@@ -198,7 +204,7 @@ export default function Quetes({ chemin }: { chemin: string }) {
 
   if (erreur) return <p className="erq-etat">Impossible de charger les guides de quêtes.</p>
   if (!quetes) return <p className="erq-etat">Chargement des quêtes…</p>
-  if (quete) return <VueQuete q={quete} faites={faites} basculer={basculer} />
+  if (quete) return <VueQuete q={quete} faites={faites} basculer={basculer} etape={etape} />
 
   const carteQuete = (q: Quete) => {
     const nb = q.etapes.filter((_, i) => faites.has(`${q.id}:${i}`)).length

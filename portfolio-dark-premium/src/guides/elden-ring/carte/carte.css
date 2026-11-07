@@ -57,6 +57,7 @@
 .erc-sections small { display: block; margin-top: 1px; font-size: 11.5px; line-height: 1.4; color: var(--gris); }
 .erc-sections span:not(.erc-nb):not(.erc-puce) { flex: 1; min-width: 0; }
 .erc-section-texte { display: block; background: transparent; border: 1px dashed var(--bord); }
+.erc-section-texte a { display: inline-block; margin-top: 4px; font-size: 12px; font-weight: 600; color: var(--fort); text-decoration: underline; text-decoration-color: var(--bord); text-underline-offset: 2px; }
 .erc-puce { flex: none; width: 10px; height: 10px; margin: 0 8px; border-radius: 50%; background: #d9a93a; box-shadow: 0 0 0 2px #1d1813; }
 .erc-endroits { margin: 4px 0 6px 18px; padding: 0 0 0 14px; display: grid; gap: 1px; font-size: 12.5px; color: var(--gris); }
 .erc-endroits button { display: block; padding: 4px 6px; border: 0; background: transparent; font-size: 12.5px; color: var(--texte); }
