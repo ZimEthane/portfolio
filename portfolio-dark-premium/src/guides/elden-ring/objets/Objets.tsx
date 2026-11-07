@@ -1,45 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowLeft, ArrowRight, Check, MapPin, Search, ShoppingBag, Skull, Trophy } from 'lucide-react'
+import { ArrowLeft, ArrowRight, BookOpen, Check, Gift, Hammer, Leaf, Map as IconeCarte, MapPin, Search, ShoppingBag, Skull, Sparkles, Trophy, User } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { ecrireObtenus, lireObtenus } from '../coches'
+import { aDesCibles, BASE_OBJETS as BASE, chargerObjets as charger, LIEN_CARTE_OBJET, LIEN_OBJETS as LIEN, texteSource } from './donnees'
+import type { Donnees, Lien, Objet, Source, Valeur } from './donnees'
 import './objets.css'
 
-// Une fiche d'objet (voir scripts/carte-elden-ring/extraire_objets.py).
-type Valeur = number | string | Record<string, number | string>
-interface Source {
-  t: 'carte' | 'boutique' | 'recompense' | 'butin'
-  id?: string // repère de la carte
-  comment?: string
-  pres?: string
-  z?: string
-  sous?: number
-  qui?: string
-  prix?: number
-  echange?: string
-  stock?: number
-  quoi?: string
-  pc?: number
-}
-export interface Objet {
-  s: string // adresse
-  t: string // groupe
-  n: string
-  en: string
-  c: string // sous-catégorie
-  i?: number // illustration
-  d: string // description
-  e?: string // effet
-  st?: Record<string, Valeur>
-  ou?: Source[]
-}
-interface Donnees { version: string; groupes: { t: string; nom: string }[]; objets: Objet[] }
+export type { Objet } from './donnees'
 
-const BASE = `${import.meta.env.BASE_URL}guides/elden-ring/objets/`
-const LIEN = '#guides/elden-ring/objets'
 const norme = (t: string) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
-const runes = (n: number) => `${n.toLocaleString('fr-FR')} runes`
-
-let cache: Promise<Donnees> | null = null
-const charger = () => (cache ??= fetch(`${BASE}objets.json`).then(r => { if (!r.ok) throw new Error(String(r.status)); return r.json() as Promise<Donnees> }))
 
 function Illustration({ objet, taille }: { objet: Objet; taille: 'min' | 'img' }) {
   if (objet.i === undefined) return <span className={`ero-illus ero-${taille} is-vide`} />
@@ -67,40 +36,45 @@ function Stats({ st }: { st: Record<string, Valeur> }) {
   )
 }
 
-function Ou({ sources }: { sources?: Source[] }) {
+const ICONES: Record<Source['t'], LucideIcon> = {
+  carte: MapPin, cueillette: Leaf, 'hors-carte': MapPin, boutique: ShoppingBag, recompense: Trophy, butin: Skull, fabrication: Hammer,
+  depart: User, souvenir: Gift, retouche: Sparkles, fiole: Sparkles, attachee: Sparkles, aide: BookOpen,
+}
+
+function Liens({ titre, liens }: { titre: string; liens?: Lien[] }) {
+  const l = (liens ?? []).filter(x => x.s)
+  if (!l.length) return null
+  return (
+    <small className="ero-liens">
+      {titre} :{' '}
+      {l.map((x, k) => <span key={x.s}>{k > 0 && ', '}<a href={`${LIEN}/${x.s}`}>{x.n}</a>{x.q && x.q > 1 ? ` ×${x.q}` : ''}</span>)}
+    </small>
+  )
+}
+
+function Ou({ objet }: { objet: Objet }) {
+  const sources = objet.ou
   if (!sources?.length) {
-    return <p className="ero-vide">Aucun emplacement fixe répertorié : objet de départ d'une classe, récompense de quête ou butin rare. Cherche son nom dans le guide.</p>
+    return <p className="ero-vide">Aucun emplacement répertorié pour cet objet.</p>
   }
   return (
     <ul className="ero-ou">
       {sources.map((s, k) => {
-        if (s.t === 'carte') return (
+        const { titre, detail } = texteSource(s)
+        const Icone = ICONES[s.t] ?? MapPin
+        return (
           <li key={k}>
-            <MapPin size={16} />
+            <Icone size={16} />
             <span>
-              <b>{s.comment}</b>
-              {s.z ? <> à l'intérieur de <b>{s.z}</b></> : null}
-              {s.pres ? <small>Grâce la plus proche : {s.pres}{s.sous ? ' (souterrain)' : ''}</small> : null}
+              <b>{titre}</b>
+              {detail && <small>{detail}</small>}
+              {s.t === 'fabrication' && <><Liens titre="Livre" liens={s.livres} /><Liens titre="Ingrédients" liens={s.ingredients} /></>}
+              {(s.t === 'retouche' || s.t === 'fiole') && s.s && <Liens titre="Fiche" liens={[{ s: s.s, n: s.n ?? '' }]} />}
+              {s.t === 'attachee' && <Liens titre="Arme" liens={s.armes} />}
             </span>
-            <a href={`#guides/elden-ring/carte/${s.id}`} className="ero-voir">Voir sur la carte</a>
+            {aDesCibles(s) && <a href={`${LIEN_CARTE_OBJET}/${objet.s}/${k}`} className="ero-voir">Voir sur la carte</a>}
           </li>
         )
-        if (s.t === 'boutique') return (
-          <li key={k}>
-            <ShoppingBag size={16} />
-            <span>
-              <b>Vendu par {s.qui}</b>
-              <small>
-                {s.echange ? `Échange contre : ${s.echange}` : s.prix ? runes(s.prix) : 'Prix variable'}
-                {s.stock ? ` · ${s.stock} en stock` : ' · stock illimité'}
-              </small>
-            </span>
-          </li>
-        )
-        if (s.t === 'butin') return (
-          <li key={k}><Skull size={16} /><span><b>Lâché par {s.qui}</b><small>Chance : {s.pc?.toLocaleString('fr-FR')} %</small></span></li>
-        )
-        return <li key={k}><Trophy size={16} /><span><b>Obtenu : {s.quoi}</b><small>Récompense (boss, quête ou personnage)</small></span></li>
       })}
     </ul>
   )
@@ -126,8 +100,13 @@ function Fiche({ objet, voisins, obtenu, onObtenu, nomGroupe }: { objet: Objet; 
       </header>
       {objet.st && <Stats st={objet.st} />}
       <section className="ero-bloc">
-        <h2>Où le trouver</h2>
-        <Ou sources={objet.ou} />
+        <div className="ero-bloc-tete">
+          <h2>Où le trouver</h2>
+          {objet.ou?.some(aDesCibles) && (
+            <a className="ero-tout-carte" href={`${LIEN_CARTE_OBJET}/${objet.s}`}><IconeCarte size={15} /> Tous les emplacements sur la carte</a>
+          )}
+        </div>
+        <Ou objet={objet} />
       </section>
       {objet.d && (
         <section className="ero-bloc">

@@ -4,13 +4,35 @@ import ooz
 
 ER_REG_KEY = bytes.fromhex("99BFFC366A6BC8C6F5827D093602D676C42892A01C207FB024D3AF4E493FEF99")
 
+def kraken(src: bytes, usize: int) -> bytes:
+    """Oodle Kraken : le jeu redémarre le décodeur tous les 256 Ko, on décode donc chaque bloc séparément
+    (le décodeur libre « ooz » ne sait pas enchaîner les blocs d'Elden Ring)."""
+    if usize <= 0x40000:
+        return ooz.decompress(src, usize)
+    out, pos = bytearray(), 0
+    while len(out) < usize:
+        n = min(0x40000, usize - len(out))
+        b0, b1 = src[pos], src[pos + 1]
+        if (b0 >> 6) & 1:  # bloc non compressé
+            debut = pos + 2
+            out += src[debut:debut + n]
+            pos = debut + n
+            continue
+        q = pos + 2
+        v = (src[q] << 16) | (src[q + 1] << 8) | src[q + 2]
+        taille = v & 0x3FFFF
+        fin = q + (6 if b1 >> 7 else 3) + (taille + 1 if taille != 0x3FFFF else 1)
+        out += ooz.decompress(src[pos:fin], n)
+        pos = fin
+    return bytes(out)
+
 def dcx(data: bytes) -> bytes:
     assert data[:4] == b"DCX\0", data[:4]
     usize, csize = struct.unpack(">II", data[0x1C:0x24])
     fmt = data[0x28:0x2C]
     off = 0x4C
     if fmt == b"KRAK":
-        return ooz.decompress(data[off:off + csize], usize)
+        return kraken(data[off:off + csize], usize)
     if fmt == b"ZSTD":
         import zstandard
         return zstandard.ZstdDecompressor().decompress(data[off:off + csize], max_output_size=usize)
