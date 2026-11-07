@@ -30,6 +30,7 @@ export interface Source {
   inverse?: number
   niveau?: number
   armes?: Lien[]
+  tableau?: Lien // carte : récompense d'un tableau (n'apparaît que si l'on a le tableau)
   apres?: string // boutique : condition (« après leur avoir donné la Perle… »)
   perle?: Lien // boutique : Perle cinéraire du marchand (les Carcasses des Servantes jumelles vendent alors son stock)
   q?: string // quête (adresse)
@@ -69,7 +70,11 @@ const liste = (l: string[]) => (l.length < 2 ? l.join('') : `${l.slice(0, -1).jo
 export function texteSource(s: Source): { titre: string; detail?: string } {
   switch (s.t) {
     case 'carte':
-      return { titre: s.comment || 'Ramassé sur place', detail: [s.z && `À l'intérieur : ${s.z}`, s.pres && `Grâce la plus proche : ${s.pres}${s.sous ? ' (souterrain)' : ''}`].filter(Boolean).join(' · ') }
+      return {
+        titre: s.comment || 'Ramassé sur place',
+        detail: [s.tableau && 'Va à l\'endroit peint : l\'esprit du peintre n\'apparaît que si tu as le tableau', s.z && `À l'intérieur : ${s.z}`,
+          s.pres && `Grâce la plus proche : ${s.pres}${s.sous ? ' (souterrain)' : ''}`].filter(Boolean).join(' · '),
+      }
     case 'cueillette':
       return { titre: 'Se ramasse dans la nature', detail: `${(s.nb ?? 0).toLocaleString('fr-FR')} points de cueillette sur la carte (ils réapparaissent)` }
     case 'hors-carte':
@@ -102,7 +107,7 @@ export function texteSource(s: Source): { titre: string; detail?: string } {
         ? { titre: `En annulant la retouche de « ${s.n} »`, detail: 'À un site de grâce, menu « Retoucher un vêtement »' }
         : { titre: `En retouchant « ${s.n} »`, detail: 'À un site de grâce, menu « Retoucher un vêtement »' }
     case 'fiole':
-      return { titre: `Fiole améliorée au niveau +${s.niveau}`, detail: `Avec des ${s.n ?? 'Larmes de vie'}, au site de grâce` }
+      return { titre: `Fiole améliorée au niveau +${s.niveau}`, detail: `Une ${s.n ?? 'Larme de vie'} par niveau, à un site de grâce` }
     case 'attachee':
       return { titre: `Fixée sur ${liste((s.armes ?? []).map(a => a.n))}`, detail: 'Vient avec l\'arme ; se retire avec une Pierre à aiguiser' }
     case 'aide':

@@ -72,6 +72,7 @@ function Ou({ objet }: { objet: Objet }) {
               {(s.t === 'retouche' || s.t === 'fiole') && s.s && <Liens titre="Fiche" liens={[{ s: s.s, n: s.n ?? '' }]} />}
               {s.t === 'attachee' && <Liens titre="Arme" liens={s.armes} />}
               {s.perle && <Liens titre="Perle cinéraire" liens={[s.perle]} />}
+              {s.tableau && <Liens titre="Tableau" liens={[{ ...s.tableau, n: s.tableau.n.replace(/^Tableau\s*:\s*/, '') }]} />}
             </span>
             {s.t === 'quete' && <a href={lienQuete(s)} className="ero-voir">Voir la quête</a>}
             {aDesCibles(s) && <a href={`${LIEN_CARTE_OBJET}/${objet.s}/${k}`} className="ero-voir">Voir sur la carte</a>}

@@ -364,6 +364,7 @@ CONDITIONS_ENV = {
     "Edgar the Revenger": "Pendant la quête d'Irina : après le drame du Château de Vent-Hurlant, repose-toi au site de grâce de la Cabane du vengeur.",
     "Eleonora, Violet Bloody Finger": "Pendant la quête de Yura.",
     "Knight of the Great Jar": "Les trois duels du défi de la Grande jarre (signes rouges devant elle).",
+    "Festering Fingerprint Vyke": "Il t'envahit près de l'Église de l'inhibition, au nord de Liurnia (sur la route du village de la Flamme exaltée).",
 }
 par_marqueur = {}
 for f_ in objets_liste["objets"]:
@@ -390,6 +391,43 @@ for en_nom, ms in sorted(envs.items(), key=lambda kv: (region_m(kv[1][0]), kv[1]
 quetes.append({"id": "envahisseurs", "nom": "Tous les envahisseurs PNJ", "en": "NPC invaders", "detaille": True, "fond": "table-ronde",
                "resume": "Chaque envahisseur PNJ du jeu de base qui laisse quelque chose : où il apparaît et ce qu'il lâche (armes, armures, talismans…). Les conditions particulières sont précisées ; sinon, il suffit d'approcher.",
                "region": "Toute la carte", "recompenses": list(dict.fromkeys(s_ for e in etapes_env for s_ in e["objets"])), "etapes": etapes_env})
+
+# ---------- Tableaux : trouver le tableau, puis l'endroit peint, où l'esprit du peintre laisse sa récompense ----------
+ennemis_json = json.load(open(os.path.join(SITE, "carte", "ennemis.json")))
+AIDE_TABLEAUX = {
+    '"Homing Instinct" Painting': "La vue est prise au bord de la mer, au nord-ouest du site de grâce des Ruines côtières, au sud des Ruines brûlées par le dragon.",
+    '"Resurrection" Painting': "L'endroit peint se trouve au Manoir de Caria, dans les étages.",
+    '"Champion\'s Song" Painting': "L'endroit peint est la falaise au sud-ouest du site de grâce Chemin des remparts (là où l'on affronte Lansseax), face à la Tombe du héros canonisé.",
+    '"Sorcerer" Painting': "L'endroit peint est dans les Champs enneigés consacrés, près de la Grotte des parias.",
+    '"Prophecy" Painting': "L'endroit peint est derrière l'Église des pèlerins, sur la Péninsule larmoyante.",
+    '"Flightless Bird" Painting': "L'endroit peint est le village des moulins (Hauteurs aux moulins, Plateau Altus), au-delà des danseuses.",
+    '"Redmane" Painting': "L'endroit peint est en contrebas des falaises du Tertre draconique, au sud-est de l'Arbre-Monde mineur.",
+}
+etapes_tab = []
+for en_t, aide_t in AIDE_TABLEAUX.items():
+    s_t = obj(en_t)
+    if not s_t:
+        continue
+    o_t = objets[s_t]
+    recomp = [f_["s"] for f_ in objets_liste["objets"] for x in f_.get("ou", []) if (x.get("tableau") or {}).get("s") == s_t]
+    marque = next((par_id[x["id"]] for f_ in objets_liste["objets"] for x in f_.get("ou", []) if (x.get("tableau") or {}).get("s") == s_t and x.get("id") in par_id), None)
+    src_t = next((x for x in o_t.get("ou", []) if x["t"] == "recompense"), {})
+    ou_t = src_t.get("quoi", "")
+    texte = (f"Le {lien_objet(en_t)} se trouve ici : <strong>{ou_t}</strong>. Examine-le, puis rends-toi à l'endroit qu'il représente. {aide_t} "
+             f"L'esprit du peintre y apparaît (seulement si tu as le tableau) et laisse : " + ", ".join(lien_objet(objets[r]["en"]) for r in recomp) + ".")
+    pt_t = None
+    if src_t.get("ids") and src_t["ids"][0] in par_id:
+        pt_t = par_id[src_t["ids"][0]]
+    elif src_t.get("e") and ennemis_json.get(src_t["e"], {}).get("p"):
+        s_, x_, y_ = ennemis_json[src_t["e"]]["p"][0]
+        pt_t = {"id": f"tab-{s_t}", "s": s_, "x": x_, "y": y_, "n": o_t["n"], "c": "objets-cles"}
+    e = E(o_t["n"].replace("Tableau : ", "").replace("Tableau\xa0: ", ""), ou_t.split(" – ")[0], "", texte, carte(marque, None, [pt_t] if pt_t else []) if marque else None)
+    e["objets"] = [s_t] + recomp
+    etapes_tab.append(e)
+if etapes_tab:
+    quetes.append({"id": "tableaux", "nom": "Les sept tableaux du peintre", "en": "Artist's Paintings", "detaille": True, "fond": "caria",
+                   "resume": "Sept tableaux cachés dans les Cabanes de l'artiste et les châteaux. Chacun montre un paysage : va à l'endroit peint et l'esprit du peintre te laisse une récompense.",
+                   "region": "Toute la carte", "recompenses": list(dict.fromkeys(s_ for e in etapes_tab for s_ in e["objets"])), "etapes": etapes_tab})
 
 # ---------- Objets donnés par les personnages de chaque quête (noms de lignes Paramdex), en plus de ceux cités ----------
 QUETE_PNJ = {

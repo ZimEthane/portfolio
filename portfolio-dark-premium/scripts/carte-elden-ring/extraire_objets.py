@@ -235,6 +235,10 @@ _FREQ = collections.Counter(w for ws in _PAR_NOM.values() for w in ws)
 def concorde(noms_a, noms_b):
     a, b = set().union(*map(mots, noms_a)), set().union(*map(mots, noms_b))
     commun = a & b
+    # Un mot du sujet inconnu de tous les repères (« Fortified » de Fortified Manor) : le sujet n'est pas un de ces
+    # repères, un seul mot commun (« Manor ») ne suffit pas.
+    if any(_FREQ[w] == 0 and len(w) >= 5 for w in a) and len(commun) < 2:
+        return False
     return len(commun) >= 2 or any(_FREQ[w] <= 4 for w in commun)
 
 # Mots des noms de lignes Paramdex qui ne désignent personne (« Corpse » ne doit pas mener à la Cabane fétide).
@@ -245,7 +249,7 @@ def trouver(sujets, pres=None, cats=("boss", "pnj", "envahisseurs", "lieux"), ma
     strict : nom exact ou contenu mot pour mot seulement (pas de ressemblance approximative)."""
     import difflib
     for sujet in sujets:
-        n = norme(sujet)
+        n = " ".join(FAUTES.get(w, w) for w in norme(sujet).split())
         if len(n) < 3 or n in GENERIQUES:
             continue
         cands = [m for m in SUJETS if m["c"] in cats]
@@ -372,6 +376,14 @@ for rid, r in BOUTIQUES.items():
     else:
         qui = libelle(brut)
     src = {"t": "boutique", "qui": qui}
+    if brut.startswith("Enia - "):
+        # Tenue d'un boss vendue contre des runes une fois le boss vaincu (drapeau 91xx) : pas un échange de Remembrance.
+        BOSS_ENIA = {9104: "Morgott, roi Réprouvé", 9107: "Godfrey, premier Seigneur d'Elden / Hoarah Loux le Guerrier",
+                     9130: "Radahn le Fléau des astres", 9112: "Mohg, seigneur du sang", 9118: "Rennala, reine de la pleine lune",
+                     9116: "Maliketh la Lame d'ébène", 9120: "Malenia, épée de Miquella"}
+        boss = BOSS_ENIA.get(r.get("eventFlag_forRelease")) or traduire(brut.split(" - ", 1)[1])
+        src["qui"] = "Enia (Table ronde)"
+        src["apres"] = f"après avoir vaincu {boss}"
     if brut.startswith("Twin Maiden Husks"):
         # Lignes débloquées par une Perle cinéraire donnée aux Carcasses (drapeau 111097xx = perle 89xx), ou en
         # rattrapage d'un objet clé manqué (Gideon mort, Renna partie, Kalé tué…).
@@ -436,6 +448,8 @@ def ennemi_proche_nom(p, rayon=12):
     n_ = re.sub(r"\s*(\(.*?\)|\[.*?\]|\{.*)", "", NOMS_NPC.get(int(best[1]), "")).strip()
     return traduire(n_) if n_ and "dummy" not in n_.lower() else ""
 TRACE_RECOMPENSES = []  # pour auditer_sources.py
+LOTS_DE_SOURCE = {}  # (objet, source) → lots du jeu qui la donnent (audit des sources écartées)
+SOURCES_ECARTEES = []
 # Lots dont la ligne Paramdex ne nomme qu'un lieu, mais dont on sait qui les donne (nom anglais du repère).
 LOTS_REPERES = {11100900: "Ensha of the Royal Remains",  # Main agrippée : lâchée par Ensha, envahisseur de la Table ronde
                 11100800: "Mad Tongue Alberich",  # Langue de raillerie : lâchée par Alberich, envahisseur de la Table ronde
@@ -462,8 +476,8 @@ def filtre_region(ids, parties):
     garde = [i for i in ids if i in par_id_ and voulu.lower() in region_de(par_id_[i]).lower()]
     return garde or ids
 for lid, r in LOTS.items():
-    if lid in lots_utilises:
-        continue
+    if lid in lots_utilises or lid < 10000:
+        continue  # déjà sur la carte, ou lot « système » (moins de 10000 : tests, objets de départ, lots génériques des scripts)
     t = str(lid)
     if (len(t) == 10 and t[:2] == "20") or (len(t) == 8 and t[:2] in ("20", "21", "22", "25", "28")):
         continue  # extension
@@ -534,6 +548,7 @@ for lid, r in LOTS.items():
                 src["e"], src["nb"] = e, len(ennemis_site[e]["p"])
             if src not in recompenses[k]:
                 recompenses[k].append(src)
+            LOTS_DE_SOURCE.setdefault((k, json.dumps(src, sort_keys=True, ensure_ascii=False)), []).append(lid)
 
 # ---------- Butins aléatoires des ennemis : lot de l'ennemi (NpcParam) → ses emplacements sur la carte ----------
 LOTS_ENN = lire("ItemLotParam_enemy.param", "ItemLotParam")
@@ -623,6 +638,14 @@ fiches, slugs, coupes = [], set(), []
 manque_illus = 0
 for dossier, type_fiche, groupe, cat in GROUPES:
     erdb_tout = json.load(open(os.path.join(config.ERDB, dossier + ".json")))
+    if dossier == "tools":
+        # Oubliés par ERDB : la Fiole de larmes pourpres (tous ses niveaux, la version pleine) et la Fiole de salut miraculeux
+        modele = erdb_tout["Flask of Cerulean Tears"]
+        manquants_ = [(1000 + 2 * k, "Flask of Crimson Tears" + (f" +{k}" if k else "")) for k in range(13)] + [(250, "Flask of Wondrous Physick")]
+        for iid_, nom_ in manquants_:
+            if nom_ not in erdb_tout and BIENS.get(iid_):
+                erdb_tout[nom_] = {**modele, "id": iid_, "name": nom_, "icon": BIENS[iid_].get("iconId", modele["icon"]),
+                                   "summary": "", "category": modele.get("category", "")}
     nom_f, desc_f, eff_f = FMG[cat]
     for nom_en, e in erdb_tout.items():
         iid = e["id"]
@@ -780,6 +803,8 @@ for f in fiches:
     # « Événement du jeu » sans repère ni endroit : n'apporte rien quand l'objet a d'autres sources
     vides = [x for x in ou if x["t"] == "recompense" and not x.get("ids") and not x.get("e") and (x.get("quoi", "").startswith("Événement du jeu") or x.get("quoi") == "Objet d'information")]
     if vides and len(vides) < len(ou):
+        for x in vides:
+            SOURCES_ECARTEES.append({"objet": f["en"], "source": x, "lots": [l_ for kk in f["_cles"] for l_ in LOTS_DE_SOURCE.get((kk, json.dumps(x, sort_keys=True, ensure_ascii=False)), [])]})
         ou[:] = [x for x in ou if x not in vides]
     # Qui donne la récompense (noms des repères), pour l'encyclopédie
     for x in ou:
@@ -821,6 +846,21 @@ for _rid, _r in BOUTIQUES.items():
 json.dump({f["s"]: sorted(set().union(*(BRUT.get(kk, set()) for kk in f["_cles"]))) for f in fiches},
           open(os.path.join(config.DOSSIER, "sources-brutes.json"), "w"), ensure_ascii=False)
 
+# Tableaux : la récompense posée à l'endroit peint n'apparaît que si l'on a le tableau (lots « Reward - "X" Painting »)
+TABLEAU_DE_LOT = {}
+for _lid, _nom in NOMS_LOTS.items():
+    _m = re.match(r'\[Reward - (".+?" Painting)\]', _nom)
+    if _m:
+        TABLEAU_DE_LOT[str(_lid)] = _m.group(1)
+for f in fiches:
+    for x in f.get("ou", []):
+        if x["t"] == "carte":
+            lot_ = next((l_ for l_ in TABLEAU_DE_LOT if x["id"].endswith(l_) and len(x["id"]) - len(l_) <= 2), None)
+            if lot_ and par_en.get(TABLEAU_DE_LOT[lot_]):
+                t_ = par_en[TABLEAU_DE_LOT[lot_]]
+                x["comment"] = "Récompense du " + re.sub(r"^Tableau\s*:\s*", "tableau ", t_["n"])
+                x["tableau"] = {"s": t_["s"], "n": t_["n"]}
+
 # Perle cinéraire de chaque marchand (lâchée quand il meurt) : les Carcasses des Servantes jumelles vendent alors son stock.
 reperes_id = {m["id"]: m for m in MARQ}
 perle_par_marchand = {}
@@ -859,6 +899,7 @@ if os.path.exists(chemin_res):
     res_["types"] = [t_[:3] + [k_vers_s.get(t_[0], "")] for t_ in res_["types"]]
     json.dump(res_, open(chemin_res, "w"), ensure_ascii=False, separators=(",", ":"))
 json.dump(TRACE_RECOMPENSES, open(os.path.join(config.DOSSIER, "trace-recompenses.json"), "w"), ensure_ascii=False)
+json.dump(SOURCES_ECARTEES, open(os.path.join(config.DOSSIER, "sources-ecartees.json"), "w"), ensure_ascii=False)
 utilises = {x["e"] for f in fiches for x in f.get("ou", []) if x.get("e")}
 json.dump({k: v for k, v in ennemis_site.items() if k in utilises and v["p"]},
           open(os.path.join(config.SORTIE, "ennemis.json"), "w"), ensure_ascii=False, separators=(",", ":"))
