@@ -53,6 +53,13 @@
 .ero-ou small { display: block; font-size: 12.5px; color: var(--gris); }
 .ero-voir { flex: none; padding: 5px 10px; border: 1px solid var(--bord); border-radius: 999px; font-size: 12px; font-weight: 600; color: var(--fort); }
 .ero-voir:hover { border-color: var(--or); }
+.ero-liens { margin-top: 2px; }
+.ero-liens a { color: var(--fort); text-decoration: underline; text-decoration-color: var(--bord); text-underline-offset: 2px; }
+.ero-liens a:hover { text-decoration-color: var(--or); }
+.ero-bloc-tete { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 14px; margin-bottom: 8px; }
+.ero-bloc-tete h2 { margin: 0; }
+.ero-tout-carte { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border: 1px solid var(--or); border-radius: 999px; background: #96712a1f; font-size: 12.5px; font-weight: 600; color: var(--fort); }
+.ero-tout-carte:hover { background: #96712a33; }
 .ero-vide { margin: 0; font-size: 14px; color: var(--gris-fonce); }
 .ero-desc { font: italic 400 17px/1.6 'EB Garamond Variable', 'EB Garamond', serif; color: var(--texte); }
 .ero-desc p { margin: 0; }
@@ -66,4 +73,6 @@
   .ero-img { width: 160px; height: 160px; }
   .ero-grille { grid-template-columns: 1fr 1fr; }
   .ero-grille a { flex-direction: column; text-align: center; }
+  .ero-ou li { flex-wrap: wrap; }
+  .ero-voir { margin-left: 26px; }
 }

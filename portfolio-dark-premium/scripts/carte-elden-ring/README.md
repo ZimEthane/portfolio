@@ -38,6 +38,17 @@ Ce que contiennent les donjons fermés (catacombes, grottes, galeries, Cimetièr
    python scripts/carte-elden-ring/tuiles.py carte-souterrain.jpg public/guides/elden-ring/carte/souterrain 6
    ```
    (Les tuiles ne sont à refaire que si les images de carte changent.)
+5. Encyclopédie des objets et contrôle « 100 % » (toujours après `extraire_carte.py --site`) :
+   ```
+   python scripts/carte-elden-ring/extraire_objets.py
+   python scripts/carte-elden-ring/verifier_objets.py   # code 1 s'il reste un objet sans source, sans endroit sur la carte, ou un lien cassé
+   ```
+   Pour les objets donnés par un événement ou un dialogue, `extraire_carte.py` lit aussi les scripts du jeu (`event/*.emevd.dcx`
+   et `talk/*.talkesdbnd.dcx`, à mettre dans `decompresse/event` et `decompresse/talk` ; `decompresser.py --scripts`) :
+   remise d'un lot par un événement → ennemi ou objet du même script, dialogue → personnage qui parle.
+   Sorties : `ennemis.json` (où sont posés les ennemis qui lâchent un objet), `ressources.json` (points de cueillette),
+   et dans `objets.json` chaque source d'un objet avec ce qu'il faut montrer sur la carte (`#guides/elden-ring/carte/objet/<fiche>`).
+   Les noms français des ennemis ordinaires (le jeu n'en affiche pas) sont dans `noms_ennemis.py`.
 
 Limites actuelles : le jeu de base seulement (les fichiers de l'extension ne sont pas reconnus par UXM), et 6 boss du bestiaire sans repère.
 

@@ -2,6 +2,7 @@
 puis range le résultat dans decompresse.zip (cartes MSB + textes FR/EN).
 
 Utilisation (dans E:\\ER-extraction) :  python decompresser.py
+                                          python decompresser.py --scripts   (événements et dialogues)
 """
 import ctypes, glob, os, struct, sys, zipfile, zlib
 
@@ -28,12 +29,19 @@ def dcx(data):
         raise ValueError("Oodle a renvoyé %d au lieu de %d" % (n, taille))
     return sortie.raw[:taille]
 
-fichiers = sorted(glob.glob(os.path.join(JEU, "map", "mapstudio", "*.msb.dcx")))
-for langue in ("frafr", "engus"):
-    fichiers += sorted(glob.glob(os.path.join(JEU, "msg", langue, "*.msgbnd.dcx")))
+SCRIPTS = "--scripts" in sys.argv  # scripts d'événements et de dialogues : qui donne quel objet, et où
+if SCRIPTS:
+    fichiers = sorted(glob.glob(os.path.join(JEU, "event", "*.emevd.dcx")))
+    fichiers += sorted(glob.glob(os.path.join(JEU, "script", "talk", "*.talkesdbnd.dcx")))
+    SORTIE_ZIP = "decompresse-scripts.zip"
+else:
+    fichiers = sorted(glob.glob(os.path.join(JEU, "map", "mapstudio", "*.msb.dcx")))
+    for langue in ("frafr", "engus"):
+        fichiers += sorted(glob.glob(os.path.join(JEU, "msg", langue, "*.msgbnd.dcx")))
+    SORTIE_ZIP = "decompresse.zip"
 
 erreurs = 0
-with zipfile.ZipFile(os.path.join(ICI, "decompresse.zip"), "w", zipfile.ZIP_DEFLATED) as z:
+with zipfile.ZipFile(os.path.join(ICI, SORTIE_ZIP), "w", zipfile.ZIP_DEFLATED) as z:
     for i, chemin in enumerate(fichiers, 1):
         nom = os.path.relpath(chemin, JEU).replace("\\", "/")[:-4]
         try:
@@ -43,4 +51,4 @@ with zipfile.ZipFile(os.path.join(ICI, "decompresse.zip"), "w", zipfile.ZIP_DEFL
             print("ERREUR", nom, e)
         if i % 50 == 0 or i == len(fichiers):
             print("%d / %d" % (i, len(fichiers)))
-print("Terminé :", len(fichiers) - erreurs, "fichiers OK,", erreurs, "erreur(s) -> decompresse.zip")
+print("Terminé :", len(fichiers) - erreurs, "fichiers OK,", erreurs, "erreur(s) ->", SORTIE_ZIP)

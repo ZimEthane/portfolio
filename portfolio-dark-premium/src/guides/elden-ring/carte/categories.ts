@@ -1,4 +1,4 @@
-import { Castle, Coins, Crosshair, Droplet, Flame, FlaskConical, Gem, Ghost, Hammer, Key, Leaf, Shield, Skull, Sparkles, Sprout, Sword, Swords, User } from 'lucide-react'
+import { Castle, Coins, Crosshair, Droplet, Flame, FlaskConical, Flower2, Gem, Ghost, Hammer, Hand, Key, Leaf, Shield, Skull, Sparkles, Sprout, Sword, Swords, User } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 export interface Categorie {
@@ -16,6 +16,7 @@ export const CATEGORIES: Categorie[] = [
   { id: 'lieux', nom: 'Lieux et donjons', couleur: '#3f7ea6', icone: Castle, groupe: 'Lieux', visible: true },
   { id: 'boss', nom: 'Boss', couleur: '#b3322b', icone: Skull, groupe: 'Lieux', visible: true },
   { id: 'pnj', nom: 'Personnages', couleur: '#4f8a4f', icone: User, groupe: 'Lieux', visible: true },
+  { id: 'envahisseurs', nom: 'Envahisseurs', couleur: '#8e2a4a', icone: Hand, groupe: 'Lieux', visible: true },
   { id: 'graines-larmes', nom: 'Graines dorées et larmes sacrées', couleur: '#c79a1e', icone: Sprout, groupe: 'Objets', visible: true },
   { id: 'pierres-forge', nom: 'Pierres de forge', couleur: '#6f7a86', icone: Hammer, groupe: 'Objets', visible: true },
   { id: 'objets-cles', nom: 'Objets clés', couleur: '#7d55b8', icone: Key, groupe: 'Objets', visible: true },
@@ -30,6 +31,8 @@ export const CATEGORIES: Categorie[] = [
   { id: 'runes', nom: 'Runes à consommer', couleur: '#b08d1a', icone: Coins, groupe: 'Divers', visible: false },
   { id: 'consommables', nom: 'Consommables', couleur: '#8a7350', icone: FlaskConical, groupe: 'Divers', visible: false },
   { id: 'munitions', nom: 'Flèches et carreaux', couleur: '#7a5c3e', icone: Crosshair, groupe: 'Divers', visible: false },
+  // Plantes, minerais et animaux qui réapparaissent (ressources.json, chargé à la demande).
+  { id: 'ressources', nom: 'Ressources à cueillir', couleur: '#5f8f3e', icone: Flower2, groupe: 'Divers', visible: false },
 ]
 
 export const PAR_ID = new Map(CATEGORIES.map(c => [c.id, c]))
