@@ -251,6 +251,9 @@
 .er-livre .checkall h3.clmap span { font-family: 'Inter Variable', Inter, system-ui, sans-serif; font-size: 11.88px; font-weight: 400; color: #6b604f; margin-left: 8.86px; }
 .er-livre .clgrid { columns: 3; column-gap: 22.15px; font-size: 11.56px; line-height: 1.32; }
 .er-livre .pin { white-space: nowrap; }
+.er-livre .compact table { font-size: 12.34px; line-height: 1.32; }
+.er-livre .compact td { padding: 4.87px 8.86px; }
+.er-livre .compact th { padding: 5.76px 8.86px; }
 .er-livre .clgrid.one { columns: 1; }
 .er-livre .clgrid.one .clb li { max-width: 531.5px; }
 .er-livre .clb { break-inside: avoid; margin: 0 0 9.74px; }
